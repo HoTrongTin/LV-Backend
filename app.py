@@ -4,6 +4,7 @@ import pyspark
 from delta import *
 import json
 import pandas as pd
+from pyspark.sql.functions import *
 import numpy as np
 import time
 from pyspark.sql.types import StructType
@@ -315,6 +316,7 @@ def start_admission_stream():
 def create_silver_table():
     #d_patients
     spark.sql("CREATE TABLE silver_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
+    return jsonify({'body': 'Successful!'})
 
 #Schedule jobs
 def cron_cache_query():

@@ -274,7 +274,7 @@ def init_spark_streamming():
     hadoop_conf.set("fs.s3a.secret.key", "s7C5vkNrc7Dknwe9V+x6m2SFPZyQ2tgUTDz6LDzL")
 
     start_d_patient_stream()
-    #start_admission_stream()
+    start_admission_stream()
 
 
 def start_d_patient_stream():
@@ -282,18 +282,19 @@ def start_d_patient_stream():
     d_patientsSchema = StructType() \
         .add("subject_id", "string") \
         .add("sex", "string") \
-        .add("dob", "timestamp") \
-        .add("dod", "timestamp") \
+        .add("dob", "string") \
+        .add("dod", "string") \
         .add("hospital_expire_flg", "string")
 
-    dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streamming/medical/d_patients").withColumn('Date_Time', current_timestamp())
+    dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streamming/d_patients")
 
+    # dfD_patients = spark.readStream.option("sep", ",").option("inferSchema" , "true").option("header", "true").csv("s3a://sister-team/spark-streamming/d_patients")
     dfD_patients \
     .writeStream \
     .format('delta') \
     .outputMode("append") \
-    .option("checkpointLocation", "/medical/bronze/d_patients/checkpointD_patients") \
-    .start("/medical/bronze/d_patients")
+    .option("checkpointLocation", "/tmp/d_patients/checkpointD_patients") \
+    .start("/tmp/d_patients")
 
 def start_admission_stream():
     admissionsSchema = StructType() \
@@ -302,38 +303,38 @@ def start_admission_stream():
     .add("admit_dt", "string") \
     .add("disch_dt", "string")
 
-    dfAdmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streamming/admissions").withColumn('Date_Time', current_timestamp())
+    dfAdmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streamming/admissions")
     dfAdmissions \
     .writeStream \
     .format('delta') \
     .outputMode("append") \
-    .option("checkpointLocation", "/bronze/admissions/checkpointAdmissions") \
-    .start("/bronze/admissions")
+    .option("checkpointLocation", "/tmp/admissions/checkpointAdmissions") \
+    .start("/tmp/admissions")
 
 #Create Silver table
-@app.route('/create-silver-table')
-def create_silver_table():
-    #d_patients
-    spark.sql("CREATE TABLE silver_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
+# @app.route('/create-silver-table')
+# def create_silver_table():
+#     #d_patients
+#     spark.sql("CREATE TABLE silver_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
 
 #Schedule jobs
 def cron_cache_query():
     print('Cron job running...')
-    #cache_test_streaming_1()
-    merge_silver_d_patients()
+    cache_test_streaming_1()
+    # merge_silver_d_patients()
 
-def merge_silver_d_patients():
-    spark.sql("""
-MERGE INTO delta.`/medical/silver/d_patients` silver_d_patients
-USING (select * from delta.`/medical/bronze/d_patients`
-where Date_Time > (select CASE WHEN max(Date_Time) is not NULL THEN max(Date_Time) ELSE '2000-01-01 00:00:00' END from delta.`/medical/bronze/d_patients`)
-) updates
-ON silver_d_patients.subject_id = updates.subject_id
-WHEN MATCHED THEN
-  UPDATE SET *
-WHEN NOT MATCHED
-  THEN INSERT *
-""")
+# def merge_silver_d_patients():
+#     spark.sql("""
+# MERGE INTO delta.`/medical/silver/d_patients` silver_d_patients
+# USING (select * from delta.`/medical/bronze/d_patients`
+# where Date_Time > (select CASE WHEN max(Date_Time) is not NULL THEN max(Date_Time) ELSE '2000-01-01 00:00:00' END from delta.`/medical/bronze/d_patients`)
+# ) updates
+# ON silver_d_patients.subject_id = updates.subject_id
+# WHEN MATCHED THEN
+#   UPDATE SET *
+# WHEN NOT MATCHED
+#   THEN INSERT *
+# """)
 
 def cache_test_streaming_1():
     res = spark.read.format("delta").load("/tmp/admissions")

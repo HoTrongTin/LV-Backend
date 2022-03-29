@@ -1,7 +1,6 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from sparkSetup import spark
-from delta import *
 import json
 import pandas as pd
 
@@ -9,13 +8,12 @@ import numpy as np
 import time
 from streaming import *
 from cronjob import *
-import os
+
 from flask_mongoengine import MongoEngine
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 import configparser
 
-os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.3.1 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" --master spark://10.1.8.101:7077 pyspark-shell'
 #spark.sql.debug.maxToStringFields = 100
 app = Flask(__name__)
 CORS(app)

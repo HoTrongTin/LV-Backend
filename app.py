@@ -22,7 +22,7 @@ CORS(app)
 
 #config
 config_obj = configparser.ConfigParser()
-config_obj.read("configf.ini")
+config_obj.read("config.ini")
 MongoDBparam = config_obj["MONGODB"]
 sparkparam = config_obj["spark"]
 

@@ -12,8 +12,10 @@ import os
 from flask_mongoengine import MongoEngine
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
+#from spark.sql import *
 
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.3.1 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" --master spark://10.1.8.101:7077 pyspark-shell'
+#spark.sql.debug.maxToStringFields = 100
 app = Flask(__name__)
 CORS(app)
 
@@ -240,7 +242,7 @@ order by avg(stay_days) desc
 
 @app.route('/test-streamming-1')
 def test_streamming_1():
-    res = spark.read.format("delta").load("/tmp/admissions")
+    res = spark.read.format("delta").load("/medical/bronze/d_patients")
     res.show()
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
 
@@ -248,7 +250,7 @@ def test_streamming_1():
 
 @app.route('/test-streamming-2')
 def test_streamming_2():
-    res = spark.read.format("delta").load("/tmp/d_patients")
+    res = spark.read.format("delta").load("/medical/silver/d_patients")
     res.show()
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
 
@@ -322,7 +324,7 @@ def create_silver_table():
 def cron_cache_query():
     print('Cron job running...')
     #cache_test_streaming_1()
-    # merge_silver_d_patients()
+    #merge_silver_d_patients()
 
 def merge_silver_d_patients():
     spark.sql("""
@@ -338,7 +340,7 @@ WHEN NOT MATCHED
 """)
 
 def cache_test_streaming_1():
-    res = spark.read.format("delta").load("/tmp/admissions")
+    res = spark.read.format("delta").load("/medical/silver/d_patients")
     res.show()
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
     
@@ -347,7 +349,7 @@ def cache_test_streaming_1():
 
 # Setup CronJob
 scheduler = BackgroundScheduler()
-scheduler.add_job(func=cron_cache_query, trigger="interval", seconds=60)
+scheduler.add_job(func=cron_cache_query, trigger="interval", seconds=30)
 scheduler.start()
 
 # Shut down the scheduler when exiting the app

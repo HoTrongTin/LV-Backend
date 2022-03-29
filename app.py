@@ -270,11 +270,15 @@ def test_cache_query():
 def create_silver_table():
     #d_patients
     spark.sql("CREATE TABLE silver_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
+    return jsonify({'state': 'successful!'})
 
 #Schedule jobs
 def cron_cache_query():
     print('Cron job running...')
-    cache_test_streaming_1()
+    print('Bronze...')
+    cache_test_streaming_bronze()
+    print('Silver...')
+    cache_test_streaming_silver()
     # merge_silver_d_patients()
 
 # def merge_silver_d_patients():
@@ -290,12 +294,20 @@ def cron_cache_query():
 #   THEN INSERT *
 # """)
 
-def cache_test_streaming_1():
+def cache_test_streaming_bronze():
+    res = spark.read.format("delta").load("/medical/bronze/d_patients")
+    res.show()
+    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+    
+    data = CacheQuery(key='cache_test_streaming_bronze',value=results)
+    data.save()
+
+def cache_test_streaming_silver():
     res = spark.read.format("delta").load("/medical/silver/d_patients")
     res.show()
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
     
-    data = CacheQuery(key='cache_test_streaming_1',value=results)
+    data = CacheQuery(key='cache_test_streaming_silver',value=results)
     data.save()
 
 # Setup CronJob

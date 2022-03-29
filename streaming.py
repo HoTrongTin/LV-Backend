@@ -23,7 +23,14 @@ def start_d_patient_stream():
         deltaTable.alias("sink").merge(
             df.alias("src"),
             "sink.subject_id = src.subject_id") \
-        .whenMatchedUpdateAll().whenNotMatchedInsertAll().execute()
+        .whenMatchedUpdate(set = { 
+            "sex" : "src.sex",
+            "dob" : "src.dob",
+            "dod" : "src.dod",
+            "hospital_expire_flg" : "src.hospital_expire_flg",
+            "Date_Time" : "src.Date_Time",
+            } ) \
+        .whenNotMatchedInsertAll().execute()
   
     dfD_patients.writeStream.option("checkpointLocation", "/medical/bronze/d_patients/checkpointD_patients").outputMode("append").foreachBatch(foreach_batch_function).start()
 

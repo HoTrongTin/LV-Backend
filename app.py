@@ -3,15 +3,28 @@ from flask_cors import CORS
 from sparkSetup import *
 import json
 import pandas as pd
-
+from pyspark.sql.types import StructType
+from pyspark.sql.functions import *
 import numpy as np
 import time
 from cronjob import *
-
+from delta import *
+import os
+import pyspark
 from flask_mongoengine import MongoEngine
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 import configparser
+
+os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.3.1 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" --master spark://10.1.8.101:7077 pyspark-shell'
+
+# Setup Spark Application
+builder = pyspark.sql.SparkSession.builder.appName("pyspark-notebook") \
+    .master(sparkparam['master']) \
+    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
+    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
+
+spark = configure_spark_with_delta_pip(builder).getOrCreate()
 
 #spark.sql.debug.maxToStringFields = 100
 app = Flask(__name__)
@@ -21,6 +34,7 @@ CORS(app)
 config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
 MongoDBparam = config_obj["MONGODB"]
+sparkparam = config_obj["spark"]
 
 
 # Setup MongoDB
@@ -266,6 +280,51 @@ def test_cache_query():
     else:
         return jsonify({'error': 'data not found'})
 
+#streaming
+def init_spark_streaming():
+    print('init streaming')
+    hadoop_conf = spark._jsc.hadoopConfiguration()
+    hadoop_conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
+    hadoop_conf.set("fs.s3a.access.key", "AKIASIV2BBOBY7OLXVET")
+    hadoop_conf.set("fs.s3a.secret.key", "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")
+
+    start_d_patient_stream()
+    #start_admission_stream()
+
+
+def start_d_patient_stream():
+    # Define schema of the csv
+    d_patientsSchema = StructType() \
+        .add("subject_id", "string") \
+        .add("sex", "string") \
+        .add("dob", "timestamp") \
+        .add("dod", "timestamp") \
+        .add("hospital_expire_flg", "string")
+
+    dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp())
+
+    dfD_patients \
+    .writeStream \
+    .format('delta') \
+    .outputMode("append") \
+    .option("checkpointLocation", "/medical/bronze/d_patients/checkpointD_patients") \
+    .start("/medical/bronze/d_patients")
+
+def start_admission_stream():
+    admissionsSchema = StructType() \
+    .add("hadm_id", "string") \
+    .add("subject_id", "string") \
+    .add("admit_dt", "string") \
+    .add("disch_dt", "string")
+
+    dfAdmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streaming/admissions").withColumn('Date_Time', current_timestamp())
+    dfAdmissions \
+    .writeStream \
+    .format('delta') \
+    .outputMode("append") \
+    .option("checkpointLocation", "/bronze/admissions/checkpointAdmissions") \
+    .start("/bronze/admissions")
+
 #Create Silver table
 @app.route('/create-silver-table')
 def create_silver_table():
@@ -282,10 +341,30 @@ def cache_test_streaming_1():
     data = CacheQuery(key='cache_test_streaming_1',value=results)
     data.save()
 
+#Schedule jobs
+def cron_cache_query():
+    print('Cron job running...')
+    #cache_test_streaming_1()
+    # merge_silver_d_patients()
+
+def merge_silver_d_patients():
+    spark.sql("""
+MERGE INTO delta.`/medical/silver/d_patients` silver_d_patients
+USING (select * from delta.`/medical/bronze/d_patients`
+where Date_Time > (select CASE WHEN max(Date_Time) is not NULL THEN max(Date_Time) ELSE '2000-01-01 00:00:00' END from delta.`/medical/bronze/d_patients`)
+) updates
+ON silver_d_patients.subject_id = updates.subject_id
+WHEN MATCHED THEN
+  UPDATE SET *
+WHEN NOT MATCHED
+  THEN INSERT *
+""")
+
 # Setup CronJob
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=cron_cache_query, trigger="interval", seconds=30)
 scheduler.start()
+
 
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())

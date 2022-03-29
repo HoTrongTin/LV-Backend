@@ -1,10 +1,10 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-import pyspark
+from sparkSetup import spark
 from delta import *
 import json
 import pandas as pd
-from pyspark.sql.functions import *
+
 import numpy as np
 import time
 from streaming import *
@@ -35,13 +35,7 @@ app.config['MONGODB_SETTINGS'] = {
 db = MongoEngine()
 db.init_app(app)
 
-# Setup Spark Application
-builder = pyspark.sql.SparkSession.builder.appName("pyspark-notebook") \
-    .master(sparkparam['master']) \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
 
-spark = configure_spark_with_delta_pip(builder).getOrCreate()
 
 class CacheQuery(db.Document):
     key = db.StringField()

@@ -1,4 +1,6 @@
 from pyspark.sql.types import StructType
+from pyspark.sql.functions import *
+from sparkSetup import spark
 
 #streaming
 def init_spark_streaming():

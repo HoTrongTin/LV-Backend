@@ -1,3 +1,5 @@
+from sparkSetup import spark
+
 #Schedule jobs
 def cron_cache_query():
     print('Cron job running...')

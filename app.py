@@ -291,7 +291,7 @@ def cron_cache_query():
 # """)
 
 def cache_test_streaming_1():
-    res = spark.read.format("delta").load("/medical/bronze/d_patients")
+    res = spark.read.format("delta").load("/medical/silver/d_patients")
     res.show()
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
     

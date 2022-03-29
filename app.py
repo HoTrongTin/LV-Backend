@@ -1,35 +1,21 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-<<<<<<< HEAD
-=======
-import pyspark
-from delta import *
->>>>>>> 62210f49a6d625baab2dd87035bfa3fa7f7b0fb3
 import json
 import pandas as pd
 import numpy as np
 import time
-<<<<<<< HEAD
-=======
-from pyspark.sql.types import StructType
->>>>>>> 62210f49a6d625baab2dd87035bfa3fa7f7b0fb3
 import os
 from flask_mongoengine import MongoEngine
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 import configparser
-from pyspark.sql.functions import *
 
-<<<<<<< HEAD
 from streaming import *
 from sparkSetup import *
 from cronjob import *
 
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.3.1 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" --master spark://10.1.8.101:7077 pyspark-shell'
 
-=======
-os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.3.1 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" --master spark://10.1.8.101:7077 pyspark-shell'
->>>>>>> 62210f49a6d625baab2dd87035bfa3fa7f7b0fb3
 app = Flask(__name__)
 CORS(app)
 
@@ -37,10 +23,6 @@ CORS(app)
 config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
 MongoDBparam = config_obj["MONGODB"]
-<<<<<<< HEAD
-=======
-sparkparam = config_obj["spark"]
->>>>>>> 62210f49a6d625baab2dd87035bfa3fa7f7b0fb3
 
 # Setup MongoDB
 app.config['MONGODB_SETTINGS'] = {
@@ -51,17 +33,6 @@ app.config['MONGODB_SETTINGS'] = {
 db = MongoEngine()
 db.init_app(app)
 
-<<<<<<< HEAD
-=======
-# Setup Spark Application
-builder = pyspark.sql.SparkSession.builder.appName("pyspark-notebook") \
-    .master(sparkparam['master']) \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-
-spark = configure_spark_with_delta_pip(builder).getOrCreate()
-
->>>>>>> 62210f49a6d625baab2dd87035bfa3fa7f7b0fb3
 class CacheQuery(db.Document):
     key = db.StringField()
     value = db.ListField()
@@ -294,54 +265,6 @@ def test_cache_query():
     else:
         return jsonify({'error': 'data not found'})
 
-<<<<<<< HEAD
-=======
-#streamming
-def init_spark_streamming():
-    print('init streamming')
-    hadoop_conf = spark._jsc.hadoopConfiguration()
-    hadoop_conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-    hadoop_conf.set("fs.s3a.access.key", "AKIASIV2BBOBY7OLXVET")
-    hadoop_conf.set("fs.s3a.secret.key", "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")
-
-    start_d_patient_stream()
-    start_admission_stream()
-
-
-def start_d_patient_stream():
-    # Define schema of the csv
-    d_patientsSchema = StructType() \
-        .add("subject_id", "string") \
-        .add("sex", "string") \
-        .add("dob", "timestamp") \
-        .add("dod", "timestamp") \
-        .add("hospital_expire_flg", "string")
-
-    dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp())
-
-    dfD_patients \
-    .writeStream \
-    .format('delta') \
-    .outputMode("append") \
-    .option("checkpointLocation", "/medical/bronze/d_patients/checkpointD_patients") \
-    .start("/medical/bronze/d_patients")
-
-def start_admission_stream():
-    admissionsSchema = StructType() \
-    .add("hadm_id", "string") \
-    .add("subject_id", "string") \
-    .add("admit_dt", "string") \
-    .add("disch_dt", "string")
-
-    dfAdmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streaming/medical/admissions").withColumn('Date_Time', current_timestamp())
-    dfAdmissions \
-    .writeStream \
-    .format('delta') \
-    .outputMode("append") \
-    .option("checkpointLocation", "/bronze/admissions/checkpointAdmissions") \
-    .start("/bronze/admissions")
-
->>>>>>> 62210f49a6d625baab2dd87035bfa3fa7f7b0fb3
 #Create Silver table
 # @app.route('/create-silver-table')
 # def create_silver_table():

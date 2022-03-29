@@ -1,4 +1,9 @@
 import pyspark
+import configparser
+
+#config
+config_obj = configparser.ConfigParser()
+sparkparam = config_obj["spark"]
 
 # Setup Spark Application
 builder = pyspark.sql.SparkSession.builder.appName("pyspark-notebook") \

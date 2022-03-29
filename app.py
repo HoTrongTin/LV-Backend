@@ -24,7 +24,7 @@ CORS(app)
 config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
 MongoDBparam = config_obj["MONGODB"]
-sparkparam = config_obj["spark"]
+
 
 # Setup MongoDB
 app.config['MONGODB_SETTINGS'] = {

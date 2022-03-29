@@ -1,11 +1,6 @@
 from sparkSetup import spark
 
 #Schedule jobs
-def cron_cache_query():
-    print('Cron job running...')
-    #cache_test_streaming_1()
-    # merge_silver_d_patients()
-
 def merge_silver_d_patients():
     spark.sql("""
 MERGE INTO delta.`/medical/silver/d_patients` silver_d_patients

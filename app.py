@@ -14,6 +14,12 @@ import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 import configparser
 
+#config
+config_obj = configparser.ConfigParser()
+config_obj.read("config.ini")
+MongoDBparam = config_obj["MONGODB"]
+sparkparam = config_obj["spark"]
+
 os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.3.1 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" --master spark://10.1.8.101:7077 pyspark-shell'
 
 # Setup Spark Application
@@ -27,13 +33,6 @@ spark = configure_spark_with_delta_pip(builder).getOrCreate()
 #spark.sql.debug.maxToStringFields = 100
 app = Flask(__name__)
 CORS(app)
-
-#config
-config_obj = configparser.ConfigParser()
-config_obj.read("config.ini")
-MongoDBparam = config_obj["MONGODB"]
-sparkparam = config_obj["spark"]
-
 
 # Setup MongoDB
 app.config['MONGODB_SETTINGS'] = {

@@ -310,7 +310,7 @@ def start_admission_stream():
     .add("admit_dt", "string") \
     .add("disch_dt", "string")
 
-    dfAdmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streaming/admissions").withColumn('Date_Time', current_timestamp())
+    dfAdmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streaming/medical/admissions").withColumn('Date_Time', current_timestamp())
     dfAdmissions \
     .writeStream \
     .format('delta') \

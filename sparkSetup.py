@@ -3,6 +3,7 @@ import configparser
 
 #config
 config_obj = configparser.ConfigParser()
+config_obj.read("config.ini")
 sparkparam = config_obj["spark"]
 
 # Setup Spark Application

@@ -1,10 +1,10 @@
 from pyspark.sql.types import StructType
 from pyspark.sql.functions import *
 from sparkSetup import spark
+from delta.tables import *
 
 #streaming
 def start_d_patient_stream():
-    # Define schema of the csv
     d_patientsSchema = StructType() \
         .add("subject_id", "string") \
         .add("sex", "string") \
@@ -14,12 +14,18 @@ def start_d_patient_stream():
 
     dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp())
 
-    dfD_patients \
-    .writeStream \
-    .format('delta') \
-    .outputMode("append") \
-    .option("checkpointLocation", "/medical/bronze/d_patients/checkpointD_patients") \
-    .start("/medical/bronze/d_patients")
+    def foreach_batch_function(df, epoch_id):
+    # Transform and write batchDF
+        df.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/bronze/d_patients/checkpointD_patients").start("/medical/bronze/d_patients")
+
+        deltaTable = DeltaTable.forPath(spark, "/medical/silver/d_patients")
+        deltaTable.alias("sink").merge(
+            df.alias("src"),
+            "sink.subject_id = src.subject_id") \
+        .whenMatchedUpdateAll().whenNotMatchedInsertAll().execute()
+  
+    dfD_patients.writeStream.foreachBatch(foreach_batch_function).start() 
+
 
 def start_admission_stream():
     admissionsSchema = StructType() \

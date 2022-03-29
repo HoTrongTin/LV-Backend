@@ -1,5 +1,6 @@
 import pyspark
 import configparser
+from delta import *
 
 #config
 config_obj = configparser.ConfigParser()

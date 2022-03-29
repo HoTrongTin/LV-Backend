@@ -25,7 +25,7 @@ def start_d_patient_stream():
             "sink.subject_id = src.subject_id") \
         .whenMatchedUpdateAll().whenNotMatchedInsertAll().execute()
   
-    dfD_patients.writeStream.foreachBatch(foreach_batch_function).start() 
+    dfD_patients.writeStream.option("checkpointLocation", "/medical/bronze/d_patients/checkpointD_patients").outputMode("append").foreachBatch(foreach_batch_function).start()
 
 
 def start_admission_stream():

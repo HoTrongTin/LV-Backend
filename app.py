@@ -1,12 +1,11 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from sparkSetup import spark
+from sparkSetup import *
 import json
 import pandas as pd
 
 import numpy as np
 import time
-from streaming import *
 from cronjob import *
 
 from flask_mongoengine import MongoEngine

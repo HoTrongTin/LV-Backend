@@ -1,5 +1,4 @@
 from sparkSetup import spark
-import json
 
 #Schedule jobs
 def cron_cache_query():

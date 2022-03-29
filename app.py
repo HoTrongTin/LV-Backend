@@ -1,13 +1,11 @@
 from flask import Flask, jsonify, request
 from flask_cors import CORS
-from sparkSetup import *
 import json
 import pandas as pd
 from pyspark.sql.types import StructType
 from pyspark.sql.functions import *
 import numpy as np
 import time
-from cronjob import *
 from delta import *
 import os
 import pyspark

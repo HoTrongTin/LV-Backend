@@ -1,9 +1,6 @@
 from pyspark.sql.types import StructType
 from pyspark.sql.functions import *
 from sparkSetup import spark
-import os
-
-os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.3.1 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" --master spark://10.1.8.101:7077 pyspark-shell'
 
 #streaming
 def init_spark_streaming():
@@ -42,7 +39,7 @@ def start_admission_stream():
     .add("admit_dt", "string") \
     .add("disch_dt", "string")
 
-    dfAdmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streaming/admissions").withColumn('Date_Time', current_timestamp())
+    dfAdmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streaming/medical/admissions").withColumn('Date_Time', current_timestamp())
     dfAdmissions \
     .writeStream \
     .format('delta') \

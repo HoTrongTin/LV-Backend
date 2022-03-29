@@ -1,5 +1,4 @@
 from sparkSetup import spark
-import json
 
 #Schedule jobs
 def cron_cache_query():
@@ -19,3 +18,11 @@ WHEN MATCHED THEN
 WHEN NOT MATCHED
   THEN INSERT *
 """)
+
+def cache_test_streaming_1():
+    res = spark.read.format("delta").load("/medical/bronze/d_patients")
+    res.show()
+    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+    
+    data = CacheQuery(key='cache_test_streaming_1',value=results)
+    data.save()

@@ -16,7 +16,8 @@ def start_d_patient_stream():
 
     def foreach_batch_function(df, epoch_id):
     # Transform and write batchDF
-        df.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/bronze/d_patients/checkpointD_patients").start("/medical/bronze/d_patients")
+        # df.write.format('delta').outputMode("append").option("checkpointLocation", "/medical/bronze/d_patients/checkpointD_patients").start("/medical/bronze/d_patients")
+        df.write.format("delta").mode("append").save("/medical/bronze/d_patients")
 
         deltaTable = DeltaTable.forPath(spark, "/medical/silver/d_patients")
         deltaTable.alias("sink").merge(

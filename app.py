@@ -266,10 +266,10 @@ def test_cache_query():
         return jsonify({'error': 'data not found'})
 
 #Create Silver table
-# @app.route('/create-silver-table')
-# def create_silver_table():
-#     #d_patients
-#     spark.sql("CREATE TABLE silver_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
+@app.route('/create-silver-table')
+def create_silver_table():
+    #d_patients
+    spark.sql("CREATE TABLE silver_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
 
 #Schedule jobs
 def cron_cache_query():

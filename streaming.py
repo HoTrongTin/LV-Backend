@@ -80,4 +80,5 @@ def init_spark_streaming():
 
     start_d_patient_stream_bronze()
     start_d_patient_stream_silver()
-    #start_admission_stream()
+    start_admissions_stream_bronze()
+    start_admissions_stream_silver()

@@ -34,3 +34,15 @@ def cache_test_streaming_admissions_silver():
     
     data = CacheQuery(key='cache_test_streaming_admissions_silver',value=results)
     data.save()
+
+#Schedule jobs
+def cron_cache_query():
+    print('Cron job running...')
+    print('Bronze d_patients...')
+    cache_test_streaming_d_patients_bronze()
+    print('Silver d_patients...')
+    cache_test_streaming_d_patients_silver()
+    print('Bronze admissions...')
+    cache_test_streaming_admissions_bronze()
+    print('Silver admissions...')
+    cache_test_streaming_admissions_silver()

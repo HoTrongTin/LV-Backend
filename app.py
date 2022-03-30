@@ -9,7 +9,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from sparkSetup import *
 from streaming import *
-from cronjob import *
+from cronjob import cron_cache_query
 
 app = Flask(__name__)
 CORS(app)
@@ -236,25 +236,6 @@ def test_cache_query():
         return jsonify(data.to_json())
     else:
         return jsonify({'error': 'data not found'})
-
-#Create Silver table
-@app.route('/create-silver-table')
-def create_silver_table():
-    #d_patients
-    spark.sql("CREATE TABLE silver_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
-    return jsonify({'state': 'successful!'})
-
-#Schedule jobs
-def cron_cache_query():
-    print('Cron job running...')
-    print('Bronze d_patients...')
-    cache_test_streaming_d_patients_bronze()
-    print('Silver d_patients...')
-    cache_test_streaming_d_patients_silver()
-    print('Bronze admissions...')
-    cache_test_streaming_admissions_bronze()
-    print('Silver admissions...')
-    cache_test_streaming_admissions_silver()
 
 # Setup CronJob
 scheduler = BackgroundScheduler()

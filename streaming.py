@@ -63,9 +63,9 @@ def start_admissions_stream_silver():
         """)
 
     if not(DeltaTable.isDeltaTable(spark, '/medical/silver/admissions')):
-        spark.sql("CREATE TABLE silver_admissions (hadm_id integer, subject_id integer, admit_dt timestamp, admit_dt timestamp, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/admissions'")
+        spark.sql("CREATE TABLE silver_admissions (hadm_id integer, subject_id integer, admit_dt timestamp, disch_dt timestamp, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/admissions'")
     if not(DeltaTable.isDeltaTable(spark, '/medical/bronze/admissions')):
-        spark.sql("CREATE TABLE bronze_admissions (hadm_id integer, subject_id integer, admit_dt timestamp, admit_dt timestamp, Date_Time timestamp) USING DELTA LOCATION '/medical/bronze/admissions' PARTITIONED BY (subject_id)")
+        spark.sql("CREATE TABLE bronze_admissions (hadm_id integer, subject_id integer, admit_dt timestamp, disch_dt timestamp, Date_Time timestamp) USING DELTA LOCATION '/medical/bronze/admissions' PARTITIONED BY (subject_id)")
 
     dfadmissions = spark.readStream.format("delta").load("/medical/bronze/admissions")
   

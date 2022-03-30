@@ -15,28 +15,30 @@ def start_d_patient_stream_bronze():
     spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp()).writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/d_patients").start("/medical/bronze/d_patients")
 
 def start_d_patient_stream_silver():
-
     d_patientsSchema = StructType() \
         .add("subject_id", "string") \
         .add("sex", "string") \
         .add("dob", "timestamp") \
         .add("dod", "timestamp") \
         .add("hospital_expire_flg", "string")
-    
-    def upsertToDelta(microBatchOutputDF, batchId): 
-        # Set the dataframe to view name
-        microBatchOutputDF.createOrReplaceTempView("updates")
-        microBatchOutputDF._jdf.sparkSession().sql("""
-            MERGE INTO delta.`/medical/silver/d_patients` silver_d_patients
-            USING updates s
-            ON silver_d_patients.subject_id = s.subject_id
-            WHEN MATCHED THEN UPDATE SET *
-            WHEN NOT MATCHED THEN INSERT *
-        """)
 
     dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp())
+
+    def foreach_batch_function(df, epoch_id):
+        deltaTable = DeltaTable.forPath(spark, "/medical/silver/d_patients")
+        deltaTable.alias("sink").merge(
+            df.alias("src"),
+            "sink.subject_id = src.subject_id") \
+        .whenMatchedUpdate(set = { 
+            "sex" : "src.sex",
+            "dob" : "src.dob",
+            "dod" : "src.dod",
+            "hospital_expire_flg" : "src.hospital_expire_flg",
+            "Date_Time" : "src.Date_Time"
+            } ) \
+        .whenNotMatchedInsertAll().execute()
   
-    dfD_patients.writeStream.option("checkpointLocation", "/medical/checkpoint/silver/d_patients").outputMode("append").foreachBatch(upsertToDelta).start()
+    dfD_patients.writeStream.option("checkpointLocation", "/medical/checkpoint/silver/d_patients").outputMode("append").foreachBatch(foreach_batch_function).start()
 
 
 def start_admission_stream():

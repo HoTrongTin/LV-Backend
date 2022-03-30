@@ -229,7 +229,7 @@ def test_streamming_2():
 def test_cache_query():
     key = request.args.get('key')
     print(key)
-    if key == 'cache_test_streaming_1':
+    if key == 'cache_test_streaming_admissions_silver':
         data = CacheQuery.objects(key=key).first()
         print('--Found Mongo Data--')
         print(data)

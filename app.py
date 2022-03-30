@@ -8,8 +8,8 @@ import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 
 from mongodb import app, CacheQuery
-from sparkSetup import *
-from streaming import *
+from sparkSetup import spark
+from streaming import init_spark_streaming
 from cronjob import cron_cache_query
 
 CORS(app)

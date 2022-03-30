@@ -34,7 +34,7 @@ def start_d_patient_stream_silver():
             WHEN NOT MATCHED THEN INSERT *
         """)
 
-    dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp())
+    dfD_patients = spark.readStream.format("delta").load("/medical/bronze/d_patients")
   
     dfD_patients.writeStream.option("checkpointLocation", "/medical/checkpoint/silver/d_patients").outputMode("update").foreachBatch(upsertToDelta).start()
 

@@ -26,7 +26,7 @@ def start_d_patient_stream_silver():
     def upsertToDelta(microBatchOutputDF, batchId): 
         # Set the dataframe to view name
         microBatchOutputDF.createOrReplaceTempView("updates")
-        if (DeltaTable.isDeltaTable(spark, '/medical/silver/d_patients')):
+        if not(DeltaTable.isDeltaTable(spark, '/medical/silver/d_patients')):
             spark.sql("CREATE TABLE silver_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
         microBatchOutputDF._jdf.sparkSession().sql("""
             MERGE INTO delta.`/medical/silver/d_patients` silver_d_patients

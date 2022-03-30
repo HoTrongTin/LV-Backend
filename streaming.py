@@ -4,7 +4,17 @@ from sparkSetup import spark
 from delta.tables import *
 
 #streaming
-def start_d_patient_stream():
+def start_d_patient_stream_bronze():
+    d_patientsSchema = StructType() \
+        .add("subject_id", "string") \
+        .add("sex", "string") \
+        .add("dob", "timestamp") \
+        .add("dod", "timestamp") \
+        .add("hospital_expire_flg", "string")
+
+    spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp()).writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/d_patients").start("/medical/bronze/d_patients")
+
+def start_d_patient_stream_silver():
     d_patientsSchema = StructType() \
         .add("subject_id", "string") \
         .add("sex", "string") \
@@ -13,8 +23,6 @@ def start_d_patient_stream():
         .add("hospital_expire_flg", "string")
 
     dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp())
-
-    dfD_patients.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/d_patients").start("/medical/bronze/d_patients")
 
     def foreach_batch_function(df, epoch_id):
         deltaTable = DeltaTable.forPath(spark, "/medical/silver/d_patients")

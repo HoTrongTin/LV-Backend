@@ -7,6 +7,7 @@ import time
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 
+from mongodb import CacheQuery
 from sparkSetup import *
 from streaming import *
 from cronjob import cron_cache_query

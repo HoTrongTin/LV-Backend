@@ -17,12 +17,12 @@ def start_d_patient_stream_bronze():
 
 def start_d_patient_stream_silver():
 
-    d_patientsSchema = StructType() \
-        .add("sujbect_id", "string") \
-        .add("sex", "string") \
-        .add("dob", "timestamp") \
-        .add("dod", "timestamp") \
-        .add("hospital_expire_flg", "string")
+    # d_patientsSchema = StructType() \
+    #     .add("sujbect_id", "string") \
+    #     .add("sex", "string") \
+    #     .add("dob", "timestamp") \
+    #     .add("dod", "timestamp") \
+    #     .add("hospital_expire_flg", "string")
     
     def upsertToDelta(microBatchOutputDF, batchId): 
         # Set the dataframe to view name

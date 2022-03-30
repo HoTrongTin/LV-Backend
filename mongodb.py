@@ -1,6 +1,8 @@
+from flask import Flask
 import configparser
 from flask_mongoengine import MongoEngine
-from app import app
+
+app = Flask(__name__)
 
 #config
 config_obj = configparser.ConfigParser()

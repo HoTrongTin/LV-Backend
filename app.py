@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request
+from flask import jsonify, request
 from flask_cors import CORS
 import json
 import pandas as pd
@@ -7,12 +7,11 @@ import time
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
 
-from mongodb import CacheQuery
+from mongodb import app, CacheQuery
 from sparkSetup import *
 from streaming import *
 from cronjob import cron_cache_query
 
-app = Flask(__name__)
 CORS(app)
 
 @app.route('/')

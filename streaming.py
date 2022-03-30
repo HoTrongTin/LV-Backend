@@ -62,5 +62,5 @@ def init_spark_streaming():
     hadoop_conf.set("fs.s3a.secret.key", "s7C5vkNrc7Dknwe9V+x6m2SFPZyQ2tgUTDz6LDzL")
 
     start_d_patient_stream_bronze()
-    start_d_patient_stream_silver()
+    # start_d_patient_stream_silver()
     #start_admission_stream()

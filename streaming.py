@@ -38,6 +38,8 @@ def start_d_patient_stream_silver():
 
     if not(DeltaTable.isDeltaTable(spark, '/medical/silver/d_patients')):
         spark.sql("CREATE TABLE silver_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
+    if not(DeltaTable.isDeltaTable(spark, '/medical/bronze/d_patients')):
+        spark.sql("CREATE TABLE bronze_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/bronze/d_patients'")
 
     dfD_patients = spark.readStream.format("delta").load("/medical/bronze/d_patients")
   

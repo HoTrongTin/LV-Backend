@@ -4,43 +4,15 @@ import json
 import pandas as pd
 import numpy as np
 import time
-import os
-from flask_mongoengine import MongoEngine
 import atexit
 from apscheduler.schedulers.background import BackgroundScheduler
-import configparser
 
 from sparkSetup import *
 from streaming import *
 from cronjob import *
 
-# os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.3.1 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" --conf "spark.sql.debug.maxToStringFields=100" --master spark://10.1.8.101:7077 pyspark-shell'
-
 app = Flask(__name__)
 CORS(app)
-
-#config
-config_obj = configparser.ConfigParser()
-config_obj.read("config.ini")
-MongoDBparam = config_obj["MONGODB"]
-
-# Setup MongoDB
-app.config['MONGODB_SETTINGS'] = {
-    'db': MongoDBparam['db'],
-    'host': MongoDBparam['host'],
-    'port': int(MongoDBparam['port'])
-}
-db = MongoEngine()
-db.init_app(app)
-
-class CacheQuery(db.Document):
-    key = db.StringField()
-    value = db.ListField()
-    def to_json(self):
-        return {
-                    "key": self.key,
-                    "value": self.value
-                }
 
 @app.route('/')
 def hello_world():
@@ -283,38 +255,6 @@ def cron_cache_query():
     cache_test_streaming_admissions_bronze()
     print('Silver admissions...')
     cache_test_streaming_admissions_silver()
-
-def cache_test_streaming_d_patients_bronze():
-    res = spark.read.format("delta").load("/medical/bronze/d_patients")
-    res.show()
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-    
-    data = CacheQuery(key='cache_test_streaming_d_patients_bronze',value=results)
-    data.save()
-
-def cache_test_streaming_d_patients_silver():
-    res = spark.read.format("delta").load("/medical/silver/d_patients")
-    res.show()
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-    
-    data = CacheQuery(key='cache_test_streaming_d_patients_silver',value=results)
-    data.save()
-
-def cache_test_streaming_admissions_bronze():
-    res = spark.read.format("delta").load("/medical/bronze/admissions")
-    res.show()
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-    
-    data = CacheQuery(key='cache_test_streaming_admissions_bronze',value=results)
-    data.save()
-
-def cache_test_streaming_admissions_silver():
-    res = spark.read.format("delta").load("/medical/silver/admissions")
-    res.show()
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-    
-    data = CacheQuery(key='cache_test_streaming_admissions_silver',value=results)
-    data.save()
 
 # Setup CronJob
 scheduler = BackgroundScheduler()

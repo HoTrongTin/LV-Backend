@@ -14,7 +14,7 @@ def start_d_patient_stream():
 
     dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp())
 
-    dfD_patients.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/bronze/d_patients/checkpointD_patients").start("/medical/bronze/d_patients")
+    dfD_patients.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/d_patients").start("/medical/bronze/d_patients")
 
     def foreach_batch_function(df, epoch_id):
         deltaTable = DeltaTable.forPath(spark, "/medical/silver/d_patients")
@@ -30,7 +30,7 @@ def start_d_patient_stream():
             } ) \
         .whenNotMatchedInsertAll().execute()
   
-    dfD_patients.writeStream.option("checkpointLocation", "/medical/silver/d_patients/checkpointD_patients").outputMode("append").foreachBatch(foreach_batch_function).start()
+    dfD_patients.writeStream.option("checkpointLocation", "/medical/checkpoint/silver/d_patients").outputMode("append").foreachBatch(foreach_batch_function).start()
 
 
 def start_admission_stream():

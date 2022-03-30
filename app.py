@@ -19,11 +19,19 @@ from cronjob import *
 app = Flask(__name__)
 CORS(app)
 
-from db import *
-
 #config
 config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
+MongoDBparam = config_obj["MONGODB"]
+
+# Setup MongoDB
+app.config['MONGODB_SETTINGS'] = {
+    'db': MongoDBparam['db'],
+    'host': MongoDBparam['host'],
+    'port': int(MongoDBparam['port'])
+}
+db = MongoEngine()
+db.init_app(app)
 
 @app.route('/')
 def hello_world():

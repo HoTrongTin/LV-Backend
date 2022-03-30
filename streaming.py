@@ -6,7 +6,7 @@ from delta.tables import *
 #streaming
 def start_d_patient_stream_bronze():
     d_patientsSchema = StructType() \
-        .add("subject_id", "string") \
+        .add("subject_id", "integer") \
         .add("sex", "string") \
         .add("dob", "timestamp") \
         .add("dod", "timestamp") \
@@ -17,13 +17,6 @@ def start_d_patient_stream_bronze():
 
 def start_d_patient_stream_silver():
 
-    d_patientsSchema = StructType() \
-        .add("sujbect_id", "string") \
-        .add("sex", "string") \
-        .add("dob", "timestamp") \
-        .add("dod", "timestamp") \
-        .add("hospital_expire_flg", "string")
-    
     def upsertToDelta(microBatchOutputDF, batchId): 
         # Set the dataframe to view name
         microBatchOutputDF.createOrReplaceTempView("updates")
@@ -37,29 +30,46 @@ def start_d_patient_stream_silver():
         """)
 
     if not(DeltaTable.isDeltaTable(spark, '/medical/silver/d_patients')):
-        spark.sql("CREATE TABLE silver_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
+        spark.sql("CREATE TABLE silver_d_patients (subject_id integer, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
     if not(DeltaTable.isDeltaTable(spark, '/medical/bronze/d_patients')):
-        spark.sql("CREATE TABLE bronze_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/bronze/d_patients'")
+        spark.sql("CREATE TABLE bronze_d_patients (subject_id integer, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/bronze/d_patients'")
 
     dfD_patients = spark.readStream.format("delta").load("/medical/bronze/d_patients")
   
     dfD_patients.writeStream.option("checkpointLocation", "/medical/checkpoint/silver/d_patients").outputMode("update").foreachBatch(upsertToDelta).start()
 
-
-def start_admission_stream():
+def start_admissions_stream_bronze():
     admissionsSchema = StructType() \
-    .add("hadm_id", "string") \
-    .add("subject_id", "string") \
-    .add("admit_dt", "string") \
-    .add("disch_dt", "string")
+        .add("hadm_id", "integer") \
+        .add("subject_id", "integer") \
+        .add("admit_dt", "timestamp") \
+        .add("disch_dt", "timestamp")
 
-    dfAdmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streaming/medical/admissions").withColumn('Date_Time', current_timestamp())
-    dfAdmissions \
-    .writeStream \
-    .format('delta') \
-    .outputMode("append") \
-    .option("checkpointLocation", "/bronze/admissions/checkpointAdmissions") \
-    .start("/bronze/admissions")
+    dfadmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streaming/medical/admissions").withColumn('Date_Time', current_timestamp())
+    dfadmissions.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/admissions").start("/medical/bronze/admissions")
+
+def start_admissions_stream_silver():
+    
+    def upsertToDelta(microBatchOutputDF, batchId): 
+        # Set the dataframe to view name
+        microBatchOutputDF.createOrReplaceTempView("updates")
+        
+        microBatchOutputDF._jdf.sparkSession().sql("""
+            MERGE INTO delta.`/medical/silver/admissions` silver_admissions
+            USING updates s
+            ON silver_admissions.subject_id = s.subject_id AND silver_admissions.hadm_id = s.hadm_id
+            WHEN MATCHED THEN UPDATE SET *
+            WHEN NOT MATCHED THEN INSERT *
+        """)
+
+    if not(DeltaTable.isDeltaTable(spark, '/medical/silver/admissions')):
+        spark.sql("CREATE TABLE silver_admissions (hadm_id integer, subject_id integer, admit_dt timestamp, admit_dt timestamp, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/admissions'")
+    if not(DeltaTable.isDeltaTable(spark, '/medical/bronze/admissions')):
+        spark.sql("CREATE TABLE bronze_admissions (hadm_id integer, subject_id integer, admit_dt timestamp, admit_dt timestamp, Date_Time timestamp) USING DELTA LOCATION '/medical/bronze/admissions' PARTITIONED BY (subject_id)")
+
+    dfadmissions = spark.readStream.format("delta").load("/medical/bronze/admissions")
+  
+    dfadmissions.writeStream.option("checkpointLocation", "/medical/checkpoint/silver/admissions").outputMode("update").foreachBatch(upsertToDelta).start()
 
 def init_spark_streaming():
     print('init streaming')

@@ -1,4 +1,4 @@
-from app import *
+from app import db
 
 class CacheQuery(db.Document):
     key = db.StringField()

@@ -12,7 +12,8 @@ def start_d_patient_stream_bronze():
         .add("dod", "timestamp") \
         .add("hospital_expire_flg", "string")
 
-    spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp()).writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/d_patients").start("/medical/bronze/d_patients")
+    dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp())
+    dfD_patients.writeStream.format('delta').outputMode("update").option("checkpointLocation", "/medical/checkpoint/bronze/d_patients").start("/medical/bronze/d_patients")
 
 def start_d_patient_stream_silver():
 

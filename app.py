@@ -89,7 +89,7 @@ def get_cached_data():
 
 # Setup CronJob for checking streaming
 schedulercheckstreaming = BackgroundScheduler()
-schedulercheckstreaming.add_job(func=cron_check_streaming, trigger="interval", seconds=60)
+schedulercheckstreaming.add_job(func=cron_check_streaming, trigger="interval", seconds=40)
 schedulercheckstreaming.start()
 
 # Setup CronJob for copying data from silver to gold

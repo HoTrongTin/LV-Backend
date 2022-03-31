@@ -80,17 +80,12 @@ where month in ( """ + months + ')').toPandas().head(20)
 
     return jsonify({'body': results})
 
-@app.route('/test-cache-query')
-def test_cache_query():
+@app.route('/get-cached-data')
+def get_cached_data():
     key = request.args.get('key')
-    print(key)
-    if key == 'cache_test_streaming_admissions_silver':
-        data = CacheQuery.objects(key=key).first()
-        print('--Found Mongo Data--')
-        print(data)
-        return jsonify(data.to_json())
-    else:
-        return jsonify({'error': 'data not found'})
+    data = CacheQuery.objects(key=key).first()
+    return jsonify(data.to_json())
+
 
 # Setup CronJob for checking streaming
 schedulercheckstreaming = BackgroundScheduler()

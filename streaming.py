@@ -153,6 +153,50 @@ def start_d_codeditems_stream_silver():
   
     dfd_codeditems.writeStream.option("checkpointLocation", "/medical/checkpoint/silver/d_codeditems").outputMode("update").foreachBatch(upsertToDelta).start()
 
+#demographic_detail
+def start_demographic_detail_stream_bronze():
+    demographic_detailSchema = StructType() \
+        .add("subject_id", "integer") \
+        .add("hadm_id", "integer") \
+        .add("marital_status_itemid", "integer") \
+        .add("marital_status_descr", "string") \
+        .add("ethnicity_itemid", "integer") \
+        .add("ethnicity_descr", "string") \
+        .add("overall_payor_group_itemid", "integer") \
+        .add("overall_payor_group_descr", "string") \
+        .add("religion_itemid", "integer") \
+        .add("religion_descr", "string") \
+        .add("admission_type_itemid", "integer") \
+        .add("admission_type_descr", "string") \
+        .add("admission_source_itemid", "integer") \
+        .add("admission_source_descr", "string")
+
+    dfdemographic_detail = spark.readStream.option("sep", ",").option("header", "true").schema(demographic_detailSchema).csv(amazonS3param['s3aURL'] + "/medical/demographic_detail").withColumn('Date_Time', current_timestamp())
+    dfdemographic_detail.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/demographic_detail").start("/medical/bronze/demographic_detail")
+
+def start_demographic_detail_stream_silver():
+    
+    def upsertToDelta(microBatchOutputDF, batchId): 
+        microBatchOutputDF.createOrReplaceTempView("updates")
+        
+        microBatchOutputDF._jdf.sparkSession().sql("""
+            MERGE INTO delta.`/medical/silver/demographic_detail` silver_demographic_detail
+            USING updates s
+            ON silver_demographic_detail.subject_id = s.subject_id AND silver_demographic_detail.hadm_id = s.hadm_id
+            WHEN MATCHED THEN UPDATE SET *
+            WHEN NOT MATCHED THEN INSERT *
+        """)
+
+    #create silver
+    if not(DeltaTable.isDeltaTable(spark, '/medical/silver/demographic_detail')):
+        spark.sql("CREATE TABLE silver_demographic_detail (subject_id integer, hadm_id integer, marital_status_itemid integer, marital_status_descr string, ethnicity_itemid integer, ethnicity_descr string, overall_payor_group_itemid integer, overall_payor_group_descr string, religion_itemid integer, religion_descr string, admission_type_itemid integer, admission_type_descr string, admission_source_itemid integer, admission_source_descr string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/demographic_detail' PARTITIONED BY (type)")
+    #create bronze
+    if not(DeltaTable.isDeltaTable(spark, '/medical/bronze/demographic_detail')):
+        spark.sql("CREATE TABLE bronze_demographic_detail (subject_id integer, hadm_id integer, marital_status_itemid integer, marital_status_descr string, ethnicity_itemid integer, ethnicity_descr string, overall_payor_group_itemid integer, overall_payor_group_descr string, religion_itemid integer, religion_descr string, admission_type_itemid integer, admission_type_descr string, admission_source_itemid integer, admission_source_descr string, Date_Time timestamp) USING DELTA LOCATION '/medical/bronze/demographic_detail'")
+
+    dfdemographic_detail = spark.readStream.format("delta").load("/medical/bronze/demographic_detail")
+  
+    dfdemographic_detail.writeStream.option("checkpointLocation", "/medical/checkpoint/silver/demographic_detail").outputMode("update").foreachBatch(upsertToDelta).start()
 
 def init_spark_streaming():
     print('init streaming')
@@ -169,3 +213,5 @@ def init_spark_streaming():
     start_drgevents_stream_silver()
     start_d_codeditems_stream_bronze()
     start_d_codeditems_stream_silver()
+    start_demographic_detail_stream_bronze()
+    start_demographic_detail_stream_silver()

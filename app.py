@@ -89,7 +89,12 @@ def get_cached_data():
 @app.route('/manual-copy-gold')
 def manual_copy_gold():
     cron_data_to_Gold()
+    return jsonify({'body': 'Copy successful!'})
 
+@app.route('/manual-copy-mongoDB')
+def manual_copy_mongoDB():
+    cron_data_to_mongoDB()
+    return jsonify({'body': 'Copy successful!'})
 
 # Setup CronJob for checking streaming
 schedulercheckstreaming = BackgroundScheduler()

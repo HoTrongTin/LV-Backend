@@ -86,20 +86,24 @@ def get_cached_data():
     data = CacheQuery.objects(key=key).first()
     return jsonify(data.to_json())
 
+@app.route('/manual-copy-gold')
+def manual_copy_gold():
+    cron_data_to_Gold()
+
 
 # Setup CronJob for checking streaming
 schedulercheckstreaming = BackgroundScheduler()
-schedulercheckstreaming.add_job(func=cron_check_streaming, trigger="interval", seconds=40)
+schedulercheckstreaming.add_job(func=cron_check_streaming, trigger="interval", seconds=60)
 schedulercheckstreaming.start()
 
 # Setup CronJob for copying data from silver to gold
 schedulercopydatatoGold = BackgroundScheduler()
-schedulercopydatatoGold.add_job(func=cron_data_to_Gold, trigger="interval", seconds=600)
+schedulercopydatatoGold.add_job(func=cron_data_to_Gold, trigger="interval", seconds=6000)
 schedulercopydatatoGold.start()
 
 # Setup CronJob for copying data from gold to mongoDB
 schedulercopydatatoGold = BackgroundScheduler()
-schedulercopydatatoGold.add_job(func=cron_data_to_mongoDB, trigger="interval", seconds=600)
+schedulercopydatatoGold.add_job(func=cron_data_to_mongoDB, trigger="interval", seconds=6000)
 schedulercopydatatoGold.start()
 
 # Shut down the scheduler when exiting the app

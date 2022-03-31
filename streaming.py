@@ -2,6 +2,12 @@ from pyspark.sql.types import StructType
 from pyspark.sql.functions import *
 from sparkSetup import spark
 from delta.tables import *
+import configparser
+
+#config
+config_obj = configparser.ConfigParser()
+config_obj.read("config.ini")
+amazonS3param = config_obj["amazonS3"]
 
 #streaming
 def start_d_patient_stream_bronze():
@@ -12,7 +18,7 @@ def start_d_patient_stream_bronze():
         .add("dod", "timestamp") \
         .add("hospital_expire_flg", "string")
 
-    dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streaming/medical/d_patients").withColumn('Date_Time', current_timestamp())
+    dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv(amazonS3param['s3aURL'] + "/medical/d_patients").withColumn('Date_Time', current_timestamp())
     dfD_patients.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/d_patients").start("/medical/bronze/d_patients")
 
 def start_d_patient_stream_silver():
@@ -45,7 +51,7 @@ def start_admissions_stream_bronze():
         .add("admit_dt", "timestamp") \
         .add("disch_dt", "timestamp")
 
-    dfadmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streaming/medical/admissions").withColumn('Date_Time', current_timestamp())
+    dfadmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv(amazonS3param['s3aURL'] + "/medical/admissions").withColumn('Date_Time', current_timestamp())
     dfadmissions.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/admissions").start("/medical/bronze/admissions")
 
 def start_admissions_stream_silver():
@@ -75,8 +81,8 @@ def init_spark_streaming():
     print('init streaming')
     hadoop_conf = spark._jsc.hadoopConfiguration()
     hadoop_conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-    hadoop_conf.set("fs.s3a.access.key", "AKIASIV2BBOBY7OLXVET")
-    hadoop_conf.set("fs.s3a.secret.key", "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")
+    hadoop_conf.set("fs.s3a.access.key", amazonS3param['accesskey'])
+    hadoop_conf.set("fs.s3a.secret.key", amazonS3param['secretkey'])
 
     start_d_patient_stream_bronze()
     start_d_patient_stream_silver()

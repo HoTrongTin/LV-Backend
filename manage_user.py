@@ -135,8 +135,8 @@ def signup():
     print(data);
   
     # gets name, email and password
-    name, email, role = data.get('name'), data.get('email'), data.get('role')
-    password = data.get('password')
+    name, email, role = jsonData['name'], jsonData['email'], jsonData['role']
+    password = jsonData['password']
   
     # checking for existing user
     user = User.objects(email = email).first()

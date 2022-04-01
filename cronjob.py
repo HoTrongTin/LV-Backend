@@ -165,6 +165,17 @@ def cache_gold_analysis_diseases_clinical_affected_died_patients():
     order by ratioDied desc
     """)
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_diseases_clinical_affected_died_patients")
+
+def cache_gold_analysis_diseases_clinical_by_month():
+    res = spark.sql("""
+    select drgevents.itemid, description, month(admit_dt) as month, count(*) as num 
+    from delta.`/medical/silver/drgevents` as drgevents
+    join delta.`/medical/silver/d_codeditems` as d_codeditems
+    join delta.`/medical/silver/admissions` as admissions
+    on drgevents.itemid = d_codeditems.itemid and admissions.hadm_id = drgevents.hadm_id
+    group by drgevents.itemid, description, month
+    """)
+    res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_diseases_clinical_by_month")
     
 
 #Setup CronJob for copying data from gold to mongoDB
@@ -195,6 +206,9 @@ def cache_mongoDB_analysis_patients_died_in_hospital():
 def cache_mongoDB_analysis_diseases_clinical_affected_died_patients():
     cache_data_to_mongoDB("cache_gold_analysis_diseases_clinical_affected_died_patients", "cache_mongoDB_analysis_diseases_clinical_affected_died_patients")
 
+def cache_mongoDB_analysis_diseases_clinical_by_month():
+    cache_data_to_mongoDB("cache_gold_analysis_diseases_clinical_by_month", "cache_mongoDB_analysis_diseases_clinical_by_month")
+
 #Schedule jobs
 def cron_check_streaming():
     print('CronJob for checking streaming...')
@@ -207,24 +221,26 @@ def cron_check_streaming():
 
 def cron_data_to_Gold():
     print('Schedule jobs copy data from silver to Gold...')
-    cache_gold_analysis_patients_by_age()
-    cache_gold_analysis_admissions_and_deied_patients_in_hospital()
-    cache_gold_analysis_get_5_common_diseases_by_month()
-    cache_gold_analysis_diseases_affect_stay_days()
-    cache_gold_analysis_20_common_diseases_clinical_results()
-    cache_gold_analysis_state_affect_total_died_patients()
-    cache_gold_analysis_patients_by_sex()
-    cache_gold_analysis_patients_died_in_hospital()
-    cache_gold_analysis_diseases_clinical_affected_died_patients()
+    # cache_gold_analysis_patients_by_age()
+    # cache_gold_analysis_admissions_and_deied_patients_in_hospital()
+    # cache_gold_analysis_get_5_common_diseases_by_month()
+    # cache_gold_analysis_diseases_affect_stay_days()
+    # cache_gold_analysis_20_common_diseases_clinical_results()
+    # cache_gold_analysis_state_affect_total_died_patients()
+    # cache_gold_analysis_patients_by_sex()
+    # cache_gold_analysis_patients_died_in_hospital()
+    # cache_gold_analysis_diseases_clinical_affected_died_patients()
+    cache_gold_analysis_diseases_clinical_by_month()
 
 def cron_data_to_mongoDB():
     print('Setup CronJob for copying data from gold to mongoDB...')
-    cache_mongoDB_analysis_patients_by_age()
-    cache_mongoDB_analysis_admissions_and_deied_patients_in_hospital()
-    cache_mongoDB_analysis_get_5_common_diseases_by_month()
-    cache_mongoDB_analysis_diseases_affect_stay_days()
-    cache_mongoDB_analysis_20_common_diseases_clinical_results()
-    cache_mongoDB_analysis_state_affect_total_died_patients()
-    cache_mongoDB_analysis_patients_by_sex()
-    cache_mongoDB_analysis_patients_died_in_hospital()
-    cache_mongoDB_analysis_diseases_clinical_affected_died_patients()
+    # cache_mongoDB_analysis_patients_by_age()
+    # cache_mongoDB_analysis_admissions_and_deied_patients_in_hospital()
+    # cache_mongoDB_analysis_get_5_common_diseases_by_month()
+    # cache_mongoDB_analysis_diseases_affect_stay_days()
+    # cache_mongoDB_analysis_20_common_diseases_clinical_results()
+    # cache_mongoDB_analysis_state_affect_total_died_patients()
+    # cache_mongoDB_analysis_patients_by_sex()
+    # cache_mongoDB_analysis_patients_died_in_hospital()
+    # cache_mongoDB_analysis_diseases_clinical_affected_died_patients()
+    cache_mongoDB_analysis_diseases_clinical_by_month()

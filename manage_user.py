@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from functools import wraps  
 from mongodb import app, db
 import configparser
+import json
 
 config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
@@ -111,7 +112,7 @@ def login():
         token = jwt.encode({
             'name': user['name'],
             'email': user['email'],
-            'role': user['role'],
+            'role': json.dumps(user['role']),
             'exp' : datetime.utcnow() + timedelta(minutes = 30)
         }, JwtParam['secretKey'])
   

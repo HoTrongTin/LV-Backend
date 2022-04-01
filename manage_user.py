@@ -15,9 +15,9 @@ config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
 JwtParam = config_obj["jwt"]
 
-class UserRole(str, Enum):
-    DOCTOR = 'doctor'
-    PATIENT = 'patient'
+# class UserRole(str, Enum):
+#     DOCTOR = 'doctor'
+#     PATIENT = 'patient'
   
 # Database ORMs
 class User(db.Document):
@@ -29,7 +29,7 @@ class User(db.Document):
     email = db.EmailField(min_length=6, max_length=200, required=True, unique=True);
     password = db.StringField(required=True);
     name = db.StringField(required=True);
-    role = db.EnumField(UserRole);
+    role = db.StringField(choices=['DOCTOR', 'PATIENT']);
 
   
 # decorator for verifying the JWT
@@ -112,7 +112,7 @@ def login():
         token = jwt.encode({
             'name': user['name'],
             'email': user['email'],
-            'role': json.dumps(user['role']),
+            'role': user['role'],
             'exp' : datetime.utcnow() + timedelta(minutes = 30)
         }, JwtParam['secretKey'])
   

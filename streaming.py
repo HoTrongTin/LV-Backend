@@ -74,8 +74,8 @@ def start_d_codeditems_stream_silver():
 
 #demographic_detail
 demographic_detailSchema = ( \
-    ("subject_id", "integer"), \
-    ("hadm_id", "integer"), \
+    ("subject_id", "integer", False), \
+    ("hadm_id", "integer", False), \
     ("marital_status_itemid", "integer"), \
     ("marital_status_descr", "string"), \
     ("ethnicity_itemid", "integer"), \
@@ -96,6 +96,21 @@ def start_demographic_detail_stream_bronze():
 def start_demographic_detail_stream_silver():
     streamingBronzeToGold(tableName = 'demographic_detail', schema = demographic_detailSchema, mergeOn = ["subject_id", "hadm_id"])
 
+#icd9
+icd9Schema = ( \
+    ("subject_id", "integer", False), \
+    ("hadm_id", "integer", False), \
+    ("sequence", "integer", False), \
+    ("code", "string"), \
+    ("description", "string") \
+)
+
+def start_icd9_stream_bronze():
+    streamingS3ToBronze(tableName = 'icd9', schema = icd9Schema)
+
+def start_icd9_stream_silver():
+    streamingBronzeToGold(tableName = 'icd9', schema = icd9Schema, mergeOn = ["subject_id", "hadm_id", "sequence"], partitionedBy = ["subject_id"])
+
 def init_spark_streaming():
     print('init streaming')
     hadoop_conf = spark._jsc.hadoopConfiguration()
@@ -113,3 +128,5 @@ def init_spark_streaming():
     start_d_codeditems_stream_silver()
     start_demographic_detail_stream_bronze()
     start_demographic_detail_stream_silver()
+    start_icd9_stream_bronze()
+    start_icd9_stream_silver()

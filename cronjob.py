@@ -44,43 +44,43 @@ def cache_gold_analysis_admissions_and_deied_patients_in_hospital():
 
 def cache_gold_analysis_get_5_common_diseases_by_month():
     res = spark.sql("""
-select * from 
-(select ROW_NUMBER() OVER(PARTITION BY month ORDER BY num desc) 
-    AS ROW_NUMBER, * from
-(select drgevents.itemid, description, month(admit_dt) as month, count(*) as num 
-from delta.`/medical/silver/drgevents` as drgevents
-join delta.`/medical/silver/d_codeditems` as d_codeditems
-join delta.`/medical/silver/admissions` as admissions
-on drgevents.itemid = d_codeditems.itemid and admissions.hadm_id = drgevents.hadm_id
-group by drgevents.itemid, description, month
-order by num desc) tmp) tmp1
-where ROW_NUMBER < 6""")
+    select * from 
+    (select ROW_NUMBER() OVER(PARTITION BY month ORDER BY num desc) 
+        AS ROW_NUMBER, * from
+    (select drgevents.itemid, description, month(admit_dt) as month, count(*) as num 
+    from delta.`/medical/silver/drgevents` as drgevents
+    join delta.`/medical/silver/d_codeditems` as d_codeditems
+    join delta.`/medical/silver/admissions` as admissions
+    on drgevents.itemid = d_codeditems.itemid and admissions.hadm_id = drgevents.hadm_id
+    group by drgevents.itemid, description, month
+    order by num desc) tmp) tmp1
+    where ROW_NUMBER < 6""")
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_get_5_common_diseases_by_month")
 
 def cache_gold_analysis_diseases_affect_stay_days():
     res = spark.sql("""
-select itemid, description, avg(stay_days) as avgStayDays from
-(select EXTRACT( DAY FROM (disch_dt - admit_dt)) as stay_days, description, drgevents.itemid 
-from delta.`/medical/silver/drgevents` as drgevents 
-join delta.`/medical/silver/admissions` as admissions
-join delta.`/medical/silver/d_codeditems` as d_codeditems
-on d_codeditems.itemid = drgevents.itemid 
-and drgevents.hadm_id = admissions.hadm_id) tmp
-group by itemid, description
-order by avg(stay_days) desc
-""")
+    select itemid, description, avg(stay_days) as avgStayDays from
+    (select EXTRACT( DAY FROM (disch_dt - admit_dt)) as stay_days, description, drgevents.itemid 
+    from delta.`/medical/silver/drgevents` as drgevents 
+    join delta.`/medical/silver/admissions` as admissions
+    join delta.`/medical/silver/d_codeditems` as d_codeditems
+    on d_codeditems.itemid = drgevents.itemid 
+    and drgevents.hadm_id = admissions.hadm_id) tmp
+    group by itemid, description
+    order by avg(stay_days) desc
+    """)
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_diseases_affect_stay_days")
 
 def cache_gold_analysis_20_common_diseases_clinical_results():
     res = spark.sql("""
-select drgevents.itemid, description, count(*) as numCases
-from delta.`/medical/silver/drgevents` as drgevents 
-join delta.`/medical/silver/d_codeditems` as d_codeditems 
-on drgevents.itemid = d_codeditems.itemid
-group by drgevents.itemid, description, type
-order by numCases desc
-LIMIT 20
-""")
+    select drgevents.itemid, description, count(*) as numCases
+    from delta.`/medical/silver/drgevents` as drgevents 
+    join delta.`/medical/silver/d_codeditems` as d_codeditems 
+    on drgevents.itemid = d_codeditems.itemid
+    group by drgevents.itemid, description, type
+    order by numCases desc
+    LIMIT 20
+    """)
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_20_common_diseases_clinical_results")
 
 def cache_gold_analysis_state_affect_total_died_patients():
@@ -125,6 +125,48 @@ def cache_gold_analysis_state_affect_total_died_patients():
     res = spark.createDataFrame(pd.DataFrame(df, columns = ['state','total_patients','total_died_patients','ratio']))
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_state_affect_total_died_patients")
 
+def cache_gold_analysis_patients_by_sex():
+    res = spark.sql("""
+    select CASE 
+        WHEN sex IS NULL THEN 'N/A'
+        ELSE sex 
+    END as sex, count(*) as numCases 
+    from delta.`/medical/silver/d_patients` as d_patients
+    group by sex
+    order by numCases
+    """)
+    res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_patients_by_sex")
+
+def cache_gold_analysis_patients_died_in_hospital():
+    total_patients = spark.sql("""         
+    SELECT count(*)
+    FROM delta.`/medical/silver/d_patients`
+    """).first()['count(1)']
+
+    res = spark.sql("""select {0} as TotalPatients, count(*) as TotalDeathInHospital, count(*)/{0} as ratioOfDeathInHospital 
+    from delta.`/medical/silver/d_patients` as d_patients
+    where hospital_expire_flg = 'N'
+    """.format(total_patients))
+    res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_patients_died_in_hospital")
+
+def cache_gold_analysis_diseases_clinical_affected_died_patients():
+    res = spark.sql("""
+    select d_codeditems.itemid, d_codeditems.type, d_codeditems.description,
+    (select count(*) from
+    (SELECT ROW_NUMBER() OVER(PARTITION BY subject_id ORDER BY hadm_id desc) 
+        AS ROW_NUMBER, subject_id, itemid from delta.`/medical/silver/drgevents`) tableLastest 
+    join delta.`/medical/silver/d_patients` d_patients
+    on d_patients.subject_id = tableLastest.subject_id where ROW_NUMBER = 1 and tableLastest.itemid = d_codeditems.itemid and hospital_expire_flg = 'Y')/
+    (select count(*) from
+    (SELECT ROW_NUMBER() OVER(PARTITION BY subject_id ORDER BY hadm_id desc) 
+        AS ROW_NUMBER, subject_id, itemid from delta.`/medical/silver/drgevents`) tableLastest 
+    join delta.`/medical/silver/d_patients` d_patients
+    on d_patients.subject_id = tableLastest.subject_id where ROW_NUMBER = 1 and tableLastest.itemid = d_codeditems.itemid) as ratioDied from delta.`/medical/silver/d_codeditems` d_codeditems
+    order by ratioDied desc
+    """)
+    res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_diseases_clinical_affected_died_patients")
+    
+
 #Setup CronJob for copying data from gold to mongoDB
 def cache_mongoDB_analysis_patients_by_age():
     cache_data_to_mongoDB("cache_gold_analysis_patients_by_age", "cache_mongoDB_analysis_patients_by_age")
@@ -144,6 +186,15 @@ def cache_mongoDB_analysis_20_common_diseases_clinical_results():
 def cache_mongoDB_analysis_state_affect_total_died_patients():
     cache_data_to_mongoDB("cache_gold_analysis_state_affect_total_died_patients", "cache_mongoDB_analysis_state_affect_total_died_patients")
 
+def cache_mongoDB_analysis_patients_by_sex():
+    cache_data_to_mongoDB("cache_gold_analysis_patients_by_sex", "cache_mongoDB_analysis_patients_by_sex")
+
+def cache_mongoDB_analysis_patients_died_in_hospital():
+    cache_data_to_mongoDB("cache_gold_analysis_patients_died_in_hospital", "cache_mongoDB_analysis_patients_died_in_hospital")
+
+def cache_mongoDB_analysis_diseases_clinical_affected_died_patients():
+    cache_data_to_mongoDB("cache_gold_analysis_diseases_clinical_affected_died_patients", "cache_mongoDB_analysis_diseases_clinical_affected_died_patients")
+
 #Schedule jobs
 def cron_check_streaming():
     print('CronJob for checking streaming...')
@@ -162,6 +213,9 @@ def cron_data_to_Gold():
     cache_gold_analysis_diseases_affect_stay_days()
     cache_gold_analysis_20_common_diseases_clinical_results()
     cache_gold_analysis_state_affect_total_died_patients()
+    cache_gold_analysis_patients_by_sex()
+    cache_gold_analysis_patients_died_in_hospital()
+    cache_gold_analysis_diseases_clinical_affected_died_patients()
 
 def cron_data_to_mongoDB():
     print('Setup CronJob for copying data from gold to mongoDB...')
@@ -171,3 +225,6 @@ def cron_data_to_mongoDB():
     cache_mongoDB_analysis_diseases_affect_stay_days()
     cache_mongoDB_analysis_20_common_diseases_clinical_results()
     cache_mongoDB_analysis_state_affect_total_died_patients()
+    cache_mongoDB_analysis_patients_by_sex()
+    cache_mongoDB_analysis_patients_died_in_hospital()
+    cache_mongoDB_analysis_diseases_clinical_affected_died_patients()

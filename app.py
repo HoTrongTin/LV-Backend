@@ -14,6 +14,10 @@ from cronjob import cron_check_streaming, cron_data_to_Gold, cron_data_to_mongoD
 
 CORS(app)
 
+#Set up scheduler
+scheduler = BackgroundScheduler()
+scheduler.configure(timezone='Asia/Ho_Chi_Minh')
+
 @app.route('/')
 def hello_world():
     return 'Hello, My name is SMART MEDICAL SYSTEM!'
@@ -86,6 +90,11 @@ def get_cached_data():
     data = CacheQuery.objects(key=key).first()
     return jsonify(data.to_json())
 
+@app.route('/manual-check-streaming-data-in-silver')
+def manual_check_streaming_data_in_silver():
+    cron_check_streaming()
+    return jsonify({'body': 'See data on console!'})
+
 @app.route('/manual-copy-gold')
 def manual_copy_gold():
     cron_data_to_Gold()
@@ -96,25 +105,26 @@ def manual_copy_mongoDB():
     cron_data_to_mongoDB()
     return jsonify({'body': 'Copy successful!'})
 
+@app.route('/manual-stop-scheduler')
+def manual_stop_scheduler():
+    scheduler.remove_all_jobs()
+    return jsonify({'body': 'Stop scheduler successful!'})
+
 # Setup CronJob for checking streaming
-schedulercheckstreaming = BackgroundScheduler()
-schedulercheckstreaming.add_job(func=cron_check_streaming, trigger="interval", seconds=60)
-schedulercheckstreaming.start()
+scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=60)
 
 # Setup CronJob for copying data from silver to gold
-schedulercopydatatoGold = BackgroundScheduler()
-schedulercopydatatoGold.add_job(func=cron_data_to_Gold, trigger="interval", seconds=6000)
-schedulercopydatatoGold.start()
+#shceduler run mon to fri on every 0 and 30 minutes of each hour from 6h to 22h
+scheduler.add_job(func=cron_data_to_Gold, trigger="cron", minute='0,30', hour='6-22', day_of_week='mon-fri')
 
 # Setup CronJob for copying data from gold to mongoDB
-schedulercopydatatoGold = BackgroundScheduler()
-schedulercopydatatoGold.add_job(func=cron_data_to_mongoDB, trigger="interval", seconds=6000)
-schedulercopydatatoGold.start()
+#shceduler run mon to fri on every 15 and 45 minutes of each hour from 6h to 22h
+scheduler.add_job(func=cron_data_to_mongoDB, trigger="cron", minute='5,35', hour='6-22', day_of_week='mon-fri')
+
+scheduler.start()
 
 # Shut down the scheduler when exiting the app
-atexit.register(lambda: schedulercheckstreaming.shutdown())
-atexit.register(lambda: schedulercopydatatoGold.shutdown())
-atexit.register(lambda: schedulercheckstreaming.shutdown())
+atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
     init_spark_streaming()

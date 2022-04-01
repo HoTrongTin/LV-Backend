@@ -15,7 +15,7 @@ config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
 JwtParam = config_obj["jwt"]
 
-class UserRole(Enum):
+class UserRole(str, Enum):
     DOCTOR = 'doctor'
     PATIENT = 'patient'
   
@@ -82,10 +82,10 @@ def get_all_users(current_user):
 # route for logging user in
 @app.route('/login', methods =['POST'])
 def login():
-    # creates dictionary of form data
-    auth = request.form
 
     jsonData = request.get_json()
+
+    print(jsonData)
   
     if not jsonData or not jsonData['email'] or not jsonData['password']:
         # returns 401 if any email or / and password is missing

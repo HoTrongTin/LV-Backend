@@ -94,12 +94,12 @@ def get_cached_data():
 def test():
     key = request.args.get('key')
     data = CacheQuery.objects(key=key).first().value
-    res = []
-    for item in data:
-        if item['month'] == 3:
-            res.append(item)
+    # res = []
+    # for item in data:
+    #     if item['month'] == 3:
+    #         res.append(item)
     # print(data)
-    # res = filter(lambda x: x['month'] == 3, data)
+    res = filter(lambda x: x['month'] == 3, data)
     # print(res)
     return jsonify({'body': res})
 

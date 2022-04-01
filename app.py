@@ -96,7 +96,7 @@ def test():
     data = list(CacheQuery.objects(key=key).first().value)
     # print(type(data))
     # print(data)
-    res = filter(lambda x: x.month == 3, data)
+    res = filter(lambda x: x['month'] == 3, data)
     print(res)
     return jsonify({'body': res})
 

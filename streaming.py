@@ -1,8 +1,4 @@
-from msilib import schema
-from pyspark.sql.types import StructType
-from pyspark.sql.functions import *
 from sparkSetup import spark
-from delta.tables import *
 from utility import *
 import configparser
 

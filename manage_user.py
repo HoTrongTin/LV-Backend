@@ -49,14 +49,15 @@ def token_required(f):
         if not token:
             return jsonify({'message' : 'Token is missing !!'}), 401
   
-        try:
+        # try:
             # decoding the payload to fetch the stored details
-            data = jwt.decode(token, JwtParam['secretKey'])
-            current_user = User.object(email=data['email']).first()
-        except:
-            return jsonify({
-                'message' : 'Token is invalid !!'
-            }), 401
+        data = jwt.decode(token, JwtParam['secretKey'])
+        print({'data: ', data});
+        current_user = User.object(email=data['email']).first()
+        # except:
+        #     return jsonify({
+        #         'message' : 'Token is invalid !!'
+        #     }), 401
         # returns the current logged in users contex to the routes
         return  f(current_user, *args, **kwargs)
   

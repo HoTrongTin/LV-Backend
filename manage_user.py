@@ -126,6 +126,8 @@ def login():
 def signup():
     # creates a dictionary of the form data
     data = request.form
+
+    print(data);
   
     # gets name, email and password
     name, email, role = data.get('name'), data.get('email'), data.get('role')

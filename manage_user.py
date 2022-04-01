@@ -19,7 +19,7 @@ class UserRole(Enum):
     PATIENT = 'patient'
   
 # Database ORMs
-class User(db.Model):
+class User(db.Document):
     # id = db.Column(db.Integer, primary_key = True)
     # public_id = db.Column(db.String(50), unique = True)
     # name = db.Column(db.String(100))

@@ -24,7 +24,7 @@ def streamingS3ToBronze(tableName, schema):
     dfStreaming.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/" + tableName).start("/medical/bronze/" + tableName)
 
 #streaming Bronze To Gold
-def streamingBronzeToGold(tableName, schema, mergeOn, partitionedBy):
+def streamingBronzeToGold(tableName, schema, mergeOn, partitionedBy = []):
     def upsertToDelta(microBatchOutputDF, batchId): 
         microBatchOutputDF.createOrReplaceTempView("updates")
         

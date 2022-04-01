@@ -11,6 +11,7 @@ from mongodb import app, db
 import configparser
 
 config_obj = configparser.ConfigParser()
+config_obj.read("config.ini")
 JwtParam = config_obj["jwt"]
 
 class UserRole(Enum):

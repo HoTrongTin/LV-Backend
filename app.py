@@ -95,7 +95,7 @@ def test():
     key = request.args.get('key')
     data = CacheQuery.objects(key=key).first().value
     for item in data:
-        print(item)
+        print(item['month'])
     # print(data)
     # res = filter(lambda x: x['month'] == 3, data)
     # print(res)

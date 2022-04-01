@@ -83,8 +83,10 @@ def get_all_users(current_user):
 def login():
     # creates dictionary of form data
     auth = request.form
+
+    jsonData = request.get_json()
   
-    if not auth or not auth.get('email') or not auth.get('password'):
+    if not jsonData or not jsonData['email'] or not jsonData['password']:
         # returns 401 if any email or / and password is missing
         return make_response(
             'Could not verify',
@@ -94,7 +96,7 @@ def login():
             }
         )
   
-    user = User.objects(email = auth.get('email')).first()
+    user = User.objects(email = jsonData['email']).first()
   
     if not user:
         # returns 401 if user does not exist
@@ -104,7 +106,7 @@ def login():
             {'WWW-Authenticate' : 'Basic realm ="User does not exist !!"'}
         )
   
-    if check_password_hash(user['password'], auth.get('password')):
+    if check_password_hash(user['password'], jsonData['password']):
         # generates the JWT Token
         token = jwt.encode({
             'name': user['name'],
@@ -125,14 +127,10 @@ def login():
 @app.route('/signup', methods =['POST'])
 def signup():
     # creates a dictionary of the form data
-    data = request.form
-
     jsonData = request.get_json()
     print('------')
     print(jsonData)
     print('------')
-
-    print(data);
   
     # gets name, email and password
     name, email, role = jsonData['name'], jsonData['email'], jsonData['role']

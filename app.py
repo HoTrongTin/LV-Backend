@@ -110,6 +110,11 @@ def manual_stop_scheduler():
     scheduler.remove_all_jobs()
     return jsonify({'body': 'Stop scheduler successful!'})
 
+@app.route('/manual-start-scheduler')
+def manual_start_scheduler():
+    scheduler.start()
+    return jsonify({'body': 'Stop scheduler successful!'})
+
 # Setup CronJob for checking streaming
 scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=60)
 

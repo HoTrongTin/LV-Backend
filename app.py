@@ -94,10 +94,10 @@ def get_cached_data():
 def test():
     key = request.args.get('key')
     data = CacheQuery.objects(key=key).first().value
-    
-    res = filter(lambda x: x.month == 3, data)
-    print(res)
-    return jsonify({'body': res})
+    print(type(data))
+    # res = filter(lambda x: x.month == 3, data)
+    # print(res)
+    return jsonify({'body': data})
 
 @app.route('/manual-check-streaming-data-in-silver')
 def manual_check_streaming_data_in_silver():

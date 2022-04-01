@@ -52,7 +52,7 @@ def token_required(f):
         # try:
             # decoding the payload to fetch the stored details
         data = jwt.decode(token, JwtParam['secretKey'], algorithms=['HS256'])
-        print({'data: ', data});
+        # print({'data: ', data});
         current_user = User.object(email=data['email']).first()
         # except:
         #     return jsonify({

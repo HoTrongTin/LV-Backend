@@ -43,7 +43,7 @@ def cache_gold_analysis_patients_by_age():
     group by period
     order by num desc
     """)
-    res.write.format("delta").mode("overwrite").save("/medical/gold/cache_gold_analysis_patients_by_age")
+    res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_patients_by_age")
 
 def cache_gold_analysis_admissions_and_deied_patients_in_hospital():
     res = spark.sql("""
@@ -62,7 +62,7 @@ def cache_gold_analysis_admissions_and_deied_patients_in_hospital():
     
     res['numDied'] = dfdied['num']
     res = spark.createDataFrame(res)
-    res.write.format("delta").mode("overwrite").save("/medical/gold/cache_gold_analysis_admissions_and_deied_patients_in_hospital")
+    res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_admissions_and_deied_patients_in_hospital")
 
 def cache_gold_analysis_get_5_common_diseases_by_month():
     res = spark.sql("""
@@ -77,7 +77,7 @@ on drgevents.itemid = d_codeditems.itemid and admissions.hadm_id = drgevents.had
 group by drgevents.itemid, description, month
 order by num desc) tmp) tmp1
 where ROW_NUMBER < 6""")
-    res.write.format("delta").mode("overwrite").save("/medical/gold/cache_gold_analysis_get_5_common_diseases_by_month")
+    res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_get_5_common_diseases_by_month")
 
 def cache_gold_analysis_diseases_affect_stay_days():
     res = spark.sql("""
@@ -91,7 +91,7 @@ and drgevents.hadm_id = admissions.hadm_id) tmp
 group by itemid, description
 order by avg(stay_days) desc
 """)
-    res.write.format("delta").mode("overwrite").save("/medical/gold/cache_gold_analysis_diseases_affect_stay_days")
+    res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_diseases_affect_stay_days")
 
 def cache_gold_analysis_20_common_diseases_clinical_results():
     res = spark.sql("""
@@ -103,7 +103,7 @@ group by drgevents.itemid, description, type
 order by numCases desc
 LIMIT 20
 """)
-    res.write.format("delta").mode("overwrite").save("/medical/gold/cache_gold_analysis_20_common_diseases_clinical_results")
+    res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_20_common_diseases_clinical_results")
 
 def cache_gold_analysis_state_affect_total_died_patients():
     totalpatientsURGENT = spark.sql("""
@@ -145,7 +145,7 @@ def cache_gold_analysis_state_affect_total_died_patients():
     df = np.array([['URGENT', totalpatientsURGENT, patientsURGENTDiedInHospital, patientsURGENTDiedInHospital/totalpatientsURGENT]\
                 ,['EMERGENCY', totalpatientsEMERGENCY, patientsEMERGENCYDiedInHospital, patientsEMERGENCYDiedInHospital/totalpatientsEMERGENCY]])
     res = spark.createDataFrame(pd.DataFrame(df, columns = ['state','total_patients','total_died_patients','ratio']))
-    res.write.format("delta").mode("overwrite").save("/medical/gold/cache_gold_analysis_state_affect_total_died_patients")
+    res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_state_affect_total_died_patients")
 
 #Setup CronJob for copying data from gold to mongoDB
 def cache_mongoDB_analysis_patients_by_age():

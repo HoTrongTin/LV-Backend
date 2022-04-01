@@ -116,7 +116,7 @@ def login():
             'exp' : datetime.utcnow() + timedelta(minutes = 30)
         }, JwtParam['secretKey'])
   
-        return make_response(jsonify({'token' : token.decode('UTF-8')}), 201)
+        return make_response(jsonify({'token' : token}), 201)
     # returns 403 if password is wrong
     return make_response(
         'Could not verify',

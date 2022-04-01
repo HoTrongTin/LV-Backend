@@ -90,6 +90,14 @@ def get_cached_data():
     data = CacheQuery.objects(key=key).first()
     return jsonify(data.to_json())
 
+@app.route('/test')
+def get_cached_data():
+    key = request.args.get('key')
+    data = CacheQuery.objects(key=key).first().value
+    
+    res = filter(lambda x: x.month == 3, data)
+    print(res)
+
 @app.route('/manual-check-streaming-data-in-silver')
 def manual_check_streaming_data_in_silver():
     cron_check_streaming()

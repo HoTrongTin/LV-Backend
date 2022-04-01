@@ -127,6 +127,11 @@ def signup():
     # creates a dictionary of the form data
     data = request.form
 
+    jsonData = request.get_json()
+    print('------')
+    print(jsonData)
+    print('------')
+
     print(data);
   
     # gets name, email and password

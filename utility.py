@@ -63,5 +63,6 @@ def check_streaming_data_in_silver(tableName, numRows = 5):
 def cache_data_to_mongoDB(goldTableName, keyTableMongoDB):
     res = spark.read.format("delta").load("/medical/gold/" + goldTableName)
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
+    CacheQuery.objects(key=keyTableMongoDB).delete()
     data = CacheQuery(key = keyTableMongoDB,value=results)
     data.save()

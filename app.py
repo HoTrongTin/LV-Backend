@@ -97,6 +97,7 @@ def get_cached_data():
     
     res = filter(lambda x: x.month == 3, data)
     print(res)
+    return jsonify({'body': res})
 
 @app.route('/manual-check-streaming-data-in-silver')
 def manual_check_streaming_data_in_silver():
@@ -124,7 +125,7 @@ def manual_start_scheduler():
     return jsonify({'body': 'Stop scheduler successful!'})
 
 # Setup CronJob for checking streaming
-scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=60)
+scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=600)
 
 # Setup CronJob for copying data from silver to gold
 #shceduler run mon to fri on every 0 and 30 minutes of each hour from 6h to 22h

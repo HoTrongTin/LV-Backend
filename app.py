@@ -91,7 +91,7 @@ def get_cached_data():
     return jsonify(data.to_json())
 
 @app.route('/test')
-def get_cached_data():
+def test():
     key = request.args.get('key')
     data = CacheQuery.objects(key=key).first().value
     

@@ -37,6 +37,11 @@ def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
         token = None
+
+        print('-----------')
+        print(request.headers)
+        print('-----------')
+
         # jwt is passed in the request header
         if 'x-access-token' in request.headers:
             token = request.headers['x-access-token']

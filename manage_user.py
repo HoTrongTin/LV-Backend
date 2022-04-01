@@ -43,8 +43,8 @@ def token_required(f):
         print('-----------')
 
         # jwt is passed in the request header
-        if 'x-access-token' in request.headers:
-            token = request.headers['x-access-token']
+        if 'X-Access-Token' in request.headers:
+            token = request.headers['X-Access-Token']
         # return 401 if token is not passed
         if not token:
             return jsonify({'message' : 'Token is missing !!'}), 401

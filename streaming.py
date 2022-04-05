@@ -1,6 +1,7 @@
 from sparkSetup import spark
 from utility import *
 import configparser
+import time
 
 #config
 config_obj = configparser.ConfigParser()
@@ -107,6 +108,32 @@ def start_icd9_stream_bronze():
 def start_icd9_stream_silver():
     streamingBronzeToGold(tableName = 'icd9', schema = icd9Schema, mergeOn = ["subject_id", "hadm_id", "sequence"], partitionedBy = ["subject_id"])
 
+#chartevents
+charteventsSchema = ( \
+    ("subject_id", "integer", False), \
+    ("icustay_id", "integer", False), \
+    ("itemid", "integer", False), \
+    ("charttime", "string"), \
+    ("elemid", "integer"), \
+    ("realtime", "string"), \
+    ("cgid", "integer"), \
+    ("cuid", "integer"), \
+    ("value1", "string"), \
+    ("value1num", "string"), \
+    ("value1uom", "string"), \
+    ("value2", "string"), \
+    ("value2num", "string"), \
+    ("value2uom", "string"), \
+    ("resultstatus", "string"), \
+    ("stopped", "string") \
+)
+
+def start_chartevents_stream_bronze():
+    streamingS3ToBronze(tableName = 'chartevents', schema = charteventsSchema)
+
+def start_chartevents_stream_silver():
+    streamingBronzeToGold(tableName = 'chartevents', schema = charteventsSchema, mergeOn = ["subject_id", "icustay_id", "itemid"], partitionedBy = ["subject_id"])
+
 def init_spark_streaming():
     print('init streaming')
     hadoop_conf = spark._jsc.hadoopConfiguration()
@@ -114,15 +141,19 @@ def init_spark_streaming():
     hadoop_conf.set("fs.s3a.access.key", amazonS3param['accesskey'])
     hadoop_conf.set("fs.s3a.secret.key", amazonS3param['secretkey'])
 
-    start_d_patient_stream_bronze()
-    start_d_patient_stream_silver()
-    start_admissions_stream_bronze()
-    start_admissions_stream_silver()
-    start_drgevents_stream_bronze()
-    start_drgevents_stream_silver()
-    start_d_codeditems_stream_bronze()
-    start_d_codeditems_stream_silver()
-    start_demographic_detail_stream_bronze()
-    start_demographic_detail_stream_silver()
-    start_icd9_stream_bronze()
-    start_icd9_stream_silver()
+    # start_d_patient_stream_bronze()
+    # start_d_patient_stream_silver()
+    # start_admissions_stream_bronze()
+    # start_admissions_stream_silver()
+    # start_drgevents_stream_bronze()
+    # start_drgevents_stream_silver()
+    # start_d_codeditems_stream_bronze()
+    # start_d_codeditems_stream_silver()
+    # start_demographic_detail_stream_bronze()
+    # start_demographic_detail_stream_silver()
+    # start_icd9_stream_bronze()
+    # start_icd9_stream_silver()
+    startTime = time.time()
+    start_chartevents_stream_bronze()
+    start_chartevents_stream_silver()
+    print("Execution time: " + str(time.time() - startTime))

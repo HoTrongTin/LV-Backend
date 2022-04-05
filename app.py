@@ -66,6 +66,16 @@ def test_spark3(id):
 
     return jsonify({'body': results})
 
+@app.route('/test-chartevents/<subject_id>')
+def test_chartevents(subject_id):
+    res = spark.sql("""
+    select * from delta.`/home/jovyan/work/delta/chartevents` as chartevents
+    where subject_id = """ + subject_id)
+
+    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+
+    return jsonify({'body': results})
+
 @app.route('/test-spark7', methods=['POST'])
 def test_spark7():
     months = request.json['months']

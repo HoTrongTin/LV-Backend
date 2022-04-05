@@ -68,9 +68,11 @@ def test_spark3(id):
 
 @app.route('/test-chartevents/<subject_id>')
 def test_chartevents(subject_id):
+    startTime = time.time()
     res = spark.sql("""
     select * from delta.`/home/jovyan/work/delta/chartevents` as chartevents
     where subject_id = """ + subject_id)
+    print("Execution time: " + str(time.time() - startTime))
 
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
 

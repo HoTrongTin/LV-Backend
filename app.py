@@ -70,7 +70,7 @@ def test_spark3(id):
 def test_chartevents(subject_id):
     startTime = time.time()
     res = spark.sql("""
-    select * from delta.`/home/jovyan/work/delta/chartevents` as chartevents
+    select * from delta.`/delta_MIMIC2/chartevents` as chartevents
     where subject_id = """ + subject_id)
     print("Execution time: " + str(time.time() - startTime))
 

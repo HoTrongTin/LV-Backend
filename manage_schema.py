@@ -17,7 +17,7 @@ class Project(db.Document):
     user = db.ReferenceField(User, reverse_delete_rule=CASCADE);
 
 
-class ModelDefinition(db.Document):
+class ModelDefinition(db.EmbeddedDocument):
     name = db.StringField(min_length=1, max_length=45, required=True, unique=True);
     field_type = db.StringField(required=True, choices=['integer', 'float', 'string', 'boolean', 'timestamp']);
     nullable = db.BooleanField(required=True, default=True);

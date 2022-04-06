@@ -102,13 +102,14 @@ def get_cached_data():
     data = CacheQuery.objects(key=key).first()
     return jsonify(data.to_json())
 
-@app.route('/test')
+@app.route('/test', methods=['POST'])
 def test():
+    months = request.json['months']
     key = request.args.get('key')
     data = CacheQuery.objects(key=key).first().value
     res = []
     for item in data:
-        if item['month'] == 3:
+        if item['month'] in months:
             res.append(item)
     return jsonify({'body': res})
 
@@ -138,7 +139,7 @@ def manual_start_scheduler():
     return jsonify({'body': 'Stop scheduler successful!'})
 
 # Setup CronJob for checking streaming
-scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=600)
+scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=6000)
 
 # Setup CronJob for copying data from silver to gold
 #shceduler run mon to fri on every 0 and 30 minutes of each hour from 6h to 22h

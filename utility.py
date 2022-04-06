@@ -23,8 +23,8 @@ def streamingS3ToBronze(tableName, schema):
     dfStreaming = spark.readStream.option("sep", ",").option("header", "true").schema(streamingSchema).csv(amazonS3param['s3aURL'] + "/medical/" + tableName).withColumn('Date_Time', current_timestamp())
     dfStreaming.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/" + tableName).start("/medical/bronze/" + tableName)
 
-#streaming Bronze To Gold
-def streamingBronzeToGold(tableName, schema, mergeOn, partitionedBy = []):
+#streaming Bronze To Gold With Merge Method
+def streamingBronzeToGoldMergeMethod(tableName, schema, mergeOn, partitionedBy = []):
     def upsertToDelta(microBatchOutputDF, batchId): 
         microBatchOutputDF.createOrReplaceTempView("updates")
         
@@ -54,10 +54,40 @@ def streamingBronzeToGold(tableName, schema, mergeOn, partitionedBy = []):
     dfStreaming = spark.readStream.format("delta").load("/medical/bronze/" + tableName)
     dfStreaming.writeStream.option("checkpointLocation", "/medical/checkpoint/silver/" + tableName).outputMode("update").foreachBatch(upsertToDelta).start()
 
+#streaming Bronze To Gold With Append Method
+def streamingBronzeToGoldAppendMethod(tableName, schema, partitionedBy = []):
+    def appendToDelta(microBatchOutputDF, batchId): 
+        microBatchOutputDF.createOrReplaceTempView("batchData")
+
+        setFields = ', '.join([field[0] for field in schema])
+
+        microBatchOutputDF._jdf.sparkSession().sql("""
+            INSERT INTO delta.`/medical/silver/""" + tableName + """`
+            (""" + setFields + """)
+            SELECT """ + setFields + """
+            FROM batchData
+        """)
+
+    setColumns = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schema])
+    setPartitionedBy = ', '.join(partitionedBy)
+
+    #create bronze
+    if not(DeltaTable.isDeltaTable(spark, '/medical/bronze/' + tableName)):
+        spark.sql("CREATE TABLE bronze_" + tableName + " (" + setColumns + ", Date_Time timestamp) USING DELTA LOCATION '/medical/bronze/" + tableName + "'")
+
+    #create silver
+    if not(DeltaTable.isDeltaTable(spark, '/medical/silver/' + tableName)):
+        spark.sql("CREATE TABLE silver_" + tableName + " (" + setColumns + ", Date_Time timestamp) USING DELTA LOCATION '/medical/silver/" + tableName + "'" + (" PARTITIONED BY (" + setPartitionedBy + ")" if partitionedBy != [] else ''))
+
+    dfStreaming = spark.readStream.format("delta").load("/medical/bronze/" + tableName)
+    dfStreaming.writeStream.option("checkpointLocation", "/medical/checkpoint/silver/" + tableName).outputMode("update").foreachBatch(appendToDelta).start()
+
 #check streaming data copy to silver succesful
 def check_streaming_data_in_silver(tableName, numRows = 5):
-    res = spark.read.format("delta").load("/medical/silver/" + tableName).limit(numRows)
-    res.show()
+    print('5 rows of ' + tableName + ' table:')
+    spark.read.format("delta").load("/medical/silver/" + tableName).limit(numRows).show()
+    print('Total data rows:')
+    spark.sql("select count(*) from delta.`/medical/silver/" + tableName + "`").show()
 
 #cache data to mongoDB
 def cache_data_to_mongoDB(goldTableName, keyTableMongoDB):

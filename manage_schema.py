@@ -70,7 +70,7 @@ def get_project(current_user):
 #TODO: Edit project
 @app.route('/project/<id>', methods =['PATCH'])
 @token_required
-def get_project(current_user, id):
+def update_project(current_user, id):
     
     print('------')
     print(id)

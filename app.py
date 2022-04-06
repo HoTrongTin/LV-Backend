@@ -115,6 +115,17 @@ def test():
             res.append(item)
     return jsonify({'body': res})
 
+@app.route('/query', methods=['POST'])
+def query():
+    jsonData = request.get_json()
+    # gets project info
+    sql = jsonData['sql']
+    res = spark.sql(sql)
+
+    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+
+    return jsonify({'body': results})
+
 @app.route('/manual-check-streaming-data-in-silver')
 def manual_check_streaming_data_in_silver():
     cron_check_streaming()

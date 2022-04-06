@@ -12,6 +12,7 @@ from sparkSetup import spark
 from streaming import init_spark_streaming
 from cronjob import cron_check_streaming, cron_data_to_Gold, cron_data_to_mongoDB
 from manage_user import *
+from manage_schema import *
 
 CORS(app)
 

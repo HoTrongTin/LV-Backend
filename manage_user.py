@@ -156,8 +156,7 @@ def signup():
         )
         # insert user
         user.save()
-  
-        return make_response('Successfully registered.', 201)
+        
+        return jsonify({'body': user})
     else:
-        # returns 202 if user already exists
         return make_response('User already exists. Please Log in.', 400)

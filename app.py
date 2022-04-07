@@ -11,6 +11,8 @@ from mongodb import app, CacheQuery
 from sparkSetup import spark
 from streaming import init_spark_streaming
 from cronjob import cron_check_streaming, cron_data_to_Gold, cron_data_to_mongoDB
+from manage_user import *
+from manage_schema import *
 
 CORS(app)
 
@@ -112,6 +114,17 @@ def test():
         if item['month'] in months:
             res.append(item)
     return jsonify({'body': res})
+
+@app.route('/query', methods=['POST'])
+def query():
+    jsonData = request.get_json()
+    # gets project info
+    sql = jsonData['sql']
+    res = spark.sql(sql)
+
+    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+
+    return jsonify({'body': results})
 
 @app.route('/manual-check-streaming-data-in-silver')
 def manual_check_streaming_data_in_silver():

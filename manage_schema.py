@@ -131,9 +131,12 @@ def get_table(current_user, project_id):
 
     # checking for existing project
     project = Project.objects(id = project_id, user = current_user).first()
+    print('project: ' + str(project.to_json()));
 
     if project:
         tables = TableDefinition(project = project);
+
+        print('tables: ' + str(tables.to_json()));
 
         return jsonify({'body': tables})
 

@@ -12,11 +12,11 @@ def cron_check_streaming():
     check_streaming_data_in_silver("icd9")
     check_streaming_data_in_silver("icustay_days")
     check_streaming_data_in_silver("icustay_detail")
-    check_streaming_data_in_silver("chartevents")
-    check_streaming_data_in_silver("icustayevents")
-    check_streaming_data_in_silver("ioevents")
-    check_streaming_data_in_silver("labevents")
-    check_streaming_data_in_silver("medevents")
+    # check_streaming_data_in_silver("chartevents")
+    # check_streaming_data_in_silver("icustayevents")
+    # check_streaming_data_in_silver("ioevents")
+    # check_streaming_data_in_silver("labevents")
+    # check_streaming_data_in_silver("medevents")
 
 
 def cron_data_to_Gold():

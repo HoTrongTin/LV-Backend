@@ -134,7 +134,7 @@ def get_table(current_user, project_id):
     print('project: ' + str(project.to_json()));
 
     if project:
-        tables = TableDefinition();
+        tables = TableDefinition.objects(project = project);
 
         print('tables: ' + str(tables.to_json()));
 

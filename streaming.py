@@ -302,8 +302,8 @@ def init_spark_streaming():
 
     # start_d_patient_stream_bronze()
     # start_d_patient_stream_silver()
-    # start_admissions_stream_bronze()
-    # start_admissions_stream_silver()
+    start_admissions_stream_bronze()
+    start_admissions_stream_silver()
     # start_drgevents_stream_bronze()
     # start_drgevents_stream_silver()
     # start_d_codeditems_stream_bronze()

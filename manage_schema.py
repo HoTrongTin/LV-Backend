@@ -141,7 +141,7 @@ def get_table(current_user, project_id):
         return make_response('Project does not exist.', 400)
 
 #TODO: Create table in project
-@app.route('/project/<project_id>/table/<table_id>', methods =['POST'])
+@app.route('/project/<project_id>/table/<table_id>', methods =['PATCH'])
 @token_required
 def update_table(current_user, project_id, table_id):
     jsonData = request.get_json()

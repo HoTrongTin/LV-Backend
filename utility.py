@@ -12,6 +12,18 @@ config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
 amazonS3param = config_obj["amazonS3"]
 
+#streaming HDFS To Bronze
+def streamingHDFSToBronze(tableName, schema):
+    streamingSchema = StructType()
+    for col in schema:
+        if len(col) == 2:
+            streamingSchema.add(col[0], col[1])
+        else: streamingSchema.add(col[0], col[1], col[2])
+
+    dfStreaming = spark.readStream.option("sep", ",").option("header", "true").schema(streamingSchema).csv("/streaming/" + tableName).withColumn('Date_Time', current_timestamp())
+    dfStreaming.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/" + tableName).start("/medical/bronze/" + tableName)
+
+
 #streaming S3 To Bronze
 def streamingS3ToBronze(tableName, schema):
     streamingSchema = StructType()

@@ -171,4 +171,5 @@ if __name__ == '__main__':
     init_spark_streaming()
     print("List streamming queries: ")
     print(spark.streams.active)
+    print(spark.streams.get(spark.streams.active))
     app.run()

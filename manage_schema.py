@@ -82,7 +82,11 @@ def update_project(current_user, id):
     name = jsonData['name']
 
     # checking for existing project
-    project = Project.objects(id = id, user = current_user).update(name = name).save();
+    project = Project.objects(id = id, user = current_user).first();
+    project.name = name;
+
+    project.save()
+
 
     return jsonify({'body': project})
 

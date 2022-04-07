@@ -300,8 +300,8 @@ def init_spark_streaming():
     hadoop_conf.set("fs.s3a.access.key", amazonS3param['accesskey'])
     hadoop_conf.set("fs.s3a.secret.key", amazonS3param['secretkey'])
 
-    start_d_patient_stream_bronze()
-    start_d_patient_stream_silver()
+    # start_d_patient_stream_bronze()
+    # start_d_patient_stream_silver()
     # start_admissions_stream_bronze()
     # start_admissions_stream_silver()
     # start_drgevents_stream_bronze()

@@ -34,7 +34,7 @@ admissionsSchema = ( \
 )
 
 def start_admissions_stream_bronze():
-    streamingS3ToBronze(tableName = 'admissions', schema = admissionsSchema)
+    streamingHDFSToBronze(tableName = 'admissions', schema = admissionsSchema)
 
 def start_admissions_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'admissions', schema = admissionsSchema, mergeOn = ["hadm_id"], partitionedBy = ["subject_id"])

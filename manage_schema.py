@@ -66,7 +66,7 @@ def get_project(current_user):
     # checking for existing project
     project = Project.objects(user = current_user)
 
-    return jsonify({'body': project.to_json()})
+    return jsonify({'body': project})
 
 #TODO: Edit project
 @app.route('/project/<id>', methods =['PATCH'])
@@ -84,7 +84,7 @@ def update_project(current_user, id):
     # checking for existing project
     project = Project.objects(id = id, user = current_user).update(name = name).save();
 
-    return jsonify({'body': project.to_json()})
+    return jsonify({'body': project})
 
 #TODO: Create table in project
 @app.route('/project/<project_id>/table', methods =['POST'])
@@ -115,7 +115,7 @@ def create_table(current_user, project_id):
 
         new_table.save()
 
-        return jsonify({'body': new_table.to_json()})
+        return jsonify({'body': new_table})
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -131,7 +131,7 @@ def get_table(current_user, project_id):
     if project:
         tables = TableDefinition(project = project);
 
-        return jsonify({'body': tables.to_json()})
+        return jsonify({'body': tables})
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -168,7 +168,7 @@ def update_table(current_user, project_id, table_id):
 
             table.save()
 
-            return jsonify({'body': table.to_json()})
+            return jsonify({'body': table})
         else:
             return make_response('Table does not exist.', 400)
 

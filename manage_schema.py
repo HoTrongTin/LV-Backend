@@ -18,7 +18,7 @@ class Project(db.Document):
 
 
 class ModelDefinition(db.EmbeddedDocument):
-    name = db.StringField(min_length=1, max_length=45, required=True, unique=True);
+    name = db.StringField(min_length=1, max_length=45, required=True);
     field_type = db.StringField(required=True, choices=['integer', 'float', 'string', 'boolean', 'timestamp']);
     nullable = db.BooleanField(required=True, default=True);
 

@@ -24,17 +24,6 @@ scheduler.configure(timezone='Asia/Ho_Chi_Minh')
 def hello_world():
     return 'Hello, My name is SMART MEDICAL SYSTEM!'
 
-@app.route('/test-spark2')
-def test_spark2():
-    t = time.localtime()
-    current_time = time.strftime("%H:%M:%S", t)
-    print('start: ' + current_time)
-    
-    t = time.localtime()
-    current_time = time.strftime("%H:%M:%S", t)
-    print('end: ' + current_time)
-    return jsonify({'body': 'None!'})
-
 @app.route('/test-spark3/<id>')
 def test_spark3(id):
     # start
@@ -80,31 +69,13 @@ def test_chartevents(subject_id):
 
     return jsonify({'body': results})
 
-@app.route('/test-spark7', methods=['POST'])
-def test_spark7():
-    months = request.json['months']
-    res = spark.sql("""
-select * from
-(select drgevents.itemid, description, month(admit_dt) as month, count(*) as num 
-from delta.`/delta_MIMIC2/drgevents` as drgevents
-join delta.`/delta_MIMIC2/d_codeditems` as d_codeditems
-join delta.`/delta_MIMIC2/admissions` as admissions
-on drgevents.itemid = d_codeditems.itemid and admissions.hadm_id = drgevents.hadm_id
-group by drgevents.itemid, description, month
-order by num desc) tmp
-where month in ( """ + months + ')').toPandas().head(20)
-    res = spark.createDataFrame(res)
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-
-    return jsonify({'body': results})
-
 @app.route('/get-cached-data')
 def get_cached_data():
     key = request.args.get('key')
     data = CacheQuery.objects(key=key).first()
     return jsonify(data.to_json())
 
-@app.route('/test', methods=['POST'])
+@app.route('/analysis-clinical-diseases-by-month', methods=['POST'])
 def test():
     months = request.json['months']
     key = request.args.get('key')

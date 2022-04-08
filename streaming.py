@@ -10,7 +10,7 @@ amazonS3param = config_obj["amazonS3"]
 #streaming
 
 #merge method
-#d_patient
+#d_patients 3952
 d_patientsSchema = ( \
     ("subject_id", "integer", False), \
     ("sex", "string"), \
@@ -25,7 +25,7 @@ def start_d_patient_stream_bronze():
 def start_d_patient_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'd_patients', schema = d_patientsSchema, mergeOn = ["subject_id"])
 
-#admissions
+#admissions 5074
 admissionsSchema = ( \
     ("hadm_id", "integer", False), \
     ("subject_id", "integer", False), \
@@ -34,12 +34,12 @@ admissionsSchema = ( \
 )
 
 def start_admissions_stream_bronze():
-    streamingS3ToBronze(tableName = 'admissions', schema = admissionsSchema)
+    streamingHDFSToBronze(tableName = 'admissions', schema = admissionsSchema)
 
 def start_admissions_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'admissions', schema = admissionsSchema, mergeOn = ["hadm_id"], partitionedBy = ["subject_id"])
 
-#drgevents
+#drgevents 5055
 drgeventsSchema = ( \
     ("subject_id", "integer", False), \
     ("hadm_id", "integer", False), \
@@ -53,7 +53,7 @@ def start_drgevents_stream_bronze():
 def start_drgevents_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'drgevents', schema = drgeventsSchema, mergeOn = ["hadm_id"])
 
-#d_codeditems
+#d_codeditems 3339
 d_codeditemsSchema = ( \
     ("itemid", "integer", False), \
     ("code", "string"), \
@@ -69,7 +69,7 @@ def start_d_codeditems_stream_bronze():
 def start_d_codeditems_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'd_codeditems', schema = d_codeditemsSchema, mergeOn = ["itemid"], partitionedBy = ["type"])
 
-#demographic_detail
+#demographic_detail 5074
 demographic_detailSchema = ( \
     ("subject_id", "integer", False), \
     ("hadm_id", "integer", False), \
@@ -93,7 +93,7 @@ def start_demographic_detail_stream_bronze():
 def start_demographic_detail_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'demographic_detail', schema = demographic_detailSchema, mergeOn = ["hadm_id"])
 
-#icd9
+#icd9 53486
 icd9Schema = ( \
     ("subject_id", "integer", False), \
     ("hadm_id", "integer", False), \
@@ -103,12 +103,12 @@ icd9Schema = ( \
 )
 
 def start_icd9_stream_bronze():
-    streamingS3ToBronze(tableName = 'icd9', schema = icd9Schema)
+    streamingHDFSToBronze(tableName = 'icd9', schema = icd9Schema)
 
 def start_icd9_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'icd9', schema = icd9Schema, mergeOn = ["hadm_id", "sequence"], partitionedBy = ["subject_id"])
 
-#icustay_days
+#icustay_days 34730
 icustay_daysSchema = ( \
     ("icustay_id", "integer", False), \
     ("subject_id", "integer", False), \
@@ -120,12 +120,12 @@ icustay_daysSchema = ( \
 )
 
 def start_icustay_days_stream_bronze():
-    streamingS3ToBronze(tableName = 'icustay_days', schema = icustay_daysSchema)
+    streamingHDFSToBronze(tableName = 'icustay_days', schema = icustay_daysSchema)
 
 def start_icustay_days_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'icustay_days', schema = icustay_daysSchema, mergeOn = ["icustay_id", "seq"], partitionedBy = ["subject_id"])
 
-#icustay_detail
+#icustay_detail 5810
 icustay_detailSchema = ( \
     ("icustay_id", "integer", False), \
 	("subject_id", "integer", False), \
@@ -172,7 +172,7 @@ icustay_detailSchema = ( \
 )
 
 def start_icustay_detail_stream_bronze():
-    streamingS3ToBronze(tableName = 'icustay_detail', schema = icustay_detailSchema)
+    streamingHDFSToBronze(tableName = 'icustay_detail', schema = icustay_detailSchema)
 
 def start_icustay_detail_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'icustay_detail', schema = icustay_detailSchema, mergeOn = ["icustay_id"], partitionedBy = ["subject_id"])
@@ -199,7 +199,7 @@ charteventsSchema = ( \
 )
 
 def start_chartevents_stream_bronze():
-    streamingS3ToBronze(tableName = 'chartevents', schema = charteventsSchema)
+    streamingHDFSToBronze(tableName = 'chartevents', schema = charteventsSchema)
 
 def start_chartevents_stream_silver():
     streamingBronzeToGoldAppendMethod(tableName = 'chartevents', schema = charteventsSchema, partitionedBy = ["subject_id"])
@@ -216,7 +216,7 @@ icustayeventsSchema = ( \
 )
 
 def start_icustayevents_stream_bronze():
-    streamingS3ToBronze(tableName = 'icustayevents', schema = icustayeventsSchema)
+    streamingHDFSToBronze(tableName = 'icustayevents', schema = icustayeventsSchema)
 
 def start_icustayevents_stream_silver():
     streamingBronzeToGoldAppendMethod(tableName = 'icustayevents', schema = icustayeventsSchema, partitionedBy = ["subject_id"])
@@ -242,7 +242,7 @@ ioeventsSchema = ( \
 )
 
 def start_ioevents_stream_bronze():
-    streamingS3ToBronze(tableName = 'ioevents', schema = ioeventsSchema)
+    streamingHDFSToBronze(tableName = 'ioevents', schema = ioeventsSchema)
 
 def start_ioevents_stream_silver():
     streamingBronzeToGoldAppendMethod(tableName = 'ioevents', schema = ioeventsSchema, partitionedBy = ["subject_id"])
@@ -261,7 +261,7 @@ labeventsSchema = ( \
 )
 
 def start_labevents_stream_bronze():
-    streamingS3ToBronze(tableName = 'labevents', schema = labeventsSchema)
+    streamingHDFSToBronze(tableName = 'labevents', schema = labeventsSchema)
 
 def start_labevents_stream_silver():
     streamingBronzeToGoldAppendMethod(tableName = 'labevents', schema = labeventsSchema, partitionedBy = ["subject_id"])
@@ -287,7 +287,7 @@ medeventsSchema = ( \
 )
 
 def start_medevents_stream_bronze():
-    streamingS3ToBronze(tableName = 'medevents', schema = medeventsSchema)
+    streamingHDFSToBronze(tableName = 'medevents', schema = medeventsSchema)
 
 def start_medevents_stream_silver():
     streamingBronzeToGoldAppendMethod(tableName = 'medevents', schema = medeventsSchema, partitionedBy = ["subject_id"])
@@ -302,15 +302,28 @@ def init_spark_streaming():
 
     # start_d_patient_stream_bronze()
     # start_d_patient_stream_silver()
-    # start_admissions_stream_bronze()
-    # start_admissions_stream_silver()
+    start_admissions_stream_bronze()
+    start_admissions_stream_silver()
     # start_drgevents_stream_bronze()
     # start_drgevents_stream_silver()
     # start_d_codeditems_stream_bronze()
     # start_d_codeditems_stream_silver()
     # start_demographic_detail_stream_bronze()
     # start_demographic_detail_stream_silver()
-    # start_icd9_stream_bronze()
-    # start_icd9_stream_silver()
+    start_icd9_stream_bronze()
+    start_icd9_stream_silver()
+    # start_icustay_detail_stream_bronze()
+    # start_icustay_detail_stream_silver()
+    # start_icustay_days_stream_bronze()
+    # start_icustay_days_stream_silver()
     # start_chartevents_stream_bronze()
     # start_chartevents_stream_silver()
+    # start_icustayevents_stream_bronze()
+    # start_icustayevents_stream_silver()
+    # start_ioevents_stream_bronze()
+    # start_ioevents_stream_silver()
+    # start_labevents_stream_bronze()
+    # start_labevents_stream_silver()
+    # start_medevents_stream_bronze()
+    # start_medevents_stream_silver()
+    

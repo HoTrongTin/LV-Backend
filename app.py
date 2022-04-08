@@ -13,6 +13,7 @@ from streaming import init_spark_streaming
 from cronjob import cron_check_streaming, cron_data_to_Gold, cron_data_to_mongoDB
 from manage_user import *
 from manage_schema import *
+from utility import parseQuery
 
 CORS(app)
 
@@ -23,17 +24,6 @@ scheduler.configure(timezone='Asia/Ho_Chi_Minh')
 @app.route('/')
 def hello_world():
     return 'Hello, My name is SMART MEDICAL SYSTEM!'
-
-@app.route('/test-spark2')
-def test_spark2():
-    t = time.localtime()
-    current_time = time.strftime("%H:%M:%S", t)
-    print('start: ' + current_time)
-    
-    t = time.localtime()
-    current_time = time.strftime("%H:%M:%S", t)
-    print('end: ' + current_time)
-    return jsonify({'body': 'None!'})
 
 @app.route('/test-spark3/<id>')
 def test_spark3(id):
@@ -80,31 +70,13 @@ def test_chartevents(subject_id):
 
     return jsonify({'body': results})
 
-@app.route('/test-spark7', methods=['POST'])
-def test_spark7():
-    months = request.json['months']
-    res = spark.sql("""
-select * from
-(select drgevents.itemid, description, month(admit_dt) as month, count(*) as num 
-from delta.`/delta_MIMIC2/drgevents` as drgevents
-join delta.`/delta_MIMIC2/d_codeditems` as d_codeditems
-join delta.`/delta_MIMIC2/admissions` as admissions
-on drgevents.itemid = d_codeditems.itemid and admissions.hadm_id = drgevents.hadm_id
-group by drgevents.itemid, description, month
-order by num desc) tmp
-where month in ( """ + months + ')').toPandas().head(20)
-    res = spark.createDataFrame(res)
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-
-    return jsonify({'body': results})
-
 @app.route('/get-cached-data')
 def get_cached_data():
     key = request.args.get('key')
     data = CacheQuery.objects(key=key).first()
     return jsonify(data.to_json())
 
-@app.route('/test', methods=['POST'])
+@app.route('/analysis-clinical-diseases-by-month', methods=['POST'])
 def test():
     months = request.json['months']
     key = request.args.get('key')
@@ -115,16 +87,31 @@ def test():
             res.append(item)
     return jsonify({'body': res})
 
+@app.route('/queryFormatted', methods=['POST'])
+def queryFormatted():
+    jsonData = request.get_json()
+    # gets project info
+    sql = jsonData['sql']
+    startTime = time.time()
+    res = spark.sql(parseQuery(sql, '/medical/silver/'))
+
+    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+
+    return jsonify({'time to execute': time.time() - startTime,
+                    'body': results})
+
 @app.route('/query', methods=['POST'])
 def query():
     jsonData = request.get_json()
     # gets project info
     sql = jsonData['sql']
+    startTime = time.time()
     res = spark.sql(sql)
 
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
 
-    return jsonify({'body': results})
+    return jsonify({'time to execute': time.time() - startTime,
+                    'body': results})
 
 @app.route('/manual-check-streaming-data-in-silver')
 def manual_check_streaming_data_in_silver():
@@ -156,11 +143,11 @@ scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=6000)
 
 # Setup CronJob for copying data from silver to gold
 #shceduler run mon to fri on every 0 and 30 minutes of each hour from 6h to 22h
-scheduler.add_job(func=cron_data_to_Gold, trigger="cron", minute='0,30', hour='6-22', day_of_week='mon-fri')
+scheduler.add_job(func=cron_data_to_Gold, trigger="cron", minute='0', hour='6-22', day_of_week='mon-fri')
 
 # Setup CronJob for copying data from gold to mongoDB
 #shceduler run mon to fri on every 15 and 45 minutes of each hour from 6h to 22h
-scheduler.add_job(func=cron_data_to_mongoDB, trigger="cron", minute='5,35', hour='6-22', day_of_week='mon-fri')
+scheduler.add_job(func=cron_data_to_mongoDB, trigger="cron", minute='5', hour='6-22', day_of_week='mon-fri')
 
 scheduler.start()
 
@@ -171,5 +158,5 @@ if __name__ == '__main__':
     init_spark_streaming()
     print("List streamming queries: ")
     print(spark.streams.active)
-    # print(spark.streams.get(spark.streams.active[0]))
+    print(spark.streams.get(spark.streams.active[0]))
     app.run()

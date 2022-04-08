@@ -115,7 +115,7 @@ def create_table(current_user, project_id):
     project = Project.objects(id = project_id, user = current_user).first()
 
     if project:
-        new_table = TableDefinition(project = project, name = name);
+        new_table = TableDefinition(project = project, name = name, source = source, method = method);
 
         # Create columns in table
         for col in columns:
@@ -160,7 +160,7 @@ def update_table(current_user, project_id, table_id):
     name = jsonData['name']
     source = jsonData['source']
     method = jsonData['method']
-    
+
     columns = []
     for col in jsonData['columns']:
         columns.append(col)
@@ -175,6 +175,8 @@ def update_table(current_user, project_id, table_id):
             # Create columns in table
             
             table.name = name;
+            table.source = source;
+            table.method = method;
             table.columns = [];
 
             for col in columns:

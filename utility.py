@@ -75,8 +75,8 @@ def streamingBronzeToGoldAppendMethod(tableName, schema, partitionedBy = []):
 
         microBatchOutputDF._jdf.sparkSession().sql("""
             INSERT INTO delta.`/medical/silver/""" + tableName + """`
-            (""" + setFields + """)
-            SELECT """ + setFields + """
+            (""" + setFields + """, Date_Time)
+            SELECT """ + setFields + """, Date_Time
             FROM batchData
         """)
 

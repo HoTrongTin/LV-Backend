@@ -81,6 +81,8 @@ def test():
     months = request.json['months']
     print(type(months))
     print(months)
+    print(months[0])
+    months = [int(x) for x in months]
     key = request.args.get('key')
     data = CacheQuery.objects(key=key).first().value
     res = []

@@ -22,7 +22,7 @@ def streamingHDFSToBronze(tableName, schema):
 
     dfStreaming = spark.readStream.option("sep", ",").option("header", "true").schema(streamingSchema).csv("/streaming/" + tableName).withColumn('Date_Time', current_timestamp())
     dfStreaming.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/" + tableName).start("/medical/bronze/" + tableName)
-
+    print('Stream name: ' + dfStreaming.name)
 
 #streaming S3 To Bronze
 def streamingS3ToBronze(tableName, schema):

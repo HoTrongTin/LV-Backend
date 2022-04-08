@@ -159,7 +159,7 @@ if __name__ == '__main__':
     print("List streamming queries: ")
     print(spark.streams.active)
 
-    for stream in spark.stream.active:
+    for stream in spark.streams.active:
         print("+++++ Name +++++")
         print(stream.id)
         print(stream.name)

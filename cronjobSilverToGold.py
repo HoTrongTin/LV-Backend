@@ -62,7 +62,7 @@ def cache_gold_analysis_get_5_common_diseases_by_month():
 
 def cache_gold_analysis_diseases_affect_stay_days():
     res = spark.sql("""
-    select itemid, description, avg(stay_days) as avgStayDays from
+    select itemid, description, avg(stay_days) as value from
     (select EXTRACT( DAY FROM (disch_dt - admit_dt)) as stay_days, description, drgevents.itemid 
     from delta.`/medical/silver/drgevents` as drgevents 
     join delta.`/medical/silver/admissions` as admissions
@@ -77,7 +77,7 @@ def cache_gold_analysis_diseases_affect_stay_days():
 
 def cache_gold_analysis_20_common_diseases_clinical_results():
     res = spark.sql("""
-    select drgevents.itemid, description, count(*) as numCases
+    select drgevents.itemid, description, count(*) as value
     from delta.`/medical/silver/drgevents` as drgevents 
     join delta.`/medical/silver/d_codeditems` as d_codeditems 
     on drgevents.itemid = d_codeditems.itemid

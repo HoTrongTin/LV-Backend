@@ -210,3 +210,14 @@ def update_table(current_user, project_id, table_id):
 
     else:  
         return make_response('Project does not exist.', 400)
+
+@app.route('/project/<project_id>/table/<table_id>', methods =['DELETE'])
+@token_required
+def delete_table(current_user, project_id, table_id):
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        TableDefinition(id = table_id, project = project).delete()
+    else:  
+        return make_response('Project does not exist.', 400)

@@ -25,6 +25,8 @@ class ModelDefinition(db.EmbeddedDocument):
 class TableDefinition(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
     name = db.StringField(min_length=1, max_length=45, required=True, unique=True);
+    source = db.StringField(required=True, choices=['S3', 'HDFS']);
+    method = db.StringField(required=True, choices=['APPEND', 'MERGE']);
     columns = db.ListField(db.EmbeddedDocumentField(ModelDefinition))
 
 
@@ -102,6 +104,8 @@ def create_table(current_user, project_id):
   
     # gets project info
     name = jsonData['name']
+    source = jsonData['source']
+    method = jsonData['method']
     # columns = List(jsonData['columns'])
     columns = []
     for col in jsonData['columns']:
@@ -154,6 +158,9 @@ def update_table(current_user, project_id, table_id):
   
     # gets project info
     name = jsonData['name']
+    source = jsonData['source']
+    method = jsonData['method']
+    
     columns = []
     for col in jsonData['columns']:
         columns.append(col)

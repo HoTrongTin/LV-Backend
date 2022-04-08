@@ -82,7 +82,7 @@ def cache_gold_analysis_20_common_diseases_clinical_results():
     join delta.`/medical/silver/d_codeditems` as d_codeditems 
     on drgevents.itemid = d_codeditems.itemid
     group by drgevents.itemid, description, type
-    order by numCases desc
+    order by value desc
     LIMIT 20
     """)
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_20_common_diseases_clinical_results")

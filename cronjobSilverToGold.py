@@ -17,7 +17,8 @@ def cache_gold_analysis_patients_by_age():
         WHEN age >= 40 and age < 60 THEN 'Middle-aged'
         ELSE 'Senior Citizen' 
     END as period from
-    (select extract(day from dod - dob)/365 as age from delta.`/medical/silver/d_patients`) age) period
+    (select extract(day from dod - dob)/365 as age 
+    from delta.`/medical/silver/d_patients`) age) period
     group by period
     order by num desc
     """)
@@ -25,14 +26,16 @@ def cache_gold_analysis_patients_by_age():
 
 def cache_gold_analysis_admissions_and_deied_patients_in_hospital():
     res = spark.sql("""
-    select year(admit_dt) year, count(*) num from delta.`/medical/silver/admissions` as admissions
+    select year(admit_dt) year, count(*) num 
+    from delta.`/medical/silver/admissions` as admissions
     where year(admit_dt) >= 2005 and year(admit_dt) <= 2015
     group by year(admit_dt)
     order by year(admit_dt)
     """).toPandas()
 
     dfdied = spark.sql("""
-    select year(dod) year, count(*) num from delta.`/medical/silver/d_patients` as d_patients
+    select year(dod) year, count(*) num 
+    from delta.`/medical/silver/d_patients` as d_patients
     where year(dod) >= 2005 and year(dod) <= 2015 and hospital_expire_flg = 'Y'
     group by year(dod)
     order by year(dod)
@@ -59,7 +62,7 @@ def cache_gold_analysis_get_5_common_diseases_by_month():
 
 def cache_gold_analysis_diseases_affect_stay_days():
     res = spark.sql("""
-    select itemid, description, avg(stay_days) as avgStayDays from
+    select itemid, description, avg(stay_days) as value from
     (select EXTRACT( DAY FROM (disch_dt - admit_dt)) as stay_days, description, drgevents.itemid 
     from delta.`/medical/silver/drgevents` as drgevents 
     join delta.`/medical/silver/admissions` as admissions
@@ -68,17 +71,18 @@ def cache_gold_analysis_diseases_affect_stay_days():
     and drgevents.hadm_id = admissions.hadm_id) tmp
     group by itemid, description
     order by avg(stay_days) desc
+    limit 20
     """)
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_diseases_affect_stay_days")
 
 def cache_gold_analysis_20_common_diseases_clinical_results():
     res = spark.sql("""
-    select drgevents.itemid, description, count(*) as numCases
+    select drgevents.itemid, description, count(*) as value
     from delta.`/medical/silver/drgevents` as drgevents 
     join delta.`/medical/silver/d_codeditems` as d_codeditems 
     on drgevents.itemid = d_codeditems.itemid
     group by drgevents.itemid, description, type
-    order by numCases desc
+    order by value desc
     LIMIT 20
     """)
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_20_common_diseases_clinical_results")
@@ -151,18 +155,20 @@ def cache_gold_analysis_patients_died_in_hospital():
 
 def cache_gold_analysis_diseases_clinical_affected_died_patients():
     res = spark.sql("""
-    select d_codeditems.itemid, d_codeditems.type, d_codeditems.description,
+    select * from (select d_codeditems.itemid, d_codeditems.type, d_codeditems.description,
     (select count(*) from
     (SELECT ROW_NUMBER() OVER(PARTITION BY subject_id ORDER BY hadm_id desc) 
-        AS ROW_NUMBER, subject_id, itemid from delta.`/medical/silver/drgevents`) tableLastest 
+        AS ROW_NUMBER, subject_id, itemid 
+        from delta.`/medical/silver/drgevents`) tableLastest 
     join delta.`/medical/silver/d_patients` d_patients
     on d_patients.subject_id = tableLastest.subject_id where ROW_NUMBER = 1 and tableLastest.itemid = d_codeditems.itemid and hospital_expire_flg = 'Y')/
     (select count(*) from
     (SELECT ROW_NUMBER() OVER(PARTITION BY subject_id ORDER BY hadm_id desc) 
-        AS ROW_NUMBER, subject_id, itemid from delta.`/medical/silver/drgevents`) tableLastest 
+        AS ROW_NUMBER, subject_id, itemid 
+        from delta.`/medical/silver/drgevents`) tableLastest 
     join delta.`/medical/silver/d_patients` d_patients
     on d_patients.subject_id = tableLastest.subject_id where ROW_NUMBER = 1 and tableLastest.itemid = d_codeditems.itemid) as ratioDied from delta.`/medical/silver/d_codeditems` d_codeditems
-    order by ratioDied desc
+    order by ratioDied desc) tmp where ratioDied >= 0.8
     """)
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/medical/gold/cache_gold_analysis_diseases_clinical_affected_died_patients")
 

@@ -28,6 +28,8 @@ class TableDefinition(db.Document):
     source = db.StringField(required=True, choices=['S3', 'HDFS']);
     method = db.StringField(required=True, choices=['APPEND', 'MERGE']);
     columns = db.ListField(db.EmbeddedDocumentField(ModelDefinition))
+    merge_on = db.ListField(db.StringField(min_length=1, max_length=45, required=True, unique=True))
+    partition_by = db.ListField(db.StringField(min_length=1, max_length=45, required=True, unique=True))
 
 
 #TODO: Create project
@@ -110,12 +112,20 @@ def create_table(current_user, project_id):
     columns = []
     for col in jsonData['columns']:
         columns.append(col)
+    
+    merge_on = []
+    for item in jsonData['merge_on']:
+        merge_on.append(item)
+
+    partition_by = []
+    for item in jsonData['partition_by']:
+        partition_by.append(item)
   
     # checking for existing project
     project = Project.objects(id = project_id, user = current_user).first()
 
     if project:
-        new_table = TableDefinition(project = project, name = name, source = source, method = method);
+        new_table = TableDefinition(project = project, name = name, source = source, method = method, merge_on = merge_on, partition_by = partition_by);
 
         # Create columns in table
         for col in columns:
@@ -164,6 +174,14 @@ def update_table(current_user, project_id, table_id):
     columns = []
     for col in jsonData['columns']:
         columns.append(col)
+
+    merge_on = []
+    for item in jsonData['merge_on']:
+        merge_on.append(item)
+
+    partition_by = []
+    for item in jsonData['partition_by']:
+        partition_by.append(item)
   
     # checking for existing project
     project = Project.objects(id = project_id, user = current_user).first()
@@ -177,6 +195,8 @@ def update_table(current_user, project_id, table_id):
             table.name = name;
             table.source = source;
             table.method = method;
+            table.method = merge_on;
+            table.method = partition_by;
             table.columns = [];
 
             for col in columns:

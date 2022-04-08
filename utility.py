@@ -111,18 +111,18 @@ def cache_data_to_mongoDB(goldTableName, keyTableMongoDB):
 
 #parseQuery
 def parseQuery(query, pathHDFS):
-  queryRes = ''
-  fromSplit = query.split('from ')
-  if len(fromSplit) == 1:
-    queryRes = fromSplit[0]
-  else:
-    fromSplit = [fromSplit[0]] + list(map(lambda a: a[:a.index(' ')] + '`' + a[a.index(' '):], fromSplit[1:]))
-    queryRes = ('from delta.`' + pathHDFS).join(fromSplit)
-  
-  joinSplit = queryRes.split('join ')
-  if len(joinSplit) == 1:
-    queryRes = joinSplit[0]
-  else:
-    joinSplit = [joinSplit[0]] + list(map(lambda a: a[:a.index(' ')] + '`' + a[a.index(' '):], joinSplit[1:]))
-    queryRes = ('join delta.`' + pathHDFS).join(joinSplit)
-  return queryRes
+    queryRes = ''
+    fromSplit = query.split('from ')
+    if len(fromSplit) == 1:
+        queryRes = fromSplit[0]
+    else:
+        fromSplit = [fromSplit[0]] + list(map(lambda a: a[:a.index(' ')] + '`' + a[a.index(' '):], fromSplit[1:]))
+        queryRes = ('from delta.`' + pathHDFS).join(fromSplit)
+    
+    joinSplit = queryRes.split('join ')
+    if len(joinSplit) == 1:
+        queryRes = joinSplit[0]
+    else:
+        joinSplit = [joinSplit[0]] + list(map(lambda a: a[:a.index(' ')] + '`' + a[a.index(' '):], joinSplit[1:]))
+        queryRes = ('join delta.`' + pathHDFS).join(joinSplit)
+    return queryRes

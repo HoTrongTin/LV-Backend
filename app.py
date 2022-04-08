@@ -13,6 +13,7 @@ from streaming import init_spark_streaming
 from cronjob import cron_check_streaming, cron_data_to_Gold, cron_data_to_mongoDB
 from manage_user import *
 from manage_schema import *
+from utility import parseQuery
 
 CORS(app)
 
@@ -85,6 +86,19 @@ def test():
         if item['month'] in months:
             res.append(item)
     return jsonify({'body': res})
+
+@app.route('/queryFormatted', methods=['POST'])
+def queryFormatted():
+    jsonData = request.get_json()
+    # gets project info
+    sql = jsonData['sql']
+    startTime = time.time()
+    res = spark.sql(parseQuery(sql, '/medical/silver/'))
+
+    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+
+    return jsonify({'time to execute': time.time() - startTime,
+                    'body': results})
 
 @app.route('/query', methods=['POST'])
 def query():

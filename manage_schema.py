@@ -1,4 +1,5 @@
 # flask imports
+from email.policy import default
 from enum import Enum
 from tkinter import CASCADE
 from flask import request, jsonify, make_response
@@ -30,6 +31,11 @@ class TableDefinition(db.Document):
     columns = db.ListField(db.EmbeddedDocumentField(ModelDefinition))
     merge_on = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
     partition_by = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
+
+    # Manage stream
+    stream_id = db.StringField(default = '');
+    stream_name = db.StringField(default = '');
+    stream_status = db.StringField(required=True, choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE');
 
 
 #TODO: Create project

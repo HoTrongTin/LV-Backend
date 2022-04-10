@@ -21,7 +21,7 @@ def streamingHDFSToBronze(tableName, schema):
         else: streamingSchema.add(col[0], col[1], col[2])
 
     dfStreaming = spark.readStream.option("sep", ",").option("header", "true").schema(streamingSchema).csv("/streaming/" + tableName).withColumn('Date_Time', current_timestamp())
-    dfStreaming.writeStream.queryName("hotinbk_3").format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/" + tableName).start("/medical/bronze/" + tableName)
+    dfStreaming.writeStream.format('delta').outputMode("append").option("checkpointLocation", "/medical/checkpoint/bronze/" + tableName).start("/medical/bronze/" + tableName)
     # print('Stream name: ' + dfStreaming.name)
 
 #streaming S3 To Bronze
@@ -64,7 +64,7 @@ def streamingBronzeToGoldMergeMethod(tableName, schema, mergeOn, partitionedBy =
         spark.sql("CREATE TABLE silver_" + tableName + " (" + setColumns + ", Date_Time timestamp) USING DELTA LOCATION '/medical/silver/" + tableName + "'" + (" PARTITIONED BY (" + setPartitionedBy + ")" if partitionedBy != [] else ''))
 
     dfStreaming = spark.readStream.format("delta").load("/medical/bronze/" + tableName)
-    dfStreaming.writeStream.queryName("hotinbk_4").option("checkpointLocation", "/medical/checkpoint/silver/" + tableName).outputMode("update").foreachBatch(upsertToDelta).start()
+    dfStreaming.writeStream.option("checkpointLocation", "/medical/checkpoint/silver/" + tableName).outputMode("update").foreachBatch(upsertToDelta).start()
 
 #streaming Bronze To Gold With Append Method
 def streamingBronzeToGoldAppendMethod(tableName, schema, partitionedBy = []):

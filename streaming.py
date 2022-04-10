@@ -1,6 +1,7 @@
 from sparkSetup import spark
 from utility import *
 import configparser
+from manage_schema import *
 
 #config
 config_obj = configparser.ConfigParser()
@@ -20,7 +21,7 @@ d_patientsSchema = ( \
 )
 
 def start_d_patient_stream_bronze():
-    streamingS3ToBronze(tableName = 'd_patients', schema = d_patientsSchema)
+    streamingHDFSToBronze(tableName = 'd_patients', schema = d_patientsSchema)
 
 def start_d_patient_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'd_patients', schema = d_patientsSchema, mergeOn = ["subject_id"])
@@ -48,7 +49,7 @@ drgeventsSchema = ( \
 )
 
 def start_drgevents_stream_bronze():
-    streamingS3ToBronze(tableName = 'drgevents', schema = drgeventsSchema)
+    streamingHDFSToBronze(tableName = 'drgevents', schema = drgeventsSchema)
 
 def start_drgevents_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'drgevents', schema = drgeventsSchema, mergeOn = ["hadm_id"])
@@ -64,7 +65,7 @@ d_codeditemsSchema = ( \
 )
 
 def start_d_codeditems_stream_bronze():
-    streamingS3ToBronze(tableName = 'd_codeditems', schema = d_codeditemsSchema)
+    streamingHDFSToBronze(tableName = 'd_codeditems', schema = d_codeditemsSchema)
 
 def start_d_codeditems_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'd_codeditems', schema = d_codeditemsSchema, mergeOn = ["itemid"], partitionedBy = ["type"])
@@ -88,7 +89,7 @@ demographic_detailSchema = ( \
 )
 
 def start_demographic_detail_stream_bronze():
-    streamingS3ToBronze(tableName = 'demographic_detail', schema = demographic_detailSchema)
+    streamingHDFSToBronze(tableName = 'demographic_detail', schema = demographic_detailSchema)
 
 def start_demographic_detail_stream_silver():
     streamingBronzeToGoldMergeMethod(tableName = 'demographic_detail', schema = demographic_detailSchema, mergeOn = ["hadm_id"])
@@ -300,10 +301,22 @@ def init_spark_streaming():
     hadoop_conf.set("fs.s3a.access.key", amazonS3param['accesskey'])
     hadoop_conf.set("fs.s3a.secret.key", amazonS3param['secretkey'])
 
+    # Query all projects
+    projects = Project.objects();
+    print('Projects: ' + str(projects))
+
+    # Query all tables in each project
+    for project in projects:
+        tables = TableDefinition.objects(project = project)
+
+        # For each table
+        for table in tables:
+            startStream(project=project, table=table)
+
     # start_d_patient_stream_bronze()
     # start_d_patient_stream_silver()
-    start_admissions_stream_bronze()
-    start_admissions_stream_silver()
+    # start_admissions_stream_bronze()
+    # start_admissions_stream_silver()
     # start_drgevents_stream_bronze()
     # start_drgevents_stream_silver()
     # start_d_codeditems_stream_bronze()

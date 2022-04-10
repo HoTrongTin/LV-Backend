@@ -29,8 +29,8 @@ def startStream(project, table):
         else: streamingSchema.add(col[0], col[1], col[2])
 
 
-    bronze_stream_name = "bronze-{projectName}-{table_name}"
-    gold_stream_name = "gold-{projectName}-{table_name}"
+    bronze_stream_name = "bronze-{project_name}-{table_name}".format(project_name = project.name, table_name = table.name)
+    gold_stream_name = "gold-{project_name}-{table_name}".format(project_name = project.name, table_name = table.name);
 
 
     # Start Bronze & Gold streamming    

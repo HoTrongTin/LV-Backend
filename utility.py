@@ -85,7 +85,7 @@ def streamingBronzeToGoldMergeMethod(project_name, table_name, schema, stream_na
             ON """ + mergeOnparser[:-5] + """
             WHEN MATCHED THEN UPDATE SET *
             WHEN NOT MATCHED THEN INSERT *
-        """.format(project_name=project_name, table_name=table_name, table_name= table_name))
+        """.format(project_name=project_name, table_name= table_name))
 
     setColumns = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schema])
     setPartitionedBy = ', '.join(partitionedBy)

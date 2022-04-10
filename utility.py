@@ -20,6 +20,7 @@ def startStream(project, table):
     for col in table.columns:
         schema.append((col['name'], col['field_type'], col['nullable']))
     schema = tuple(schema);
+    print('schema: ', str(schema));
 
     streamingSchema = StructType()
     for col in schema:

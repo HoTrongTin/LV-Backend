@@ -16,9 +16,17 @@ amazonS3param = config_obj["amazonS3"]
 def startStream(project, table):
 
     # Create DF schema
-    schema = StructType()
+    schema = []
     for col in table.columns:
-        schema.add(col['name'], col['field_type'], col['nullable'])
+        schema.append((col['name'], col['field_type'], col['nullable']))
+    schema = tuple(schema);
+
+    streamingSchema = StructType()
+    for col in schema:
+        if len(col) == 2:
+            streamingSchema.add(col[0], col[1])
+        else: streamingSchema.add(col[0], col[1], col[2])
+
 
     bronze_stream_name = "bronze-{projectName}-{table_name}"
     gold_stream_name = "gold-{projectName}-{table_name}"
@@ -26,16 +34,16 @@ def startStream(project, table):
 
     # Start Bronze & Gold streamming    
     if table.source == 'HDFS':
-        streamingHDFSToBronze(project_name=project.name, table_name=table.name, schema=schema, stream_name=bronze_stream_name)
+        streamingHDFSToBronze(project_name=project.name, table_name=table.name, schema=streamingSchema, stream_name=bronze_stream_name)
     elif table.source == 'S3':
         pass
     elif table.source == 'KAFKA':
         pass
     
     if table.method == 'MERGE':
-        streamingBronzeToGoldMergeMethod(project_name=project.name, table_name=table.name, schema=schema, stream_name=gold_stream_name, mergeOn=table.merge_on, partitionedBy=table.partition_by)
+        streamingBronzeToGoldMergeMethod(project_name=project.name, table_name=table.name, schema=streamingSchema, stream_name=gold_stream_name, mergeOn=table.merge_on, partitionedBy=table.partition_by)
     elif table.method == 'APPEND':
-        streamingBronzeToGoldAppendMethod(project_name=project.name, table_name=table.name, schema=schema, stream_name=gold_stream_name, partitionedBy=table.partition_by)
+        streamingBronzeToGoldAppendMethod(project_name=project.name, table_name=table.name, schema=streamingSchema, stream_name=gold_stream_name, partitionedBy=table.partition_by)
 
     # Update streamming id, name, status (ACTIVE) to MongoDB
     table.bronze_stream_name = bronze_stream_name

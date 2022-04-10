@@ -92,11 +92,11 @@ def streamingBronzeToGoldMergeMethod(project_name, table_name, schema, stream_na
 
     #create bronze
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/bronze/{table_name}'.format(project_name=project_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE bronze_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/bronze/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name, table_name=table_name))
+        spark.sql("""CREATE TABLE bronze_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/bronze/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name))
 
     #create silver
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/silver/{table_name}'.format(project_name=project_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE silver_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name, table_name=table_name)
+        spark.sql("""CREATE TABLE silver_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name)
             + (" PARTITIONED BY (" + setPartitionedBy + ")" if partitionedBy != [] else '')
         )
 
@@ -125,11 +125,11 @@ def streamingBronzeToGoldAppendMethod(project_name, table_name, schema, stream_n
 
     #create bronze
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/bronze/{table_name}'.format(project_name=project_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE bronze_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/bronze/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name, table_name=table_name))
+        spark.sql("""CREATE TABLE bronze_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/bronze/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name))
 
     #create silver
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/silver/{table_name}'.format(project_name=project_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE silver_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name, table_name=table_name)
+        spark.sql("""CREATE TABLE silver_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name)
             + (" PARTITIONED BY (" + setPartitionedBy + ")" if partitionedBy != [] else '')
         )
 

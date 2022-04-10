@@ -15,6 +15,7 @@ from manage_user import *
 
 class Project(db.Document):
     name = db.StringField(min_length=6, max_length=200, required=True, unique=True);
+    state = db.StringField(choices=['RUNNING', 'STOPPED'], default = 'RUNNING');
     user = db.ReferenceField(User, reverse_delete_rule=CASCADE);
 
 
@@ -33,9 +34,12 @@ class TableDefinition(db.Document):
     partition_by = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
 
     # Manage stream
-    stream_id = db.StringField(default = '');
-    stream_name = db.StringField(default = '');
-    stream_status = db.StringField(required=True, choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE');
+    bronze_stream_id = db.StringField(default = '');
+    gold_stream_id = db.StringField(default = '');
+    bronze_stream_name = db.StringField(default = '');
+    bronze_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE');
+    gold_stream_name = db.StringField(default = '');
+    gold_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE');
 
 
 #TODO: Create project

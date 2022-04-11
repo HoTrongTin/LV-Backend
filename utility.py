@@ -103,7 +103,7 @@ def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, sche
     setPartitionedBy = ', '.join(partitionedBy)
 
     #create bronze
-    if not(DeltaTable.isDeltaTable(spark, '/{project_name}/{folder_name}/{table_name}'.format(project_name=project_name, table_name=table_name))):
+    if not(DeltaTable.isDeltaTable(spark, '/{project_name}/{folder_name}/{table_name}'.format(project_name=project_name, folder_name=folder_name, table_name=table_name))):
         spark.sql("""CREATE TABLE {folder_name}_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/{folder_name}/{table_name}\'""".format(folder_name=folder_name, table_name=table_name, setColumns = setColumns, project_name=project_name))
 
     #create silver

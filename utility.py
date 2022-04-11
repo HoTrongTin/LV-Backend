@@ -35,7 +35,6 @@ def startStream(project, stream):
 
     dataset_source = stream.dataset_source
     dataset_sink = stream.dataset_sink
-  
 
     # Start Bronze & Gold streamming    
     if dataset_source.dataset_type == 'HDFS':
@@ -46,9 +45,9 @@ def startStream(project, stream):
         pass
     
     if stream.method == 'MERGE':
-        streamingBronzeToGoldMergeMethod(project_name=project.name, table_name=stream.name, schema=schema, stream_name=gold_stream_name, mergeOn=stream.merge_on, partitionedBy=stream.partition_by)
+        streamingBronzeToGoldMergeMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schema, stream_name=gold_stream_name, mergeOn=stream.merge_on, partitionedBy=stream.partition_by)
     elif stream.method == 'APPEND':
-        streamingBronzeToGoldAppendMethod(project_name=project.name, table_name=stream.name, schema=schema, stream_name=gold_stream_name, partitionedBy=stream.partition_by)
+        streamingBronzeToGoldAppendMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schema, stream_name=gold_stream_name, partitionedBy=stream.partition_by)
 
     # Update streamming id, name, status (ACTIVE) to MongoDB
     stream.bronze_stream_name = bronze_stream_name
@@ -84,7 +83,7 @@ def getCheckpointLocation(project_name, stream, dataset_sink):
 #     dfStreaming.writeStream.format('delta').outputMode("append").option("checkpointLocation", getCheckpointLocation(project_name, table_name)).start(getStreamSink(project_name, table_name))
 
 #streaming Bronze To Gold With Merge Method
-def streamingBronzeToGoldMergeMethod(project_name, table_name, schema, stream_name, mergeOn, partitionedBy = []):
+def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, schema, stream_name, mergeOn, partitionedBy = []):
     def upsertToDelta(microBatchOutputDF, batchId): 
         microBatchOutputDF.createOrReplaceTempView("updates")
         
@@ -104,8 +103,8 @@ def streamingBronzeToGoldMergeMethod(project_name, table_name, schema, stream_na
     setPartitionedBy = ', '.join(partitionedBy)
 
     #create bronze
-    if not(DeltaTable.isDeltaTable(spark, '/{project_name}/bronze/{table_name}'.format(project_name=project_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE bronze_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/bronze/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name))
+    if not(DeltaTable.isDeltaTable(spark, '/{project_name}/{folder_name}/{table_name}'.format(project_name=project_name, table_name=table_name))):
+        spark.sql("""CREATE TABLE {folder_name}_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/{folder_name}/{table_name}\'""".format(folder_name=folder_name, table_name=table_name, setColumns = setColumns, project_name=project_name))
 
     #create silver
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/silver/{table_name}'.format(project_name=project_name, table_name=table_name))):
@@ -113,14 +112,14 @@ def streamingBronzeToGoldMergeMethod(project_name, table_name, schema, stream_na
             + (" PARTITIONED BY (" + setPartitionedBy + ")" if partitionedBy != [] else '')
         )
 
-    dfStreaming = spark.readStream.format("delta").load("/{project_name}/bronze/{table_name}".format(project_name=project_name, table_name=table_name))
+    dfStreaming = spark.readStream.format("delta").load("/{project_name}/{folder_name}/{table_name}".format(project_name=project_name, folder_name=folder_name, table_name=table_name))
     dfStreaming.writeStream.queryName(stream_name).option("checkpointLocation", "/{project_name}/checkpoint/silver/{table_name}".format(project_name=project_name, table_name=table_name)) \
         .outputMode("update") \
         .foreachBatch(upsertToDelta) \
         .start()
 
 #streaming Bronze To Gold With Append Method
-def streamingBronzeToGoldAppendMethod(project_name, table_name, schema, stream_name, partitionedBy = []):
+def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, schema, stream_name, partitionedBy = []):
     def appendToDelta(microBatchOutputDF, batchId): 
         microBatchOutputDF.createOrReplaceTempView("batchData")
 
@@ -137,8 +136,8 @@ def streamingBronzeToGoldAppendMethod(project_name, table_name, schema, stream_n
     setPartitionedBy = ', '.join(partitionedBy)
 
     #create bronze
-    if not(DeltaTable.isDeltaTable(spark, '/{project_name}/bronze/{table_name}'.format(project_name=project_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE bronze_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/bronze/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name))
+    if not(DeltaTable.isDeltaTable(spark, '/{project_name}/{folder_name}/{table_name}'.format(project_name=project_name, folder_name=folder_name, table_name=table_name))):
+        spark.sql("""CREATE TABLE {folder_name}_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/{folder_name}/{table_name}\'""".format(folder_name=folder_name, table_name=table_name, setColumns = setColumns, project_name=project_name))
 
     #create silver
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/silver/{table_name}'.format(project_name=project_name, table_name=table_name))):
@@ -146,7 +145,7 @@ def streamingBronzeToGoldAppendMethod(project_name, table_name, schema, stream_n
             + (" PARTITIONED BY (" + setPartitionedBy + ")" if partitionedBy != [] else '')
         )
 
-    dfStreaming = spark.readStream.format("delta").load('/{project_name}/bronze/{table_name}'.format(project_name=project_name, table_name=table_name))
+    dfStreaming = spark.readStream.format("delta").load('/{project_name}/{folder_name}/{table_name}'.format(project_name=project_name, folder_name=folder_name, table_name=table_name))
     dfStreaming.writeStream.queryName(stream_name).option("checkpointLocation", "/{project_name}/checkpoint/silver/{table_name}".format(project_name=project_name, table_name=table_name)) \
         .outputMode("update") \
         .foreachBatch(appendToDelta) \

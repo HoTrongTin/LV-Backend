@@ -29,12 +29,11 @@ def startStream(project, stream):
             streamingSchema.add(col[0], col[1])
         else: streamingSchema.add(col[0], col[1], col[2])
 
-
-    bronze_stream_name = "bronze-{project_name}-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink)
-    gold_stream_name = "gold-{project_name}-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink);
-
     dataset_source = stream.dataset_source
     dataset_sink = stream.dataset_sink
+
+    bronze_stream_name = "{project_name}-{dataset_sink.folder_name}-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink)
+    gold_stream_name = "{project_name}-gold-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink);
 
     # Start Bronze & Gold streamming    
     if dataset_source.dataset_type == 'HDFS':

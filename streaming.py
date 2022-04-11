@@ -307,11 +307,11 @@ def init_spark_streaming():
 
     # Query all tables in each project
     for project in projects:
-        tables = StreammingDefinition.objects(project = project)
+        streams = StreammingDefinition.objects(project = project)
 
         # For each table
-        for table in tables:
-            startStream(project=project, table=table)
+        for stream in streams:
+            startStream(project=project, stream=stream)
 
     # start_d_patient_stream_bronze()
     # start_d_patient_stream_silver()

@@ -1,3 +1,4 @@
+from manage_schema import *
 from pyspark.sql.types import StructType
 from pyspark.sql.functions import *
 from sparkSetup import spark
@@ -13,11 +14,11 @@ config_obj.read("config.ini")
 amazonS3param = config_obj["amazonS3"]
 
 #streaming HDFS To Bronze
-def startStream(project, table):
+def startStream(project, stream):
 
     # Create DF schema
     schema = []
-    for col in table.columns:
+    for col in stream.columns:
         schema.append((col['name'], col['field_type'], col['nullable']))
     schema = tuple(schema);
     print('schema: ', str(schema));
@@ -29,44 +30,47 @@ def startStream(project, table):
         else: streamingSchema.add(col[0], col[1], col[2])
 
 
-    bronze_stream_name = "bronze-{project_name}-{table_name}".format(project_name = project.name, table_name = table.name)
-    gold_stream_name = "gold-{project_name}-{table_name}".format(project_name = project.name, table_name = table.name);
+    bronze_stream_name = "bronze-{project_name}-{table_name}".format(project_name = project.name, table_name = stream.name)
+    gold_stream_name = "gold-{project_name}-{table_name}".format(project_name = project.name, table_name = stream.name);
 
+    dataset_source = DataSetDefinition.objects(id=stream.dataset_source, project=project).first()
+    dataset_sink = DataSetDefinition.objects(id=stream.dataset_sink, project=project).first()
+  
 
     # Start Bronze & Gold streamming    
-    if table.source == 'HDFS':
-        streamingHDFSToBronze(project_name=project.name, table_name=table.name, schema=streamingSchema, stream_name=bronze_stream_name)
-    elif table.source == 'S3':
+    if dataset_source.dataset_type == 'HDFS':
+        streamingHDFSToBronze(project_name=project.name, schema=streamingSchema, stream=stream, stream_name=bronze_stream_name, dataset_source=dataset_source, dataset_sink=dataset_sink)
+    elif dataset_source.dataset_type == 'S3':
         pass
-    elif table.source == 'KAFKA':
+    elif dataset_source.dataset_type == 'KAFKA':
         pass
     
-    if table.method == 'MERGE':
-        streamingBronzeToGoldMergeMethod(project_name=project.name, table_name=table.name, schema=schema, stream_name=gold_stream_name, mergeOn=table.merge_on, partitionedBy=table.partition_by)
-    elif table.method == 'APPEND':
-        streamingBronzeToGoldAppendMethod(project_name=project.name, table_name=table.name, schema=schema, stream_name=gold_stream_name, partitionedBy=table.partition_by)
+    if stream.method == 'MERGE':
+        streamingBronzeToGoldMergeMethod(project_name=project.name, table_name=stream.name, schema=schema, stream_name=gold_stream_name, mergeOn=stream.merge_on, partitionedBy=stream.partition_by)
+    elif stream.method == 'APPEND':
+        streamingBronzeToGoldAppendMethod(project_name=project.name, table_name=stream.name, schema=schema, stream_name=gold_stream_name, partitionedBy=stream.partition_by)
 
     # Update streamming id, name, status (ACTIVE) to MongoDB
-    table.bronze_stream_name = bronze_stream_name
-    table.gold_stream_name = gold_stream_name
-    table.bronze_stream_status = 'ACTIVE'
-    table.gold_stream_status = 'ACTIVE'
+    stream.bronze_stream_name = bronze_stream_name
+    stream.gold_stream_name = gold_stream_name
+    stream.bronze_stream_status = 'ACTIVE'
+    stream.gold_stream_status = 'ACTIVE'
 
-    table.save()
+    stream.save()
 
     
-def streamingHDFSToBronze(project_name, table_name, schema, stream_name):
-    dfStreaming = spark.readStream.option("sep", ",").option("header", "true").schema(schema).csv(getHDFSStreamSource(table_name)).withColumn('Date_Time', current_timestamp())
-    dfStreaming.writeStream.queryName(stream_name).format('delta').outputMode("append").option("checkpointLocation", getCheckpointLocation(project_name, table_name)).start(getStreamSink(project_name, table_name))
+def streamingHDFSToBronze(project_name, schema, stream, stream_name, dataset_source, dataset_sink):
+    dfStreaming = spark.readStream.option("sep", ",").option("header", "true").schema(schema).csv(getHDFSStreamSource(dataset_source, stream.table_name_source)).withColumn('Date_Time', current_timestamp())
+    dfStreaming.writeStream.queryName(stream_name).format('delta').outputMode("append").option("checkpointLocation", getCheckpointLocation(project_name, stream, dataset_sink)).start(getStreamSink(project_name, dataset_sink.folder_name, stream.table_name_sink))
     
-def getStreamSink(project_name, table_name):
-    return "/{project_name}/bronze/{table_name}".format(project_name=project_name, table_name=table_name)
+def getStreamSink(project_name, folder_name, table_name):
+    return "/{project_name}/{folder_name}/{table_name}".format(project_name=project_name, folder_name=folder_name, table_name=table_name)
 
-def getHDFSStreamSource(table_name):
-    return "/streaming/{table_name}".format(table_name=table_name)
+def getHDFSStreamSource(dataset_source, table_name):
+    return "/{folder_name}/{table_name}".format(folder_name=dataset_source.folder_name, table_name=table_name)
 
-def getCheckpointLocation(project_name, table_name):
-    return "/{project_name}/checkpoint/bronze/{table_name}".format(project_name=project_name, table_name=table_name)
+def getCheckpointLocation(project_name, stream, dataset_sink):
+    return "/{project_name}/checkpoint/{folder_name}/{table_name}".format(project_name=project_name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink)
 
 #streaming S3 To Bronze
 # def streamingS3ToBronze(project_name, table_name, schema):

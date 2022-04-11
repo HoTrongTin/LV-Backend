@@ -30,8 +30,8 @@ def startStream(project, stream):
         else: streamingSchema.add(col[0], col[1], col[2])
 
 
-    bronze_stream_name = "bronze-{project_name}-{table_name}".format(project_name = project.name, table_name = stream.id)
-    gold_stream_name = "gold-{project_name}-{table_name}".format(project_name = project.name, table_name = stream.id);
+    bronze_stream_name = "bronze-{project_name}-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink)
+    gold_stream_name = "gold-{project_name}-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink);
 
     dataset_source = stream.dataset_source
     dataset_sink = stream.dataset_sink

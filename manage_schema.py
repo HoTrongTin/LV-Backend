@@ -145,8 +145,8 @@ def create_streaming(current_user, project_id):
     project = Project.objects(id = project_id, user = current_user).first()
 
     if project:
-        dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project)
-        dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project)
+        dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project).first()
+        dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project).first()
   
         new_streaming = StreammingDefinition(project = project, method = method, merge_on = merge_on, partition_by = partition_by, dataset_source=dataset_source, dataset_sink=dataset_sink, table_name_source=table_name_source, table_name_sink=table_name_sink)
 
@@ -219,8 +219,8 @@ def update_streaming(current_user, project_id, streaming_id):
             streaming.method = merge_on
             streaming.method = partition_by
             streaming.columns = []
-            streaming.dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project)
-            streaming.dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project)
+            streaming.dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project).first()
+            streaming.dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project).first()
             table_name_sink = table_name_sink
             table_name_source = table_name_source
 

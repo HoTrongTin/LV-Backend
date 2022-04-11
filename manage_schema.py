@@ -126,6 +126,8 @@ def create_streaming(current_user, project_id):
   
     # gets project info
     method = jsonData['method']
+    table_name_source = jsonData['table_name_source']
+    table_name_sink = jsonData['table_name_sink']
     
     columns = []
     for col in jsonData['columns']:
@@ -146,7 +148,7 @@ def create_streaming(current_user, project_id):
         dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project)
         dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project)
   
-        new_streaming = StreammingDefinition(project = project, method = method, merge_on = merge_on, partition_by = partition_by, dataset_source=dataset_source, dataset_sink=dataset_sink)
+        new_streaming = StreammingDefinition(project = project, method = method, merge_on = merge_on, partition_by = partition_by, dataset_source=dataset_source, dataset_sink=dataset_sink, table_name_source=table_name_source, table_name_sink=table_name_sink)
 
         # Create columns in streaming
         for col in columns:
@@ -189,6 +191,8 @@ def update_streaming(current_user, project_id, streaming_id):
   
     # gets project info
     method = jsonData['method']
+    table_name_source = jsonData['table_name_source']
+    table_name_sink = jsonData['table_name_sink']
 
     columns = []
     for col in jsonData['columns']:
@@ -217,6 +221,8 @@ def update_streaming(current_user, project_id, streaming_id):
             streaming.columns = []
             streaming.dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project)
             streaming.dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project)
+            table_name_sink = table_name_sink
+            table_name_source = table_name_source
 
             for col in columns:
                 streaming.columns.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))

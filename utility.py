@@ -33,8 +33,8 @@ def startStream(project, stream):
     bronze_stream_name = "bronze-{project_name}-{table_name}".format(project_name = project.name, table_name = stream.id)
     gold_stream_name = "gold-{project_name}-{table_name}".format(project_name = project.name, table_name = stream.id);
 
-    dataset_source = DataSetDefinition.objects(id=stream.dataset_source, project=project).first()
-    dataset_sink = DataSetDefinition.objects(id=stream.dataset_sink, project=project).first()
+    dataset_source = DataSetDefinition.objects(id=stream.dataset_source['$oid'], project=project).first()
+    dataset_sink = DataSetDefinition.objects(id=stream.dataset_sink['$oid'], project=project).first()
   
 
     # Start Bronze & Gold streamming    

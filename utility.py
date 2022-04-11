@@ -45,9 +45,9 @@ def startStream(project, stream):
         pass
     
     if stream.method == 'MERGE':
-        streamingBronzeToGoldMergeMethod(project_name=project.name, table_name=stream.table_name_sink, schema=schema, stream_name=gold_stream_name, mergeOn=stream.merge_on, partitionedBy=stream.partition_by)
+        streamingBronzeToGoldMergeMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schema, stream_name=gold_stream_name, mergeOn=stream.merge_on, partitionedBy=stream.partition_by)
     elif stream.method == 'APPEND':
-        streamingBronzeToGoldAppendMethod(project_name=project.name, table_name=stream.table_name_sink, schema=schema, stream_name=gold_stream_name, partitionedBy=stream.partition_by)
+        streamingBronzeToGoldAppendMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schema, stream_name=gold_stream_name, partitionedBy=stream.partition_by)
 
     # Update streamming id, name, status (ACTIVE) to MongoDB
     stream.bronze_stream_name = bronze_stream_name

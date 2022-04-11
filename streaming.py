@@ -307,7 +307,7 @@ def init_spark_streaming():
 
     # Query all tables in each project
     for project in projects:
-        tables = TableDefinition.objects(project = project)
+        tables = StreammingDefinition.objects(project = project)
 
         # For each table
         for table in tables:

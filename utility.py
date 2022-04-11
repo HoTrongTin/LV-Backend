@@ -32,7 +32,7 @@ def startStream(project, stream):
     dataset_source = stream.dataset_source
     dataset_sink = stream.dataset_sink
 
-    bronze_stream_name = "{project_name}-{dataset_sink.folder_name}-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink)
+    bronze_stream_name = "{project_name}-{folder_name}-{table_name}".format(project_name = project.name,folder_name=dataset_sink.folder_name, table_name = stream.table_name_sink)
     gold_stream_name = "{project_name}-gold-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink);
 
     # Start Bronze & Gold streamming    

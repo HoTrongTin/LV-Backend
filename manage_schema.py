@@ -52,7 +52,11 @@ class StreammingDefinition(db.Document):
     gold_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
 
 class ApisDefinition(db.Document):
-    pass
+    project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
+    key = db.StringField(required=True)
+    description = db.StringField(default = '')
+    sql = db.StringField(default = '')
+
 
 #TODO: Create project
 @app.route('/project', methods =['POST'])
@@ -297,7 +301,7 @@ def update_dataset(current_user, project_id, ds_id):
     project = Project.objects(id = project_id, user = current_user).first()
 
     if project:
-        dataset = DataSetDefinition.objects(project=project)
+        dataset = DataSetDefinition.objects(id=ds_id, project=project).first()
 
         if dataset:
             dataset.dataset_name = dataset_name
@@ -331,3 +335,83 @@ def get_dataset(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+#####################################################################################################
+#TODO: Create api in project
+@app.route('/project/<project_id>/apis', methods =['POST'])
+@token_required
+def create_api(current_user, project_id):
+    jsonData = request.get_json()
+    print('------')
+    print(jsonData)
+    print('------')
+    print(project_id)
+  
+    # gets api info
+    key = jsonData['key']
+    description = jsonData['description']
+    sql = jsonData['sql']
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        new_api = ApisDefinition(project=project, key=key, description=description, sql=sql)
+        new_api.save()
+
+        return jsonify({'body': new_api})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
+#TODO: Update api in project
+@app.route('/project/<project_id>/apis/<api_id>', methods =['PATCH'])
+@token_required
+def update_api(current_user, project_id, api_id):
+    jsonData = request.get_json()
+    print('------')
+    print(jsonData)
+    print('------')
+    print(project_id)
+  
+    # gets api info
+    key = jsonData['key']
+    description = jsonData['description']
+    sql = jsonData['sql']
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        api = ApisDefinition.objects(id=api_id, project=project).first()
+
+        if api:
+            api.key = key
+            api.description = description
+            api.sql = sql
+            api.save()
+
+            return jsonify({'body': api})
+        else:
+            return make_response('Api does not exist.', 400)
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
+#TODO: Get api in project
+@app.route('/project/<project_id>/apis', methods =['GET'])
+@token_required
+def get_dataset(current_user, project_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+    print('project: ' + str(project.to_json()))
+
+    if project:
+        apis = ApisDefinition.objects(project = project)
+
+        print('datasets: ' + str(apis.to_json()))
+
+        return jsonify({'body': apis})
+
+    else:  
+        return make_response('Project does not exist.', 400)

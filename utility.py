@@ -153,7 +153,7 @@ def cache_data_to_mongoDB(project_name, key):
     res = spark.read.format("delta").load("/{project_name}/gold/gold_{key}".format(project_name=project_name, key=key))
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
     CacheQuery.objects(key=project_name + "_" + key).delete()
-    data = CacheQuery(key = project_name + "_" + key,value=results)
+    data = CacheQuery(key=project_name + "_" + key,value=results)
     data.save()
 
 #parseQuery

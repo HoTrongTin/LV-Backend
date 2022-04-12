@@ -70,11 +70,19 @@ def test_chartevents(subject_id):
 
     return jsonify({'body': results})
 
-@app.route('/get-cached-data')
-def get_cached_data():
-    key = request.args.get('key')
-    data = CacheQuery.objects(key=key).first()
-    return jsonify(data.to_json())
+@app.route('/project/<project_id>/get-cached-data')
+@token_required
+def get_cached_data(current_user, project_id):
+
+    project = Project.objects(id=project_id, user=current_user).first()
+
+    if project:
+        key = request.args.get('key')
+        data = CacheQuery.objects(key= project.name + '_'+ key).first()
+        return jsonify(data.to_json())
+
+    else:
+        return make_response('Project does not exist.', 400)
 
 @app.route('/analysis-clinical-diseases-by-month', methods=['POST'])
 def test():

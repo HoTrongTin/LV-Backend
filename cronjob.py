@@ -4,8 +4,8 @@ from manage_schema import *
 from utility import *
 
 #init Schedule jobs
-def cron_data_to_Gold():
-    print('Schedule jobs copy data from silver to Gold...')
+def cron_data_to_mongoDB():
+    print('Schedule jobs copy data from Gold to MongoDB...')
     # cache_gold_analysis_patients_by_age()
     # cache_gold_analysis_admissions_and_deied_patients_in_hospital()
     # cache_gold_analysis_get_5_common_diseases_by_month()
@@ -28,8 +28,8 @@ def cron_data_to_Gold():
         for api in apis:
             cache_data_to_mongoDB(project_name=project.name, key=api.key)
 
-def cron_data_to_mongoDB():
-    print('Setup CronJob for copying data from gold to mongoDB...')
+def cron_data_to_Gold():
+    print('Setup CronJob for copying data from Silver to Gold...')
     # cache_mongoDB_analysis_patients_by_age()
     # cache_mongoDB_analysis_admissions_and_deied_patients_in_hospital()
     # cache_mongoDB_analysis_get_5_common_diseases_by_month()

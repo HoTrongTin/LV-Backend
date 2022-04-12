@@ -50,4 +50,4 @@ def cron_data_to_Gold():
 
         # For each stream
         for api in apis:
-            cache_gold_analysis_query(project_name=project.name, key=api.key)
+            cache_gold_analysis_query(project_name=project.name, sql=api.sql, key=api.key)

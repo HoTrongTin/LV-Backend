@@ -335,6 +335,17 @@ def get_dataset(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+@app.route('/project/<project_id>/dataset/<ds_id>', methods =['DELETE'])
+@token_required
+def delete_dataset(current_user, project_id, ds_id):
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        DataSetDefinition(id = ds_id, project = project).delete()
+    else:  
+        return make_response('Project does not exist.', 400)
+
 #####################################################################################################
 #TODO: Create api in project
 @app.route('/project/<project_id>/apis', methods =['POST'])
@@ -400,7 +411,7 @@ def update_api(current_user, project_id, api_id):
 #TODO: Get api in project
 @app.route('/project/<project_id>/apis', methods =['GET'])
 @token_required
-def get_dataset(current_user, project_id):
+def get_apis(current_user, project_id):
 
     # checking for existing project
     project = Project.objects(id = project_id, user = current_user).first()
@@ -413,5 +424,16 @@ def get_dataset(current_user, project_id):
 
         return jsonify({'body': apis})
 
+    else:  
+        return make_response('Project does not exist.', 400)
+
+@app.route('/project/<project_id>/apis/<api_id>', methods =['DELETE'])
+@token_required
+def delete_api(current_user, project_id, api_id):
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        ApisDefinition(id = api_id, project = project).delete()
     else:  
         return make_response('Project does not exist.', 400)

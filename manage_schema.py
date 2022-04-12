@@ -51,6 +51,8 @@ class StreammingDefinition(db.Document):
     gold_stream_name = db.StringField(default = '')
     gold_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
 
+class ApisDefinition(db.Document):
+    pass
 
 #TODO: Create project
 @app.route('/project', methods =['POST'])

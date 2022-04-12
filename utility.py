@@ -20,14 +20,12 @@ def startStream(project, stream):
     schema = []
     for col in stream.columns:
         schema.append((col['name'], col['field_type'], col['nullable']))
-    schema = tuple(schema);
-    print('schema: ', str(schema));
+    schema = tuple(schema)
+    print('schema: ', str(schema))
 
     streamingSchema = StructType()
     for col in schema:
-        if len(col) == 2:
-            streamingSchema.add(col[0], col[1])
-        else: streamingSchema.add(col[0], col[1], col[2])
+        streamingSchema.add(col[0], col[1], col[2])
 
     dataset_source = stream.dataset_source
     dataset_sink = stream.dataset_sink
@@ -150,19 +148,12 @@ def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, sch
         .foreachBatch(appendToDelta) \
         .start()
 
-#check streaming data copy to silver succesful
-# def check_streaming_data_in_silver(table_name, numRows = 5):
-#     print('5 rows of ' + table_name + ' table:')
-#     spark.read.format("delta").load("/medical/silver/" + table_name).limit(numRows).show()
-#     print('Total data rows:')
-#     spark.sql("select count(*) from delta.`/medical/silver/" + table_name + "`").show()
-
 #cache data to mongoDB
-def cache_data_to_mongoDB(project_name, goldtable_name, keyTableMongoDB):
-    res = spark.read.format("delta").load("/{project_name}/gold/{goldtable_name}".format(project_name=project_name, goldtable_name = goldtable_name))
+def cache_data_to_mongoDB(project_name, key):
+    res = spark.read.format("delta").load("/{project_name}/gold/gold_{key}".format(project_name=project_name, key=key))
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
-    CacheQuery.objects(key=keyTableMongoDB).delete()
-    data = CacheQuery(key = keyTableMongoDB,value=results)
+    CacheQuery.objects(key=project_name + "_" + key).delete()
+    data = CacheQuery(key = project_name + "_" + key,value=results)
     data.save()
 
 #parseQuery
@@ -182,3 +173,10 @@ def parseQuery(query, pathHDFS):
         joinSplit = [joinSplit[0]] + list(map(lambda a: a[:a.index(' ')] + '`' + a[a.index(' '):], joinSplit[1:]))
         queryRes = ('join delta.`' + pathHDFS).join(joinSplit)
     return queryRes
+
+#cache data to Gold
+def cache_gold_analysis_query(project_name, sql, key):
+    pathHDFSsilver = "/{project_name}/silver/".format(project_name=project_name)
+    sqlFormatted = parseQuery(sql, pathHDFSsilver)
+    res = spark.sql(sqlFormatted)
+    res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/{project_name}/gold/gold_{key}".format(project_name=project_name, key=key))

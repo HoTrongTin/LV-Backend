@@ -10,7 +10,7 @@ from apscheduler.schedulers.background import BackgroundScheduler
 from mongodb import app, CacheQuery
 from sparkSetup import spark
 from streaming import init_spark_streaming
-from cronjob import cron_check_streaming, cron_data_to_Gold, cron_data_to_mongoDB
+from cronjob import cron_data_to_Gold, cron_data_to_mongoDB
 from manage_user import *
 from manage_schema import *
 from utility import parseQuery
@@ -139,7 +139,7 @@ def manual_start_scheduler():
     return jsonify({'body': 'Stop scheduler successful!'})
 
 # Setup CronJob for checking streaming
-scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=6000)
+# scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=6000)
 
 # Setup CronJob for copying data from silver to gold
 #shceduler run mon to fri on every 0 and 30 minutes of each hour from 6h to 22h

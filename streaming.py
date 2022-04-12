@@ -302,14 +302,14 @@ def init_spark_streaming():
     hadoop_conf.set("fs.s3a.secret.key", amazonS3param['secretkey'])
 
     # Query all projects
-    projects = Project.objects();
+    projects = Project.objects()
     print('Projects: ' + str(projects))
 
-    # Query all tables in each project
+    # Query all streams in each project
     for project in projects:
         streams = StreammingDefinition.objects(project = project)
 
-        # For each table
+        # For each stream
         for stream in streams:
             startStream(project=project, stream=stream)
 

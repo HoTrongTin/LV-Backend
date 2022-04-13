@@ -165,7 +165,7 @@ def parseQuery(query, pathHDFS):
     else:
         queryRes = fromSplit[0]
         for itemSplit in fromSplit[1:]:
-            if itemSplit[0] != '(' and itemSplit[:3] != 'dod':
+            if itemSplit[0] != '(':
                 queryRes += 'from delta.`' + pathHDFS + (itemSplit[:itemSplit.index(' ') - 1] + '`)' if itemSplit[itemSplit.index(' ') - 1] == ')' else itemSplit[:itemSplit.index(' ')] + '`') + itemSplit[itemSplit.index(' '):]
             else: queryRes += 'from ' + itemSplit
     

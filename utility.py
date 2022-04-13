@@ -163,15 +163,22 @@ def parseQuery(query, pathHDFS):
     if len(fromSplit) == 1:
         queryRes = fromSplit[0]
     else:
-        fromSplit = [fromSplit[0]] + list(map(lambda a: a[:a.index(' ')] + '`' + a[a.index(' '):], fromSplit[1:]))
-        queryRes = ('from delta.`' + pathHDFS).join(fromSplit)
+        queryRes = fromSplit[0]
+        for itemSplit in fromSplit[1:]:
+            if itemSplit[0] != '(':
+                queryRes += 'from delta.`' + pathHDFS + (itemSplit[:itemSplit.index(' ') - 1] + '`)' if itemSplit[itemSplit.index(' ') - 1] == ')' else itemSplit[:itemSplit.index(' ')] + '`') + itemSplit[itemSplit.index(' '):]
+            else: queryRes += 'from ' + itemSplit
     
     joinSplit = queryRes.split('join ')
     if len(joinSplit) == 1:
         queryRes = joinSplit[0]
     else:
-        joinSplit = [joinSplit[0]] + list(map(lambda a: a[:a.index(' ')] + '`' + a[a.index(' '):], joinSplit[1:]))
-        queryRes = ('join delta.`' + pathHDFS).join(joinSplit)
+        queryRes = joinSplit[0]
+        for itemSplit in joinSplit[1:]:
+            if itemSplit[0] != '(':
+                queryRes += 'join delta.`' + pathHDFS + (itemSplit[:itemSplit.index(' ') - 1] + '`)' if itemSplit[itemSplit.index(' ') -1] == ')' else itemSplit[:itemSplit.index(' ')] + '`') + itemSplit[itemSplit.index(' '):]
+            else: queryRes += 'join ' + itemSplit
+            
     return queryRes
 
 #cache data to Gold

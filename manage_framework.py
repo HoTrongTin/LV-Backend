@@ -1,62 +1,7 @@
-# flask imports
 from email.policy import default
-from enum import Enum
-from tkinter import CASCADE
 from flask import request, jsonify, make_response
-from datetime import datetime, timedelta
-from functools import wraps  
-from mongodb import app, db
-import configparser
-import json
-
-from manage_user import *
-
-# Database ORMs
-
-class Project(db.Document):
-    name = db.StringField(min_length=6, max_length=200, required=True, unique=True)
-    state = db.StringField(choices=['RUNNING', 'STOPPED'], default = 'RUNNING')
-    user = db.ReferenceField(User, reverse_delete_rule=CASCADE)
-
-class DataSetDefinition(db.Document):
-    project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
-    dataset_name = db.StringField(min_length=1, max_length=45, required=True)
-    dataset_type = db.StringField(required=True, choices=['S3', 'HDFS', 'KAFKA'])
-    folder_name = db.StringField(default = '')
-
-
-class ColumnDefinition(db.EmbeddedDocument):
-    name = db.StringField(min_length=1, max_length=45, required=True)
-    field_type = db.StringField(required=True, choices=['integer', 'float', 'string', 'boolean', 'timestamp'])
-    nullable = db.BooleanField(required=True, default=True)
-
-class StreammingDefinition(db.Document):
-    project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
-    method = db.StringField(required=True, choices=['APPEND', 'MERGE'])
-    columns = db.ListField(db.EmbeddedDocumentField(ColumnDefinition))
-    merge_on = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
-    partition_by = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
-
-    # Manage DataSetDefinition
-    dataset_source = db.ReferenceField(DataSetDefinition, reverse_delete_rule=CASCADE)
-    dataset_sink = db.ReferenceField(DataSetDefinition, reverse_delete_rule=CASCADE)
-    table_name_source = db.StringField(min_length=1, max_length=45, required=True, unique=True)
-    table_name_sink = db.StringField(min_length=1, max_length=45, required=True, unique=True)
-
-    # Manage stream
-    bronze_stream_id = db.StringField(default = '')
-    gold_stream_id = db.StringField(default = '')
-    bronze_stream_name = db.StringField(default = '')
-    bronze_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
-    gold_stream_name = db.StringField(default = '')
-    gold_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
-
-class ApisDefinition(db.Document):
-    project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
-    key = db.StringField(required=True)
-    description = db.StringField(default = '')
-    sql = db.StringField(default = '')
-
+from mongodb import app
+from user_defined_class import *
 
 ###################################################################### PROJECT ##################################################################
 # Create project
@@ -234,16 +179,14 @@ def update_streaming(current_user, project_id, streaming_id):
         streaming = StreammingDefinition(id = streaming_id, project = project)
 
         if streaming:
-            # Create columns in streaming
-
             streaming.method = method
-            streaming.method = merge_on
-            streaming.method = partition_by
+            streaming.merge_on = merge_on
+            streaming.partition_by = partition_by
             streaming.columns = []
             streaming.dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project).first()
             streaming.dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project).first()
-            table_name_sink = table_name_sink
-            table_name_source = table_name_source
+            streaming.table_name_sink = table_name_sink
+            streaming.table_name_source = table_name_source
 
             for col in columns:
                 streaming.columns.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))

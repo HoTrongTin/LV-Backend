@@ -1,6 +1,6 @@
-from cronjobSilverToGold import *
+from backup.cronjobSilverToGold import *
 from cronjobGoldToMongoDB import *
-from manage_schema import *
+from user_defined_class import *
 from utility import *
 
 #init Schedule jobs

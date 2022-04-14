@@ -164,16 +164,14 @@ def update_streaming(current_user, project_id, streaming_id):
         streaming = StreammingDefinition(id = streaming_id, project = project)
 
         if streaming:
-            # Create columns in streaming
-
             streaming.method = method
-            streaming.method = merge_on
-            streaming.method = partition_by
+            streaming.merge_on = merge_on
+            streaming.partition_by = partition_by
             streaming.columns = []
             streaming.dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project).first()
             streaming.dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project).first()
-            table_name_sink = table_name_sink
-            table_name_source = table_name_source
+            streaming.table_name_sink = table_name_sink
+            streaming.table_name_source = table_name_source
 
             for col in columns:
                 streaming.columns.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))

@@ -5,21 +5,16 @@ import pandas as pd
 import numpy as np
 import time
 import atexit
-from apscheduler.schedulers.background import BackgroundScheduler
 
 from mongodb import app, CacheQuery
 from sparkSetup import spark
-from init_job import init_spark_streaming
+from init_job import *
 from cronjob import cron_data_to_Gold, cron_data_to_mongoDB
 from manage_user import *
 from user_defined_class import *
 from utility import parseQuery
 
 CORS(app)
-
-#Set up scheduler
-scheduler = BackgroundScheduler()
-scheduler.configure(timezone='Asia/Ho_Chi_Minh')
 
 @app.route('/')
 def hello_world():
@@ -141,18 +136,8 @@ def manual_start_scheduler():
     scheduler.start()
     return jsonify({'body': 'Stop scheduler successful!'})
 
-# Setup CronJob for checking streaming
-# scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=6000)
-
-# Setup CronJob for copying data from silver to gold
-#shceduler run mon to fri on every 0 and 30 minutes of each hour from 6h to 22h
-scheduler.add_job(func=cron_data_to_Gold, trigger="cron", minute='0', hour='6-22', day_of_week='mon-fri')
-
-# Setup CronJob for copying data from gold to mongoDB
-#shceduler run mon to fri on every 15 and 45 minutes of each hour from 6h to 22h
-scheduler.add_job(func=cron_data_to_mongoDB, trigger="cron", minute='5', hour='6-22', day_of_week='mon-fri')
-
-scheduler.start()
+#init trigger by schedule
+# init_trigger()
 
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())

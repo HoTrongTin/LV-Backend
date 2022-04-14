@@ -9,10 +9,10 @@ from apscheduler.schedulers.background import BackgroundScheduler
 
 from mongodb import app, CacheQuery
 from sparkSetup import spark
-from streaming import init_spark_streaming
+from init_job import init_spark_streaming
 from cronjob import cron_data_to_Gold, cron_data_to_mongoDB
 from manage_user import *
-from manage_schema import *
+from user_defined_class import *
 from utility import parseQuery
 
 CORS(app)
@@ -120,11 +120,6 @@ def query():
 
     return jsonify({'time to execute': time.time() - startTime,
                     'body': results})
-
-@app.route('/manual-check-streaming-data-in-silver')
-def manual_check_streaming_data_in_silver():
-    cron_check_streaming()
-    return jsonify({'body': 'See data on console!'})
 
 @app.route('/manual-copy-gold')
 def manual_copy_gold():

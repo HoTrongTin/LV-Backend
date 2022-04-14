@@ -1,12 +1,7 @@
-# flask imports
 from email.policy import default
-
 from flask import request, jsonify, make_response
 from mongodb import app
 from user_defined_class import *
-from manage_user import *
-
-
 
 #TODO: Create project
 @app.route('/project', methods =['POST'])

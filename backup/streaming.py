@@ -1,7 +1,6 @@
 from sparkSetup import spark
 from utility import *
 import configparser
-from manage_schema import *
 
 #config
 config_obj = configparser.ConfigParser()

@@ -1,8 +1,23 @@
 from mongodb import db
 from tkinter import CASCADE
 from manage_user import *
+from enum import Enum
 
+# class UserRole(str, Enum):
+#     DOCTOR = 'doctor'
+#     PATIENT = 'patient'
+  
 # Database ORMs
+class User(db.Document):
+    # id = db.Column(db.Integer, primary_key = True)
+    # public_id = db.Column(db.String(50), unique = True)
+    # name = db.Column(db.String(100))
+    # email = db.Column(db.String(70), unique = True)
+    # password = db.Column(db.String(80))
+    email = db.EmailField(min_length=6, max_length=200, required=True, unique=True)
+    password = db.StringField(required=True)
+    name = db.StringField(required=True)
+    role = db.StringField(choices=['DOCTOR', 'PATIENT'])
 
 class Project(db.Document):
     name = db.StringField(min_length=6, max_length=200, required=True, unique=True)

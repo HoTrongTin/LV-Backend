@@ -1,5 +1,3 @@
-# flask imports
-from enum import Enum
 from flask import request, jsonify, make_response
 import uuid # for public id
 from  werkzeug.security import generate_password_hash, check_password_hash
@@ -7,29 +5,13 @@ from  werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps  
-from mongodb import app, db
+from mongodb import app
 import configparser
-import json
+from user_defined_class import User
 
 config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
 JwtParam = config_obj["jwt"]
-
-# class UserRole(str, Enum):
-#     DOCTOR = 'doctor'
-#     PATIENT = 'patient'
-  
-# Database ORMs
-class User(db.Document):
-    # id = db.Column(db.Integer, primary_key = True)
-    # public_id = db.Column(db.String(50), unique = True)
-    # name = db.Column(db.String(100))
-    # email = db.Column(db.String(70), unique = True)
-    # password = db.Column(db.String(80))
-    email = db.EmailField(min_length=6, max_length=200, required=True, unique=True);
-    password = db.StringField(required=True);
-    name = db.StringField(required=True);
-    role = db.StringField(choices=['DOCTOR', 'PATIENT']);
 
   
 # decorator for verifying the JWT
@@ -60,7 +42,6 @@ def token_required(f):
         #     }), 401
         # returns the current logged in users contex to the routes
         return  f(current_user, *args, **kwargs)
-  
     return decorated
   
 # User Database Route
@@ -70,7 +51,7 @@ def token_required(f):
 def get_all_users(current_user):
     # querying the database
     # for all the entries in it
-    users = User.objects();
+    users = User.objects()
     # converting the query objects
     # to list of jsons
     output = []

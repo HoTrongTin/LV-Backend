@@ -58,7 +58,8 @@ class ApisDefinition(db.Document):
     sql = db.StringField(default = '')
 
 
-#TODO: Create project
+###################################################################### PROJECT ##################################################################
+# Create project
 @app.route('/project', methods =['POST'])
 @token_required
 def create_project(current_user):
@@ -70,6 +71,7 @@ def create_project(current_user):
   
     # gets project info
     name = jsonData['name']
+    state = jsonData['state']
   
     # checking for existing project
     project = Project.objects(name = name).first()
@@ -78,6 +80,7 @@ def create_project(current_user):
         # database ORM object
         new_project = Project(
             name = name,
+            state = state,
             user = current_user
         )
         # insert new_project
@@ -88,7 +91,7 @@ def create_project(current_user):
         # returns 400 if user already exists
         return make_response('Project already exists.', 400)
 
-#TODO: View projects
+# View projects
 @app.route('/project', methods =['GET'])
 @token_required
 def get_project(current_user):
@@ -98,7 +101,7 @@ def get_project(current_user):
 
     return jsonify({'body': project})
 
-#TODO: Edit project
+# Edit project
 @app.route('/project/<id>', methods =['PATCH'])
 @token_required
 def update_project(current_user, id):
@@ -110,17 +113,27 @@ def update_project(current_user, id):
     jsonData = request.get_json()
     # gets project info
     name = jsonData['name']
+    state = jsonData['state']
 
     # checking for existing project
     project = Project.objects(id = id, user = current_user).first()
     project.name = name
+    project.state = state
+
+    if state == 'STOPPED':
+        # TODO: STOP ALL STREAMING OF THIS PROJECT
+        pass
+    elif state == 'RUNNING':
+        # TODO: START ALL STREAMING OF THIS PROJECT
+        pass
 
     project.save()
 
 
     return jsonify({'body': project})
 
-#TODO: Create streaming in project
+###################################################################### STREAMING ##################################################################
+# Create streaming in project
 @app.route('/project/<project_id>/streaming', methods =['POST'])
 @token_required
 def create_streaming(current_user, project_id):
@@ -162,12 +175,14 @@ def create_streaming(current_user, project_id):
 
         new_streaming.save()
 
+        # TODO: Start this streaming
+
         return jsonify({'body': new_streaming})
 
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Get streamings in project
+# Get streamings in project
 @app.route('/project/<project_id>/streaming', methods =['GET'])
 @token_required
 def get_streaming(current_user, project_id):
@@ -186,7 +201,7 @@ def get_streaming(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Create streaming in project
+# Create streaming in project
 @app.route('/project/<project_id>/streaming/<streaming_id>', methods =['PATCH'])
 @token_required
 def update_streaming(current_user, project_id, streaming_id):
@@ -235,6 +250,8 @@ def update_streaming(current_user, project_id, streaming_id):
 
             streaming.save()
 
+            # TODO: stop prev stream, start new stream (base on name)
+
             return jsonify({'body': streaming})
         else:
             return make_response('streaming does not exist.', 400)
@@ -250,12 +267,15 @@ def delete_streaming(current_user, project_id, streaming_id):
 
     if project:
         StreammingDefinition(id = streaming_id, project = project).delete()
+
+        # TODO: stop streaming if exist
+
     else:  
         return make_response('Project does not exist.', 400)
 
 
-#####################################################################################################
-#TODO: Create dataset in project
+###################################################################### DATASET ##################################################################
+# Create dataset in project
 @app.route('/project/<project_id>/dataset', methods =['POST'])
 @token_required
 def create_dataset(current_user, project_id):
@@ -282,7 +302,7 @@ def create_dataset(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Update dataset in project
+# Update dataset in project
 @app.route('/project/<project_id>/dataset/<ds_id>', methods =['PATCH'])
 @token_required
 def update_dataset(current_user, project_id, ds_id):
@@ -309,6 +329,8 @@ def update_dataset(current_user, project_id, ds_id):
             dataset.folder_name = folder_name
             dataset.save()
 
+            # TODO: update streaming that using this dataset
+
             return jsonify({'body': dataset})
         else:
             return make_response('Dataset does not exist.', 400)
@@ -316,7 +338,7 @@ def update_dataset(current_user, project_id, ds_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Get datasets in project
+# Get datasets in project
 @app.route('/project/<project_id>/dataset', methods =['GET'])
 @token_required
 def get_dataset(current_user, project_id):
@@ -342,12 +364,16 @@ def delete_dataset(current_user, project_id, ds_id):
     project = Project.objects(id = project_id, user = current_user).first()
 
     if project:
+
+        # TODO: update streaming that using this dataset
+        # TODO: prevent delete if this dataset is using by any streaming
+
         DataSetDefinition(id = ds_id, project = project).delete()
     else:  
         return make_response('Project does not exist.', 400)
 
-#####################################################################################################
-#TODO: Create api in project
+###################################################################### APIS ##################################################################
+# Create api in project
 @app.route('/project/<project_id>/apis', methods =['POST'])
 @token_required
 def create_api(current_user, project_id):
@@ -369,12 +395,14 @@ def create_api(current_user, project_id):
         new_api = ApisDefinition(project=project, key=key, description=description, sql=sql)
         new_api.save()
 
+        # TODO: run api cache for first time
+
         return jsonify({'body': new_api})
 
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Update api in project
+# Update api in project
 @app.route('/project/<project_id>/apis/<api_id>', methods =['PATCH'])
 @token_required
 def update_api(current_user, project_id, api_id):
@@ -401,6 +429,9 @@ def update_api(current_user, project_id, api_id):
             api.sql = sql
             api.save()
 
+            # TODO: if change key --> delete old key
+            # TODO: run api cache for new key setup
+
             return jsonify({'body': api})
         else:
             return make_response('Api does not exist.', 400)
@@ -408,7 +439,7 @@ def update_api(current_user, project_id, api_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Get api in project
+# Get api in project
 @app.route('/project/<project_id>/apis', methods =['GET'])
 @token_required
 def get_apis(current_user, project_id):
@@ -434,6 +465,9 @@ def delete_api(current_user, project_id, api_id):
     project = Project.objects(id = project_id, user = current_user).first()
 
     if project:
+
+        # TODO: delete cache key
+
         ApisDefinition(id = api_id, project = project).delete()
     else:  
         return make_response('Project does not exist.', 400)

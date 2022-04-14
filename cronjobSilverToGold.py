@@ -9,13 +9,13 @@ def cache_gold_analysis_patients_by_age():
     select period, count(*) num from
     (select 
     case 
-        WHEN age < 2 THEN 'Infancy (Age < 2)' 
-        WHEN age >= 2 and age < 6 THEN 'Early Childhood (2 <= Age < 6)' 
-        WHEN age >= 6 and age < 12 THEN 'Later Childhood (6 <= Age < 12)'
-        WHEN age >= 12 and age < 20 THEN 'Adolescence (12 <= Age < 20)'
-        WHEN age >= 20 and age < 40 THEN 'Young adult (20 <= Age < 40)'
-        WHEN age >= 40 and age < 60 THEN 'Middle-aged (40 <= Age < 60)'
-        ELSE 'Senior Citizen (Age >= 60)' 
+        WHEN age < 2 THEN 'Infancy' 
+        WHEN age >= 2 and age < 6 THEN 'Early Childhood' 
+        WHEN age >= 6 and age < 12 THEN 'Later Childhood'
+        WHEN age >= 12 and age < 20 THEN 'Adolescence'
+        WHEN age >= 20 and age < 40 THEN 'Young adult'
+        WHEN age >= 40 and age < 60 THEN 'Middle-aged'
+        ELSE 'Senior Citizen' 
     END as period from
     (select extract(day from dod - dob)/365 as age 
     from delta.`/medical/silver/d_patients`) age) period

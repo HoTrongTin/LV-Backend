@@ -82,7 +82,7 @@ def init_trigger():
     # Setup CronJob for copying data from gold to mongoDB
     #shceduler run mon to fri on every 15 and 45 minutes of each hour from 6h to 22h
     # scheduler.add_job(func=cron_data_to_mongoDB, trigger="cron", minute='5', hour='6-22', day_of_week='mon-fri')
-
+    scheduler.start()
 
     projects = Project.objects()
 
@@ -93,8 +93,6 @@ def init_trigger():
         # For each trigger
         for trigger in triggers:
             start_trigger(project, trigger)
-
-    scheduler.start()
 
 def start_trigger(project, trigger):
 

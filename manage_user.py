@@ -46,7 +46,25 @@ def token_required(f):
   
 # User Database Route
 # this route sends back list of users users
-
+@app.route('/user', methods =['GET'])
+@token_required
+def get_all_users(current_user):
+    # querying the database
+    # for all the entries in it
+    users = User.objects()
+    # converting the query objects
+    # to list of jsons
+    output = []
+    for user in users:
+        # appending the user data json
+        # to the response list
+        output.append({
+            'role': user['role'],
+            'name' : user['name'],
+            'email' : user['email']
+        })
+  
+    return jsonify({'users': output})
   
 # route for logging user in
 @app.route('/login', methods =['POST'])

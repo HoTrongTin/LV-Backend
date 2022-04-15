@@ -1,6 +1,5 @@
 from mongodb import db
 from tkinter import CASCADE
-from manage_user import *
 from enum import Enum
 
 # class UserRole(str, Enum):

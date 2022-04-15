@@ -138,19 +138,17 @@ def manual_start_scheduler():
 
 @app.route('/get-spark-streaming')
 def get_spark_streaming():
-
     ls = []
-    
     for stream in spark.streams.active:
-        print("+++++ Name +++++")
-        ls.append({
-            'id': stream.id,
-            'name': stream.name
-        })
-        # print(stream.id)
-        # print(stream.name)
-
+        ls.append({'id': stream.id,'name': stream.name})
     return jsonify({'body': ls})
+
+@app.route('/scheduler-jobs')
+def get_scheduler_jobs():
+    print('+++++++++++++++ JOBS ++++++++++++++')
+    scheduler.print_jobs()
+    print('+++++++++++++++ ENDD ++++++++++++++')
+    return jsonify({'body': '+++++++++++++++ ENDD ++++++++++++++'})
 
 #init trigger by schedule
 

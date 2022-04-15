@@ -136,6 +136,22 @@ def manual_start_scheduler():
     scheduler.start()
     return jsonify({'body': 'Stop scheduler successful!'})
 
+@app.route('/get-spark-streaming')
+def get_spark_streaming():
+
+    ls = []
+    
+    for stream in spark.streams.active:
+        print("+++++ Name +++++")
+        ls.append({
+            'id': stream.id,
+            'name': stream.name
+        })
+        # print(stream.id)
+        # print(stream.name)
+
+    return jsonify({'body': ls})
+
 #init trigger by schedule
 # init_trigger()
 

@@ -573,7 +573,8 @@ def get_activities(current_user, project_id):
 
         for api in apis:
             activities = ActivitiesDefinition.objects(api=api)
-            result = result + activities
+            for act in activities:
+                result.append(act)
 
         return jsonify({'body': result})
 

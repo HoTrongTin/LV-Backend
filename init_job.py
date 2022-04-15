@@ -27,11 +27,20 @@ def init_spark_streaming():
 
     # Query all streams in each project
     for project in projects:
-        streams = StreammingDefinition.objects(project = project)
+        start_project_streaming(project)
 
-        # For each stream
-        for stream in streams:
-            startStream(project=project, stream=stream)
+def start_project_streaming(project):
+    streams = StreammingDefinition.objects(project = project)
+
+    # For each stream
+    for stream in streams:
+        startStream(project=project, stream=stream)
+
+def stop_project_streaming(project):
+    streams = StreammingDefinition.objects(project = project)
+    # For each stream
+    for stream in streams:
+        stopStream(project=project, stream=stream)
 
 #init Schedule jobs
 def cron_data_to_Gold():

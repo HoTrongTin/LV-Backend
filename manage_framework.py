@@ -1,7 +1,9 @@
 from email.policy import default
+from turtle import st
 from flask import request, jsonify, make_response
 from mongodb import app
 from user_defined_class import *
+from init_job import *
 
 ###################################################################### PROJECT ##################################################################
 # Create project
@@ -57,23 +59,24 @@ def update_project(current_user, id):
 
     jsonData = request.get_json()
     # gets project info
-    name = jsonData['name']
-    state = jsonData['state']
+    new_name = jsonData['name']
+    new_state = jsonData['state']
+
+    old_state = project.state
 
     # checking for existing project
     project = Project.objects(id = id, user = current_user).first()
-    project.name = name
-    project.state = state
+    project.name = new_name
+    project.state = new_state
 
-    if state == 'STOPPED':
-        # TODO: STOP ALL STREAMING OF THIS PROJECT
-        pass
-    elif state == 'RUNNING':
-        # TODO: START ALL STREAMING OF THIS PROJECT
-        pass
+    if new_state == 'STOPPED':
+        # STOP ALL STREAMING OF THIS PROJECT
+        stop_project_streaming(project=project)
+    elif new_state == 'RUNNING' and old_state == 'STOPPED':
+        # START ALL STREAMING OF THIS PROJECT
+        start_project_streaming(project=project)
 
     project.save()
-
 
     return jsonify({'body': project})
 
@@ -120,7 +123,8 @@ def create_streaming(current_user, project_id):
 
         new_streaming.save()
 
-        # TODO: Start this streaming
+        # Start this streaming
+        startStream(project=project, stream=new_streaming)
 
         return jsonify({'body': new_streaming})
 
@@ -176,6 +180,7 @@ def update_streaming(current_user, project_id, streaming_id):
     project = Project.objects(id = project_id, user = current_user).first()
 
     if project:
+        old_streaming = StreammingDefinition(id = streaming_id, project = project)
         streaming = StreammingDefinition(id = streaming_id, project = project)
 
         if streaming:
@@ -193,7 +198,9 @@ def update_streaming(current_user, project_id, streaming_id):
 
             streaming.save()
 
-            # TODO: stop prev stream, start new stream (base on name)
+            # Stop prev stream, Start new stream (base on name)
+            stopStream(project=project, stream=old_streaming)
+            startStream(project=project, stream=streaming)
 
             return jsonify({'body': streaming})
         else:
@@ -209,9 +216,14 @@ def delete_streaming(current_user, project_id, streaming_id):
     project = Project.objects(id = project_id, user = current_user).first()
 
     if project:
+
+        old_streaming = StreammingDefinition(id = streaming_id, project = project).first()
+
         StreammingDefinition(id = streaming_id, project = project).delete()
 
-        # TODO: stop streaming if exist
+        # Stop streaming if exist
+        stopStream(project=project, stream=old_streaming)
+
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -246,40 +258,38 @@ def create_dataset(current_user, project_id):
         return make_response('Project does not exist.', 400)
 
 # Update dataset in project
-@app.route('/project/<project_id>/dataset/<ds_id>', methods =['PATCH'])
-@token_required
-def update_dataset(current_user, project_id, ds_id):
-    jsonData = request.get_json()
-    print('------')
-    print(jsonData)
-    print('------')
-    print(project_id)
+# @app.route('/project/<project_id>/dataset/<ds_id>', methods =['PATCH'])
+# @token_required
+# def update_dataset(current_user, project_id, ds_id):
+#     jsonData = request.get_json()
+#     print('------')
+#     print(jsonData)
+#     print('------')
+#     print(project_id)
   
-    # gets project info
-    dataset_name = jsonData['dataset_name']
-    dataset_type = jsonData['dataset_type']
-    folder_name = jsonData['folder_name']
+#     # gets project info
+#     dataset_name = jsonData['dataset_name']
+#     dataset_type = jsonData['dataset_type']
+#     folder_name = jsonData['folder_name']
 
-    # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+#     # checking for existing project
+#     project = Project.objects(id = project_id, user = current_user).first()
 
-    if project:
-        dataset = DataSetDefinition.objects(id=ds_id, project=project).first()
+#     if project:
+#         dataset = DataSetDefinition.objects(id=ds_id, project=project).first()
 
-        if dataset:
-            dataset.dataset_name = dataset_name
-            dataset.dataset_type = dataset_type
-            dataset.folder_name = folder_name
-            dataset.save()
+#         if dataset:
+#             dataset.dataset_name = dataset_name
+#             dataset.dataset_type = dataset_type
+#             dataset.folder_name = folder_name
+#             dataset.save()
 
-            # TODO: update streaming that using this dataset
+#             return jsonify({'body': dataset})
+#         else:
+#             return make_response('Dataset does not exist.', 400)
 
-            return jsonify({'body': dataset})
-        else:
-            return make_response('Dataset does not exist.', 400)
-
-    else:  
-        return make_response('Project does not exist.', 400)
+#     else:  
+#         return make_response('Project does not exist.', 400)
 
 # Get datasets in project
 @app.route('/project/<project_id>/dataset', methods =['GET'])
@@ -300,20 +310,20 @@ def get_dataset(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-@app.route('/project/<project_id>/dataset/<ds_id>', methods =['DELETE'])
-@token_required
-def delete_dataset(current_user, project_id, ds_id):
-    # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+# @app.route('/project/<project_id>/dataset/<ds_id>', methods =['DELETE'])
+# @token_required
+# def delete_dataset(current_user, project_id, ds_id):
+#     # checking for existing project
+#     project = Project.objects(id = project_id, user = current_user).first()
 
-    if project:
+#     if project:
 
-        # TODO: update streaming that using this dataset
-        # TODO: prevent delete if this dataset is using by any streaming
+#         # TODO: update streaming that using this dataset
+#         # TODO: prevent delete if this dataset is using by any streaming
 
-        DataSetDefinition(id = ds_id, project = project).delete()
-    else:  
-        return make_response('Project does not exist.', 400)
+#         DataSetDefinition(id = ds_id, project = project).delete()
+#     else:  
+#         return make_response('Project does not exist.', 400)
 
 ###################################################################### APIS ##################################################################
 # Create api in project
@@ -338,7 +348,9 @@ def create_api(current_user, project_id):
         new_api = ApisDefinition(project=project, key=key, description=description, sql=sql)
         new_api.save()
 
-        # TODO: run api cache for first time
+        # Run api cache for first time
+        cache_gold_analysis_query(project_name=project.name, sql=new_api.sql, key=new_api.key)
+        cache_data_to_mongoDB(project_name=project.name, key=new_api.key)
 
         return jsonify({'body': new_api})
 

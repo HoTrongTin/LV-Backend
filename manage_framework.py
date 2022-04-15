@@ -4,7 +4,7 @@ from mongodb import app
 from user_defined_class import *
 from manage_user import token_required
 
-#TODO: Create project
+#: Create project
 @app.route('/project', methods =['POST'])
 @token_required
 def create_project(current_user):
@@ -34,7 +34,7 @@ def create_project(current_user):
         # returns 400 if user already exists
         return make_response('Project already exists.', 400)
 
-#TODO: View projects
+#: View projects
 @app.route('/project', methods =['GET'])
 @token_required
 def get_project(current_user):
@@ -44,7 +44,7 @@ def get_project(current_user):
 
     return jsonify({'body': project})
 
-#TODO: Edit project
+#: Edit project
 @app.route('/project/<id>', methods =['PATCH'])
 @token_required
 def update_project(current_user, id):
@@ -66,7 +66,7 @@ def update_project(current_user, id):
 
     return jsonify({'body': project})
 
-#TODO: Create streaming in project
+#: Create streaming in project
 @app.route('/project/<project_id>/streaming', methods =['POST'])
 @token_required
 def create_streaming(current_user, project_id):
@@ -113,7 +113,7 @@ def create_streaming(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Get streamings in project
+#: Get streamings in project
 @app.route('/project/<project_id>/streaming', methods =['GET'])
 @token_required
 def get_streaming(current_user, project_id):
@@ -132,7 +132,7 @@ def get_streaming(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Create streaming in project
+#: Create streaming in project
 @app.route('/project/<project_id>/streaming/<streaming_id>', methods =['PATCH'])
 @token_required
 def update_streaming(current_user, project_id, streaming_id):
@@ -199,7 +199,7 @@ def delete_streaming(current_user, project_id, streaming_id):
 
 
 #####################################################################################################
-#TODO: Create dataset in project
+#: Create dataset in project
 @app.route('/project/<project_id>/dataset', methods =['POST'])
 @token_required
 def create_dataset(current_user, project_id):
@@ -226,7 +226,7 @@ def create_dataset(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Update dataset in project
+#: Update dataset in project
 @app.route('/project/<project_id>/dataset/<ds_id>', methods =['PATCH'])
 @token_required
 def update_dataset(current_user, project_id, ds_id):
@@ -260,7 +260,7 @@ def update_dataset(current_user, project_id, ds_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Get datasets in project
+#: Get datasets in project
 @app.route('/project/<project_id>/dataset', methods =['GET'])
 @token_required
 def get_dataset(current_user, project_id):
@@ -291,7 +291,7 @@ def delete_dataset(current_user, project_id, ds_id):
         return make_response('Project does not exist.', 400)
 
 #####################################################################################################
-#TODO: Create api in project
+#: Create api in project
 @app.route('/project/<project_id>/apis', methods =['POST'])
 @token_required
 def create_api(current_user, project_id):
@@ -318,7 +318,7 @@ def create_api(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Update api in project
+#: Update api in project
 @app.route('/project/<project_id>/apis/<api_id>', methods =['PATCH'])
 @token_required
 def update_api(current_user, project_id, api_id):
@@ -352,7 +352,7 @@ def update_api(current_user, project_id, api_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-#TODO: Get api in project
+#: Get api in project
 @app.route('/project/<project_id>/apis', methods =['GET'])
 @token_required
 def get_apis(current_user, project_id):

@@ -114,18 +114,19 @@ def start_trigger(project, trigger):
         for activity_id in activity_ids:
             activity = ActivitiesDefinition.objects(id = activity_id).first()
 
-            if activity.name[0] == 'g':
+            # if activity.name[0] == 'g':
+            if "_gold_" in activity.name:
                 scheduler.add_job(id = activity_id, func=cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key), trigger="interval", seconds=seconds)
-            else:
+            elif "_mongo_" in activity.name:
                 scheduler.add_job(id = activity_id, func=cache_data_to_mongoDB(project_name=project.name, key=activity.key), trigger="interval", seconds=seconds)
             
     else:
         for activity_id in activity_ids:
             activity = ActivitiesDefinition.objects(id = activity_id).first()
 
-            if activity.name[0] == 'g':
+            if "_gold_" in activity.name:
                 scheduler.add_job(id = activity_id, func=cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key), trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)                
-            else:
+            elif "_mongo_" in activity.name:
                 scheduler.add_job(id = activity_id, func=cache_data_to_mongoDB(project_name=project.name, key=activity.key), trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
 
 def stop_trigger(trigger):

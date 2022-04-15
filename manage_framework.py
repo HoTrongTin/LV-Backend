@@ -441,7 +441,7 @@ def delete_api(current_user, project_id, api_id):
 # Create trigger in project
 @app.route('/project/<project_id>/trigger', methods =['POST'])
 @token_required
-def update_trigger(current_user, project_id):
+def create_trigger(current_user, project_id):
     jsonData = request.get_json()
     print('------')
     print(jsonData)

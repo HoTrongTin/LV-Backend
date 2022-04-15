@@ -8,11 +8,6 @@ from enum import Enum
   
 # Database ORMs
 class User(db.Document):
-    # id = db.Column(db.Integer, primary_key = True)
-    # public_id = db.Column(db.String(50), unique = True)
-    # name = db.Column(db.String(100))
-    # email = db.Column(db.String(70), unique = True)
-    # password = db.Column(db.String(80))
     email = db.EmailField(min_length=6, max_length=200, required=True, unique=True)
     password = db.StringField(required=True)
     name = db.StringField(required=True)
@@ -63,7 +58,10 @@ class ApisDefinition(db.Document):
     sql = db.StringField(default = '')
 
 class ActivitiesDefinition(db.Document):
-    pass
+    api = db.ReferenceField(ApisDefinition, reverse_delete_rule=CASCADE)
+    key = db.StringField(required=True)
+    name = db.StringField(default = '')
+    sql = db.StringField(default = '')
 
 class TriggerDefinition(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
@@ -74,4 +72,4 @@ class TriggerDefinition(db.Document):
     trigger_cron_day_of_week = db.StringField(default = '')
     trigger_cron_hour = db.StringField(default = '')
     trigger_cron_minute = db.StringField(default = '')
-    trigger_activities = db.ListField()
+    trigger_activities = db.ListField(db.StringField())

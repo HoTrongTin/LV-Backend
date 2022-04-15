@@ -92,6 +92,7 @@ def init_trigger():
 
         # For each trigger
         for trigger in triggers:
+            #TODO: fix
             activity_ids = trigger.trigger_activities
             if trigger.trigger_type == 'INTERVAL':
 
@@ -109,7 +110,7 @@ def init_trigger():
                 for activity_id in activity_ids:
                     activity = ActivitiesDefinition.objects(id = activity_id)
 
-                    if activity.activity_name[0] == 'g':
+                    if activity.name[0] == 'g':
                         scheduler.add_job(func=cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key), trigger="interval", seconds=seconds)
                     else:
                         scheduler.add_job(func=cache_data_to_mongoDB(project_name=project.name, key=activity.key), trigger="interval", seconds=seconds)
@@ -118,7 +119,7 @@ def init_trigger():
                 for activity_id in activity_ids:
                     activity = ActivitiesDefinition.objects(id = activity_id)
 
-                    if activity.activity_name[0] == 'g':
+                    if activity.name[0] == 'g':
                         scheduler.add_job(func=cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key), trigger="cron", minute=trigger.trigger_cron_minute, hour=trigger.trigger_cron_hour, day_of_week=trigger.trigger_cron_day_of_week)
                     else:
                         scheduler.add_job(func=cache_data_to_mongoDB(project_name=project.name, key=activity.key), trigger="cron", minute=trigger.trigger_cron_minute, hour=trigger.trigger_cron_hour, day_of_week=trigger.trigger_cron_day_of_week)

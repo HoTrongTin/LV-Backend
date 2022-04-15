@@ -564,12 +564,18 @@ def get_activities(current_user, project_id):
 
     # checking for existing project
     project = Project.objects(id = project_id, user = current_user).first()
-    print('project: ' + str(project.to_json()))
 
     if project:
-        activities = ActivitiesDefinition.objects(project = project)
 
-        return jsonify({'body': activities})
+        apis = ApisDefinition.objects(project=project)
+
+        result = []
+
+        for api in apis:
+            activities = ActivitiesDefinition.objects(api=api)
+            result.append(activities)
+
+        return jsonify({'body': result})
 
     else:  
         return make_response('Project does not exist.', 400)

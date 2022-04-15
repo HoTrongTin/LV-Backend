@@ -218,7 +218,7 @@ def delete_streaming(current_user, project_id, streaming_id):
 
     if project:
 
-        old_streaming = StreammingDefinition(id = streaming_id, project = project).first()
+        old_streaming = StreammingDefinition.objects(id = streaming_id, project = project).first()
 
         StreammingDefinition(id = streaming_id, project = project).delete()
 

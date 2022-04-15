@@ -481,6 +481,25 @@ def create_trigger(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+# Get api in project
+@app.route('/project/<project_id>/triggers', methods =['GET'])
+@token_required
+def get_triggers(current_user, project_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+    print('project: ' + str(project.to_json()))
+
+    if project:
+        triggers = TriggerDefinition.objects(project = project)
+
+        print('triggers: ' + str(triggers.to_json()))
+
+        return jsonify({'body': triggers})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
 # Update trigger in project
 @app.route('/project/<project_id>/trigger/<trigger_id>', methods =['PATCH'])
 @token_required
@@ -513,15 +532,15 @@ def update_trigger(current_user, project_id, trigger_id):
         old_trigger = TriggerDefinition.objects(id=trigger_id, project=project).first()
         trigger = TriggerDefinition.objects(id=trigger_id, project=project).first()
 
-        trigger.name = name;
-        trigger.status = status;
-        trigger.trigger_type = trigger_type;
-        trigger.time_interval = time_interval;
-        trigger.time_interval_unit = time_interval_unit;
-        trigger.cron_day_of_week = cron_day_of_week;
-        trigger.cron_hour = cron_hour;
-        trigger.cron_minute = cron_minute;
-        trigger.activity_ids = activity_ids;
+        trigger.name = name
+        trigger.status = status
+        trigger.trigger_type = trigger_type
+        trigger.time_interval = time_interval
+        trigger.time_interval_unit = time_interval_unit
+        trigger.cron_day_of_week = cron_day_of_week
+        trigger.cron_hour = cron_hour
+        trigger.cron_minute = cron_minute
+        trigger.activity_ids = activity_ids
 
         trigger.save()
 

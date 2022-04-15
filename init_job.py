@@ -27,11 +27,20 @@ def init_spark_streaming():
 
     # Query all streams in each project
     for project in projects:
-        streams = StreammingDefinition.objects(project = project)
+        start_project_streaming(project)
 
-        # For each stream
-        for stream in streams:
-            startStream(project=project, stream=stream)
+def start_project_streaming(project):
+    streams = StreammingDefinition.objects(project = project)
+
+    # For each stream
+    for stream in streams:
+        startStream(project=project, stream=stream)
+
+def stop_project_streaming(project):
+    streams = StreammingDefinition.objects(project = project)
+    # For each stream
+    for stream in streams:
+        stopStream(project=project, stream=stream)
 
 #init Schedule jobs
 def cron_data_to_Gold():
@@ -73,7 +82,7 @@ def init_trigger():
     # Setup CronJob for copying data from gold to mongoDB
     #shceduler run mon to fri on every 15 and 45 minutes of each hour from 6h to 22h
     # scheduler.add_job(func=cron_data_to_mongoDB, trigger="cron", minute='5', hour='6-22', day_of_week='mon-fri')
-
+    scheduler.start()
 
     projects = Project.objects()
 
@@ -83,35 +92,51 @@ def init_trigger():
 
         # For each trigger
         for trigger in triggers:
-            activity_ids = trigger.trigger_activities
-            if trigger.trigger_type == 'INTERVAL':
+            start_trigger(project, trigger)
 
-                #cal time
-                seconds = trigger.trigger_time_interval
-                if trigger.trigger_time_interval_unit == 'MINUTE':
-                    seconds *= 60
-                elif trigger.trigger_time_interval_unit == 'HOUR':
-                    seconds *= 60*60
-                elif trigger.trigger_time_interval_unit == 'DAY':
-                    seconds *= 60*60*24
-                elif trigger.trigger_time_interval_unit == 'WEEK':
-                    seconds *= 60*60*24*7
+def start_trigger(project, trigger):
 
-                for activity_id in activity_ids:
-                    activity = ActivitiesDefinition.objects(id = activity_id)
+    activity_ids = trigger.activity_ids
+    if trigger.trigger_type == 'INTERVAL':
+        #cal time
+        seconds = trigger.time_interval
+        if trigger.time_interval_unit == 'MINUTE':
+            seconds *= 60
+        elif trigger.time_interval_unit == 'HOUR':
+            seconds *= 60*60
+        elif trigger.time_interval_unit == 'DAY':
+            seconds *= 60*60*24
+        elif trigger.time_interval_unit == 'WEEK':
+            seconds *= 60*60*24*7
 
-                    if activity.activity_name[0] == 'g':
-                        scheduler.add_job(func=cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key), trigger="interval", seconds=seconds)
-                    else:
-                        scheduler.add_job(func=cache_data_to_mongoDB(project_name=project.name, key=activity.key), trigger="interval", seconds=seconds)
+        for activity_id in activity_ids:
+            activity = ActivitiesDefinition.objects(id = activity_id).first()
+
+            def temp_func_1():
+                cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key)
+            def temp_func_2():
+                cache_data_to_mongoDB(project_name=project.name, key=activity.key)
+
+            if "_gold_" in activity.name:
+                scheduler.add_job(id = activity_id, func=temp_func_1, trigger="interval", seconds=seconds)
+            elif "_mongo_" in activity.name:
+                scheduler.add_job(id = activity_id, func=temp_func_2, trigger="interval", seconds=seconds)
             
-            else:
-                for activity_id in activity_ids:
-                    activity = ActivitiesDefinition.objects(id = activity_id)
+    else:
+        for activity_id in activity_ids:
+            activity = ActivitiesDefinition.objects(id = activity_id).first()
 
-                    if activity.activity_name[0] == 'g':
-                        scheduler.add_job(func=cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key), trigger="cron", minute=trigger.trigger_cron_minute, hour=trigger.trigger_cron_hour, day_of_week=trigger.trigger_cron_day_of_week)
-                    else:
-                        scheduler.add_job(func=cache_data_to_mongoDB(project_name=project.name, key=activity.key), trigger="cron", minute=trigger.trigger_cron_minute, hour=trigger.trigger_cron_hour, day_of_week=trigger.trigger_cron_day_of_week)
+            def temp_func_1():
+                cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key)
+            def temp_func_2():
+                cache_data_to_mongoDB(project_name=project.name, key=activity.key)
 
-    scheduler.start()
+            if "_gold_" in activity.name:
+                scheduler.add_job(id = activity_id, func=temp_func_1, trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)                
+            elif "_mongo_" in activity.name:
+                scheduler.add_job(id = activity_id, func=temp_func_2, trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
+
+def stop_trigger(trigger):
+    activity_ids = trigger.activity_ids
+    for activity_id in activity_ids:
+        scheduler.remove_job(activity_id)

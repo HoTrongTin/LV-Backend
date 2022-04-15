@@ -136,14 +136,28 @@ def manual_start_scheduler():
     scheduler.start()
     return jsonify({'body': 'Stop scheduler successful!'})
 
+@app.route('/get-spark-streaming')
+def get_spark_streaming():
+    ls = []
+    for stream in spark.streams.active:
+        ls.append({'id': stream.id,'name': stream.name})
+    return jsonify({'body': ls})
+
+@app.route('/scheduler-jobs')
+def get_scheduler_jobs():
+    print('+++++++++++++++ JOBS ++++++++++++++')
+    scheduler.print_jobs()
+    print('+++++++++++++++ ENDD ++++++++++++++')
+    return jsonify({'body': '+++++++++++++++ ENDD ++++++++++++++'})
+
 #init trigger by schedule
-# init_trigger()
 
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
     init_spark_streaming()
+    init_trigger()
     print("List streamming queries: ")
     print(spark.streams.active)
 

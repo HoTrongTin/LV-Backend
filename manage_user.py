@@ -100,7 +100,7 @@ def login():
             'name': user['name'],
             'email': user['email'],
             'role': user['role'],
-            'exp' : datetime.utcnow() + timedelta(minutes = 30)
+            'exp' : datetime.utcnow() + timedelta(minutes = 120)
         }, JwtParam['secretKey'])
   
         return make_response(jsonify({'token' : token}), 201)

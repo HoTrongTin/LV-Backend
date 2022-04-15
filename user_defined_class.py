@@ -8,11 +8,6 @@ from enum import Enum
   
 # Database ORMs
 class User(db.Document):
-    # id = db.Column(db.Integer, primary_key = True)
-    # public_id = db.Column(db.String(50), unique = True)
-    # name = db.Column(db.String(100))
-    # email = db.Column(db.String(70), unique = True)
-    # password = db.Column(db.String(80))
     email = db.EmailField(min_length=6, max_length=200, required=True, unique=True)
     password = db.StringField(required=True)
     name = db.StringField(required=True)
@@ -63,15 +58,19 @@ class ApisDefinition(db.Document):
     sql = db.StringField(default = '')
 
 class ActivitiesDefinition(db.Document):
-    pass
+    api = db.ReferenceField(ApisDefinition, reverse_delete_rule=CASCADE)
+    key = db.StringField(required=True)
+    name = db.StringField(default = '')
+    sql = db.StringField(default = '')
 
 class TriggerDefinition(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
-    trigger_name = db.StringField(required=True)
+    name = db.StringField(required=True)
+    status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'ACTIVE')
     trigger_type = db.StringField(required=True, choices=['INTERVAL', 'CRON'])
-    trigger_time_interval = db.FloatField(default = 1)
-    trigger_time_interval_unit = db.StringField(choices=['SECOND', 'MINUTE', 'HOUR', 'DAY', 'WEEK'], default = 'HOUR')
-    trigger_cron_day_of_week = db.StringField(default = '')
-    trigger_cron_hour = db.StringField(default = '')
-    trigger_cron_minute = db.StringField(default = '')
-    trigger_activities = db.ListField()
+    time_interval = db.FloatField(default = 1)
+    time_interval_unit = db.StringField(choices=['SECOND', 'MINUTE', 'HOUR', 'DAY', 'WEEK'], default = 'HOUR')
+    cron_day_of_week = db.StringField(default = '')
+    cron_hour = db.StringField(default = '')
+    cron_minute = db.StringField(default = '')
+    activity_ids = db.ListField(db.StringField())

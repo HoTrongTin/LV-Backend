@@ -12,9 +12,8 @@ config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
 amazonS3param = config_obj["amazonS3"]
 
-#streaming HDFS To Bronze
 def startStream(project, stream):
-
+    
     # Create DF schema
     schema = []
     for col in stream.columns:
@@ -52,6 +51,32 @@ def startStream(project, stream):
     stream.gold_stream_status = 'ACTIVE'
 
     stream.save()
+
+def stopStream(project, stream):
+
+    dataset_sink = stream.dataset_sink
+
+    bronze_stream_name = "{project_name}-{folder_name}-{table_name}".format(project_name = project.name,folder_name=dataset_sink.folder_name, table_name = stream.table_name_sink)
+    gold_stream_name = "{project_name}-gold-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink)
+
+    # Search in list streaming of spark
+    for sparkStream in spark.streams.active:
+        print("+++++ Name: " + sparkStream.name)
+        if sparkStream.name in [bronze_stream_name, gold_stream_name]:
+            try: 
+                sparkStream.stop();
+                print("Status: " + sparkStream.status)
+
+                # Update streamming id, name, status (ACTIVE) to MongoDB
+                stream.bronze_stream_name = ''
+                stream.gold_stream_name = ''
+                stream.bronze_stream_status = 'IN_ACTIVE'
+                stream.gold_stream_status = 'IN_ACTIVE'
+
+                stream.save()
+            except:
+                print("Something went wrong")
+
 
 #streaming HDFS To Bronze
 def streamingHDFSToBronze(project_name, schema, stream, stream_name, dataset_source, dataset_sink):

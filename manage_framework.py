@@ -225,6 +225,7 @@ def delete_streaming(current_user, project_id, streaming_id):
         # Stop streaming if exist
         stopStream(project=project, stream=old_streaming)
 
+        return make_response('Streaming deleted.', 200)
 
     else:  
         return make_response('Project does not exist.', 400)

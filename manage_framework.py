@@ -560,7 +560,7 @@ def delete_trigger(current_user, project_id, trigger_id):
 # Get activities in project
 @app.route('/project/<project_id>/activities', methods =['GET'])
 @token_required
-def get_apis(current_user, project_id):
+def get_activities(current_user, project_id):
 
     # checking for existing project
     project = Project.objects(id = project_id, user = current_user).first()

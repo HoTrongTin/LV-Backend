@@ -9,7 +9,6 @@ import atexit
 from mongodb import app, CacheQuery
 from sparkSetup import spark
 from init_job import *
-from cronjob import cron_data_to_Gold, cron_data_to_mongoDB
 from manage_user import *
 from user_defined_class import *
 from utility import parseQuery

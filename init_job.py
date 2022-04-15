@@ -92,36 +92,43 @@ def init_trigger():
 
         # For each trigger
         for trigger in triggers:
-            #TODO: fix
-            activity_ids = trigger.trigger_activities
-            if trigger.trigger_type == 'INTERVAL':
-
-                #cal time
-                seconds = trigger.trigger_time_interval
-                if trigger.trigger_time_interval_unit == 'MINUTE':
-                    seconds *= 60
-                elif trigger.trigger_time_interval_unit == 'HOUR':
-                    seconds *= 60*60
-                elif trigger.trigger_time_interval_unit == 'DAY':
-                    seconds *= 60*60*24
-                elif trigger.trigger_time_interval_unit == 'WEEK':
-                    seconds *= 60*60*24*7
-
-                for activity_id in activity_ids:
-                    activity = ActivitiesDefinition.objects(id = activity_id)
-
-                    if activity.name[0] == 'g':
-                        scheduler.add_job(func=cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key), trigger="interval", seconds=seconds)
-                    else:
-                        scheduler.add_job(func=cache_data_to_mongoDB(project_name=project.name, key=activity.key), trigger="interval", seconds=seconds)
-            
-            else:
-                for activity_id in activity_ids:
-                    activity = ActivitiesDefinition.objects(id = activity_id)
-
-                    if activity.name[0] == 'g':
-                        scheduler.add_job(func=cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key), trigger="cron", minute=trigger.trigger_cron_minute, hour=trigger.trigger_cron_hour, day_of_week=trigger.trigger_cron_day_of_week)
-                    else:
-                        scheduler.add_job(func=cache_data_to_mongoDB(project_name=project.name, key=activity.key), trigger="cron", minute=trigger.trigger_cron_minute, hour=trigger.trigger_cron_hour, day_of_week=trigger.trigger_cron_day_of_week)
+            start_trigger(project, trigger)
 
     scheduler.start()
+
+def start_trigger(project, trigger):
+
+    activity_ids = trigger.activity_ids
+    if trigger.trigger_type == 'INTERVAL':
+        #cal time
+        seconds = trigger.time_interval
+        if trigger.time_interval_unit == 'MINUTE':
+            seconds *= 60
+        elif trigger.time_interval_unit == 'HOUR':
+            seconds *= 60*60
+        elif trigger.time_interval_unit == 'DAY':
+            seconds *= 60*60*24
+        elif trigger.time_interval_unit == 'WEEK':
+            seconds *= 60*60*24*7
+
+        for activity_id in activity_ids:
+            activity = ActivitiesDefinition.objects(id = activity_id).first()
+
+            if activity.name[0] == 'g':
+                scheduler.add_job(id = activity_id, func=cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key), trigger="interval", seconds=seconds)
+            else:
+                scheduler.add_job(id = activity_id, func=cache_data_to_mongoDB(project_name=project.name, key=activity.key), trigger="interval", seconds=seconds)
+            
+    else:
+        for activity_id in activity_ids:
+            activity = ActivitiesDefinition.objects(id = activity_id).first()
+
+            if activity.name[0] == 'g':
+                scheduler.add_job(id = activity_id, func=cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key), trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)                
+            else:
+                scheduler.add_job(id = activity_id, func=cache_data_to_mongoDB(project_name=project.name, key=activity.key), trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
+
+def stop_trigger(trigger):
+    activity_ids = trigger.activity_ids;
+    for activity_id in activity_ids:
+        scheduler.remove_job(activity_id)

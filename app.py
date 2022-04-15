@@ -153,13 +153,13 @@ def get_spark_streaming():
     return jsonify({'body': ls})
 
 #init trigger by schedule
-# init_trigger()
 
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
     init_spark_streaming()
+    init_trigger()
     print("List streamming queries: ")
     print(spark.streams.active)
 

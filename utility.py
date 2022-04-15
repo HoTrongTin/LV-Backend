@@ -13,7 +13,7 @@ config_obj.read("config.ini")
 amazonS3param = config_obj["amazonS3"]
 
 def startStream(project, stream):
-
+    
     # Create DF schema
     schema = []
     for col in stream.columns:

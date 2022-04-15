@@ -430,5 +430,129 @@ def delete_api(current_user, project_id, api_id):
         # TODO: delete cache key
 
         ApisDefinition(id = api_id, project = project).delete()
+
+        return make_response('Deleted.', 200)
+    else:  
+        return make_response('Project does not exist.', 400)
+
+
+
+###################################################################### TRIGGERS ##################################################################
+# Create trigger in project
+@app.route('/project/<project_id>/trigger', methods =['POST'])
+@token_required
+def update_trigger(current_user, project_id):
+    jsonData = request.get_json()
+    print('------')
+    print(jsonData)
+    print('------')
+    print(project_id)
+  
+    # gets api info
+    name = jsonData['name']
+    status = jsonData['status']
+    trigger_type = jsonData['trigger_type']
+    time_interval = jsonData['time_interval']
+    time_interval_unit = jsonData['time_interval_unit']
+    cron_day_of_week = jsonData['cron_day_of_week']
+    cron_hour = jsonData['cron_hour']
+    cron_minute = jsonData['cron_minute']
+    activity_ids = []
+    for item in jsonData['activity_ids']:
+        activity_ids.append(item)
+    
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+
+        new_trigger = TriggerDefinition(project=project, name=name, status=status, trigger_type=trigger_type, time_interval=time_interval, time_interval_unit=time_interval_unit, cron_day_of_week=cron_day_of_week, cron_hour=cron_hour, cron_minute=cron_minute, activity_ids=activity_ids)
+
+        new_trigger.save()
+
+
+        # Start trigger
+        if new_trigger.status == 'ACTIVE':
+            start_trigger(project=project, trigger=new_trigger)
+        
+        return jsonify({'body': new_trigger})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
+# Update trigger in project
+@app.route('/project/<project_id>/trigger/<trigger_id>', methods =['PATCH'])
+@token_required
+def update_trigger(current_user, project_id, trigger_id):
+    jsonData = request.get_json()
+    print('------')
+    print(jsonData)
+    print('------')
+    print(project_id)
+  
+    # gets api info
+    name = jsonData['name']
+    status = jsonData['status']
+    trigger_type = jsonData['trigger_type']
+    time_interval = jsonData['time_interval']
+    time_interval_unit = jsonData['time_interval_unit']
+    cron_day_of_week = jsonData['cron_day_of_week']
+    cron_hour = jsonData['cron_hour']
+    cron_minute = jsonData['cron_minute']
+    activity_ids = []
+    for item in jsonData['activity_ids']:
+        activity_ids.append(item)
+    
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+
+        old_trigger = TriggerDefinition.objects(id=trigger_id, project=project).first()
+        trigger = TriggerDefinition.objects(id=trigger_id, project=project).first()
+
+        trigger.name = name;
+        trigger.status = status;
+        trigger.trigger_type = trigger_type;
+        trigger.time_interval = time_interval;
+        trigger.time_interval_unit = time_interval_unit;
+        trigger.cron_day_of_week = cron_day_of_week;
+        trigger.cron_hour = cron_hour;
+        trigger.cron_minute = cron_minute;
+        trigger.activity_ids = activity_ids;
+
+        trigger.save()
+
+
+        # Start trigger
+        if trigger.status == 'ACTIVE' and old_trigger.status != 'ACTIVE':
+            stop_trigger(project=project, trigger=old_trigger)
+            start_trigger(project=project, trigger=trigger)
+        elif trigger.status != 'ACTIVE' and old_trigger.status == 'ACTIVE':
+            stop_trigger(trigger=old_trigger)
+            stop_trigger(trigger=trigger)
+        
+        return jsonify({'body': trigger})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
+@app.route('/project/<project_id>/trigger/<trigger_id>', methods =['DELETE'])
+@token_required
+def delete_trigger(current_user, project_id, trigger_id):
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+
+        old_trigger = TriggerDefinition(id = trigger_id, project = project).first()
+        stop_trigger(trigger=old_trigger)
+
+        TriggerDefinition(id = trigger_id, project = project).delete()
+
+        return make_response('Deleted.', 200)
+
     else:  
         return make_response('Project does not exist.', 400)

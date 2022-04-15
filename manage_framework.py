@@ -4,6 +4,7 @@ from flask import request, jsonify, make_response
 from mongodb import app
 from user_defined_class import *
 from init_job import *
+from manage_user import token_required
 
 ###################################################################### PROJECT ##################################################################
 # Create project

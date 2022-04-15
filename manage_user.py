@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 from functools import wraps  
 from mongodb import app
 import configparser
-from user_defined_class import User
+from user_defined_class import *
 
 config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")

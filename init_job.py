@@ -137,6 +137,6 @@ def start_trigger(project, trigger):
                 scheduler.add_job(id = activity_id, func=temp_func_2, trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
 
 def stop_trigger(trigger):
-    activity_ids = trigger.activity_ids;
+    activity_ids = trigger.activity_ids
     for activity_id in activity_ids:
         scheduler.remove_job(activity_id)

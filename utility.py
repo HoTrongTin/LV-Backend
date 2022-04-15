@@ -64,7 +64,7 @@ def stopStream(project, stream):
         print("+++++ Name: " + sparkStream.name)
         if sparkStream.name in [bronze_stream_name, gold_stream_name]:
             try: 
-                sparkStream.stop();
+                sparkStream.stop()
                 print("Status: " + sparkStream.status)
 
                 # Update streamming id, name, status (ACTIVE) to MongoDB

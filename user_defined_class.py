@@ -16,7 +16,7 @@ class User(db.Document):
     email = db.EmailField(min_length=6, max_length=200, required=True, unique=True)
     password = db.StringField(required=True)
     name = db.StringField(required=True)
-    role = db.StringField(choices=['DOCTOR', 'PATIENT'])
+    role = db.StringField(choices=['DOCTOR', 'PATIENT', 'ADMIN'])
 
 class Project(db.Document):
     name = db.StringField(min_length=6, max_length=200, required=True, unique=True)

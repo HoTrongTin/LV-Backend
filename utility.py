@@ -52,14 +52,10 @@ def startStream(project, stream):
 
     stream.save()
 
-def stopStream(project, stream):
+def stopStream(stream):
 
-    dataset_sink = stream.dataset_sink
-
-    print(dataset_sink)
-
-    bronze_stream_name = "{project_name}-{folder_name}-{table_name}".format(project_name = project.name,folder_name=dataset_sink.folder_name, table_name = stream.table_name_sink)
-    silver_stream_name = "{project_name}-silver-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink)
+    bronze_stream_name = stream.bronze_stream_name
+    silver_stream_name = stream.silver_stream_name
 
     # Search in list streaming of spark
     for sparkStream in spark.streams.active:

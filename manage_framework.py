@@ -194,7 +194,7 @@ def update_streaming(current_user, project_id, streaming_id):
     project = Project.objects(id = project_id, user = current_user).first()
 
     if project:
-        old_streaming = StreammingDefinition(id = streaming_id, project = project)
+        old_streaming = StreammingDefinition(id = streaming_id, project = project).no_cache()
         print('-----------')
         print(old_streaming.status)
         streaming = StreammingDefinition(id = streaming_id, project = project)
@@ -234,7 +234,7 @@ def update_streaming(current_user, project_id, streaming_id):
             else:
                 print('stop and run')
                 stopStream(stream=old_streaming)
-                # startStream(project=project, stream=streaming)
+                startStream(project=project, stream=streaming)
 
             return jsonify({'body': streaming})
         else:

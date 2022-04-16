@@ -218,7 +218,7 @@ def update_streaming(current_user, project_id, streaming_id):
             for col in columns:
                 streaming.columns.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))
 
-            streaming.update()
+            streaming.save()
             print('-----------')
             print(streaming.status)
             # Stop prev stream, Start new stream (base on name)

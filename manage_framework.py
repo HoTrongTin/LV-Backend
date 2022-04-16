@@ -51,10 +51,6 @@ def get_project(current_user):
 @app.route('/project/<id>', methods =['PATCH'])
 @token_required
 def update_project(current_user, id):
-    
-    print('------')
-    print(id)
-    print('------')
 
     jsonData = request.get_json()
     # gets project info
@@ -86,8 +82,6 @@ def update_project(current_user, id):
 @token_required
 def create_streaming(current_user, project_id):
     jsonData = request.get_json()
-    
-    print(project_id)
   
     # gets project info
     method = jsonData['method']
@@ -141,15 +135,10 @@ def get_streaming(current_user, project_id):
 
     # checking for existing project
     project = Project.objects(id = project_id, user = current_user).first()
-    print('project: ' + str(project.to_json()))
 
     if project:
         streamings = StreammingDefinition.objects(project = project)
-
-        print('streamings: ' + str(streamings.to_json()))
-
         return jsonify({'body': streamings})
-
     else:  
         return make_response('Project does not exist.', 400)
 
@@ -186,8 +175,6 @@ def update_streaming(current_user, project_id, streaming_id):
 
     if project:
         old_streaming = StreammingDefinition.objects(id = streaming_id, project = project).first()
-        print('-----------')
-        print(old_streaming.status)
         streaming = StreammingDefinition(id = streaming_id, project = project)
 
         if streaming:
@@ -210,20 +197,18 @@ def update_streaming(current_user, project_id, streaming_id):
                 streaming.columns.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))
 
             streaming.save()
-            print('-----------')
-            print(streaming.status)
+            
             # Stop prev stream, Start new stream (base on name)
             # Start trigger
-            print('-----------')
-            print(old_streaming.status, streaming.status)
+            
             if streaming.status != 'ACTIVE' and old_streaming.status == 'ACTIVE':
-                print('stop')
+                
                 stopStream(project=project, stream=old_streaming)
             elif streaming.status == 'ACTIVE' and old_streaming.status != 'ACTIVE':
-                print('run')
+                
                 startStream(project=project, stream=streaming)
             else:
-                print('stop and run')
+                
                 stopStream(project=project, stream=old_streaming)
                 startStream(project=project, stream=streaming)
 
@@ -261,8 +246,6 @@ def delete_streaming(current_user, project_id, streaming_id):
 @token_required
 def create_dataset(current_user, project_id):
     jsonData = request.get_json()
-    
-    print(project_id)
   
     # gets project info
     dataset_name = jsonData['dataset_name']
@@ -322,12 +305,9 @@ def get_dataset(current_user, project_id):
 
     # checking for existing project
     project = Project.objects(id = project_id, user = current_user).first()
-    print('project: ' + str(project.to_json()))
 
     if project:
         datasets = DataSetDefinition.objects(project = project)
-
-        print('datasets: ' + str(datasets.to_json()))
 
         return jsonify({'body': datasets})
 
@@ -355,8 +335,6 @@ def get_dataset(current_user, project_id):
 @token_required
 def create_api(current_user, project_id):
     jsonData = request.get_json()
-    
-    print(project_id)
   
     # gets api info
     key = jsonData['key']
@@ -388,8 +366,6 @@ def create_api(current_user, project_id):
 @token_required
 def update_api(current_user, project_id, api_id):
     jsonData = request.get_json()
-    
-    print(project_id)
   
     # gets api info
     key = jsonData['key']
@@ -425,12 +401,9 @@ def get_apis(current_user, project_id):
 
     # checking for existing project
     project = Project.objects(id = project_id, user = current_user).first()
-    print('project: ' + str(project.to_json()))
 
     if project:
         apis = ApisDefinition.objects(project = project)
-
-        print('datasets: ' + str(apis.to_json()))
 
         return jsonify({'body': apis})
 
@@ -461,9 +434,7 @@ def delete_api(current_user, project_id, api_id):
 @token_required
 def create_trigger(current_user, project_id):
     jsonData = request.get_json()
-    
-    print(project_id)
-  
+
     # gets api info
     name = jsonData['name']
     status = jsonData['status']
@@ -504,12 +475,9 @@ def get_triggers(current_user, project_id):
 
     # checking for existing project
     project = Project.objects(id = project_id, user = current_user).first()
-    print('project: ' + str(project.to_json()))
 
     if project:
         triggers = TriggerDefinition.objects(project = project)
-
-        print('triggers: ' + str(triggers.to_json()))
 
         return jsonify({'body': triggers})
 
@@ -521,8 +489,6 @@ def get_triggers(current_user, project_id):
 @token_required
 def update_trigger(current_user, project_id, trigger_id):
     jsonData = request.get_json()
-    
-    print(project_id)
   
     # gets api info
     name = jsonData['name']

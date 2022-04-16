@@ -214,6 +214,8 @@ def update_streaming(current_user, project_id, streaming_id):
 
             # Stop prev stream, Start new stream (base on name)
             # Start trigger
+            print('-----------')
+            print(old_streaming.status, streaming.status)
             if streaming.status != 'ACTIVE' and old_streaming.status == 'ACTIVE':
                 stopStream(project=project, stream=old_streaming)
             elif streaming.status == 'ACTIVE' and old_streaming.status != 'ACTIVE':

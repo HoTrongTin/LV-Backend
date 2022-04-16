@@ -68,6 +68,8 @@ def update_project(current_user, id):
     project.name = new_name
     project.state = new_state
 
+    project.save()
+
     if new_state == 'STOPPED' and old_state == 'RUNNING':
         stop_project(project)
     elif new_state == 'RUNNING' and old_state == 'STOPPED':
@@ -75,8 +77,6 @@ def update_project(current_user, id):
     else:
         stop_project(project)
         start_project(project)
-
-    project.save()
 
     return jsonify({'body': project})
 

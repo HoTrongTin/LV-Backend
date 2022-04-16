@@ -196,6 +196,8 @@ def update_streaming(current_user, project_id, streaming_id):
 
     if project:
         old_streaming = copy.deepcopy(StreammingDefinition(id = streaming_id, project = project))
+        print('-----------')
+        print(old_streaming.status)
         streaming = StreammingDefinition(id = streaming_id, project = project)
 
         if streaming:
@@ -218,7 +220,8 @@ def update_streaming(current_user, project_id, streaming_id):
                 streaming.columns.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))
 
             streaming.save()
-
+            print('-----------')
+            print(streaming.status)
             # Stop prev stream, Start new stream (base on name)
             # Start trigger
             print('-----------')

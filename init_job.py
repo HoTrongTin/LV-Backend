@@ -13,34 +13,48 @@ config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
 amazonS3param = config_obj["amazonS3"]
 
-#init Spark streaming
-def init_spark_streaming():
-    print('init streaming')
+def init_project():
+    #start connection S3
     hadoop_conf = spark._jsc.hadoopConfiguration()
     hadoop_conf.set("fs.s3a.impl", amazonS3param['s3aImpl'])
     hadoop_conf.set("fs.s3a.access.key", amazonS3param['accesskey'])
     hadoop_conf.set("fs.s3a.secret.key", amazonS3param['secretkey'])
 
-    # Query all projects
+    #start scheduler
+    scheduler.start()
+
     projects = Project.objects()
     print('Projects: ' + str(projects))
 
     # Query all streams in each project
     for project in projects:
-        start_project_streaming(project)
+        if project.state == 'RUNNING':
+            start_project(project)
 
+
+def start_project(project):
+    start_project_streaming(project)
+    start_project_trigger(project)
+
+def stop_project(project):
+    stop_project_streaming(project)
+    stop_project_trigger(project)
+
+#Streaming
 def start_project_streaming(project):
     streams = StreammingDefinition.objects(project = project)
 
     # For each stream
     for stream in streams:
-        startStream(project=project, stream=stream)
+        if stream.status == 'ACTIVE':
+            startStream(project=project, stream=stream)
 
 def stop_project_streaming(project):
     streams = StreammingDefinition.objects(project = project)
     # For each stream
     for stream in streams:
-        stopStream(project=project, stream=stream)
+        if stream.status == 'ACTIVE':
+            stopStream(project=project, stream=stream)
 
 #init Schedule jobs
 # def cron_data_to_Gold():
@@ -71,7 +85,7 @@ def stop_project_streaming(project):
 #         for api in apis:
 #             cache_data_to_mongoDB(project_name=project.name, key=api.key)
 
-def init_trigger():
+def start_project_trigger(project):
     # Setup CronJob for checking streaming
     # scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=6000)
 
@@ -82,18 +96,22 @@ def init_trigger():
     # Setup CronJob for copying data from gold to mongoDB
     #shceduler run mon to fri on every 15 and 45 minutes of each hour from 6h to 22h
     # scheduler.add_job(func=cron_data_to_mongoDB, trigger="cron", minute='5', hour='6-22', day_of_week='mon-fri')
-    scheduler.start()
+    
+    triggers = TriggerDefinition.objects(project = project)
 
-    projects = Project.objects()
+    # For each trigger
+    for trigger in triggers:
+        if trigger.status == 'ACTIVE':
+            start_trigger(project, trigger)
 
-    # Query all apis in each project
-    for project in projects:
-        triggers = TriggerDefinition.objects(project = project)
+def stop_project_trigger(project):
+    
+    triggers = TriggerDefinition.objects(project = project)
 
-        # For each trigger
-        for trigger in triggers:
-            if trigger.status == 'ACTIVE':
-                start_trigger(project, trigger)
+    # For each trigger
+    for trigger in triggers:
+        if trigger.status == 'ACTIVE':
+            stop_trigger(trigger)
 
 def start_trigger(project, trigger):
 

@@ -1,7 +1,7 @@
 from email.policy import default
 from turtle import st
 from flask import request, jsonify, make_response
-from mongodb import app
+from appSetup import app
 from user_defined_class import *
 from init_job import *
 from manage_user import token_required
@@ -70,12 +70,13 @@ def update_project(current_user, id):
     project.name = new_name
     project.state = new_state
 
-    if new_state == 'STOPPED':
-        # STOP ALL STREAMING OF THIS PROJECT
-        stop_project_streaming(project=project)
+    if new_state == 'STOPPED' and old_state == 'RUNNING':
+        stop_project(project)
     elif new_state == 'RUNNING' and old_state == 'STOPPED':
-        # START ALL STREAMING OF THIS PROJECT
-        start_project_streaming(project=project)
+        start_project(project)
+    else:
+        stop_project(project)
+        start_project(project)
 
     project.save()
 
@@ -97,6 +98,10 @@ def create_streaming(current_user, project_id):
     table_name_source = jsonData['table_name_source']
     table_name_sink = jsonData['table_name_sink']
     
+    name = jsonData['name']
+    description = jsonData['description']
+    status = jsonData['status']
+
     columns = []
     for col in jsonData['columns']:
         columns.append(col)
@@ -116,7 +121,7 @@ def create_streaming(current_user, project_id):
         dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project).first()
         dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project).first()
   
-        new_streaming = StreammingDefinition(project = project, method = method, merge_on = merge_on, partition_by = partition_by, dataset_source=dataset_source, dataset_sink=dataset_sink, table_name_source=table_name_source, table_name_sink=table_name_sink)
+        new_streaming = StreammingDefinition(project = project, name = name, description = description, status = status, method = method, merge_on = merge_on, partition_by = partition_by, dataset_source=dataset_source, dataset_sink=dataset_sink, table_name_source=table_name_source, table_name_sink=table_name_sink)
 
         # Create columns in streaming
         for col in columns:
@@ -125,7 +130,8 @@ def create_streaming(current_user, project_id):
         new_streaming.save()
 
         # Start this streaming
-        startStream(project=project, stream=new_streaming)
+        if new_streaming.status == 'ACTIVE':
+            startStream(project=project, stream=new_streaming)
 
         return jsonify({'body': new_streaming})
 
@@ -151,7 +157,7 @@ def get_streaming(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-# Create streaming in project
+# Update streaming in project
 @app.route('/project/<project_id>/streaming/<streaming_id>', methods =['PATCH'])
 @token_required
 def update_streaming(current_user, project_id, streaming_id):
@@ -164,6 +170,10 @@ def update_streaming(current_user, project_id, streaming_id):
     method = jsonData['method']
     table_name_source = jsonData['table_name_source']
     table_name_sink = jsonData['table_name_sink']
+
+    name = jsonData['name']
+    description = jsonData['description']
+    status = jsonData['status']
 
     columns = []
     for col in jsonData['columns']:
@@ -185,6 +195,9 @@ def update_streaming(current_user, project_id, streaming_id):
         streaming = StreammingDefinition(id = streaming_id, project = project)
 
         if streaming:
+            streaming.name = name
+            streaming.description = description
+            streaming.status = status
             streaming.method = method
             streaming.merge_on = merge_on
             streaming.partition_by = partition_by
@@ -200,8 +213,14 @@ def update_streaming(current_user, project_id, streaming_id):
             streaming.save()
 
             # Stop prev stream, Start new stream (base on name)
-            stopStream(project=project, stream=old_streaming)
-            startStream(project=project, stream=streaming)
+            # Start trigger
+            if streaming.status != 'ACTIVE' and old_streaming.status == 'ACTIVE':
+                stopStream(project=project, stream=old_streaming)
+            elif streaming.status == 'ACTIVE' and old_streaming.status != 'ACTIVE':
+                startStream(project=project, stream=streaming)
+            else:
+                stopStream(project=project, stream=old_streaming)
+                startStream(project=project, stream=streaming)
 
             return jsonify({'body': streaming})
         else:

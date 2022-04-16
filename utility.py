@@ -2,7 +2,7 @@ from pyspark.sql.types import StructType
 from pyspark.sql.functions import *
 from sparkSetup import spark
 from delta.tables import *
-from mongodb import CacheQuery
+from appSetup import CacheQuery
 import json
 
 import configparser
@@ -29,7 +29,7 @@ def startStream(project, stream):
     dataset_sink = stream.dataset_sink
 
     bronze_stream_name = "{project_name}-{folder_name}-{table_name}".format(project_name = project.name,folder_name=dataset_sink.folder_name, table_name = stream.table_name_sink)
-    gold_stream_name = "{project_name}-gold-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink)
+    silver_stream_name = "{project_name}-silver-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink)
 
     # Start Bronze & Gold streamming    
     if dataset_source.dataset_type == 'HDFS':
@@ -40,15 +40,15 @@ def startStream(project, stream):
         pass
     
     if stream.method == 'MERGE':
-        streamingBronzeToGoldMergeMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schema, stream_name=gold_stream_name, mergeOn=stream.merge_on, partitionedBy=stream.partition_by)
+        streamingBronzeToGoldMergeMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schema, stream_name=silver_stream_name, mergeOn=stream.merge_on, partitionedBy=stream.partition_by)
     elif stream.method == 'APPEND':
-        streamingBronzeToGoldAppendMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schema, stream_name=gold_stream_name, partitionedBy=stream.partition_by)
+        streamingBronzeToGoldAppendMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schema, stream_name=silver_stream_name, partitionedBy=stream.partition_by)
 
     # Update streamming id, name, status (ACTIVE) to MongoDB
-    stream.bronze_stream_name = bronze_stream_name
-    stream.gold_stream_name = gold_stream_name
-    stream.bronze_stream_status = 'ACTIVE'
-    stream.gold_stream_status = 'ACTIVE'
+    # stream.bronze_stream_name = bronze_stream_name
+    # stream.silver_stream_name = silver_stream_name
+    # stream.bronze_stream_status = 'ACTIVE'
+    # stream.gold_stream_status = 'ACTIVE'
 
     stream.save()
 
@@ -57,21 +57,21 @@ def stopStream(project, stream):
     dataset_sink = stream.dataset_sink
 
     bronze_stream_name = "{project_name}-{folder_name}-{table_name}".format(project_name = project.name,folder_name=dataset_sink.folder_name, table_name = stream.table_name_sink)
-    gold_stream_name = "{project_name}-gold-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink)
+    silver_stream_name = "{project_name}-silver-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink)
 
     # Search in list streaming of spark
     for sparkStream in spark.streams.active:
         print("+++++ Name: " + sparkStream.name)
-        if sparkStream.name in [bronze_stream_name, gold_stream_name]:
+        if sparkStream.name in [bronze_stream_name, silver_stream_name]:
             try: 
                 sparkStream.stop()
                 print("Status: " + sparkStream.status)
 
                 # Update streamming id, name, status (ACTIVE) to MongoDB
-                stream.bronze_stream_name = ''
-                stream.gold_stream_name = ''
-                stream.bronze_stream_status = 'IN_ACTIVE'
-                stream.gold_stream_status = 'IN_ACTIVE'
+                # stream.bronze_stream_name = ''
+                # stream.silver_stream_name = ''
+                # stream.bronze_stream_status = 'IN_ACTIVE'
+                # stream.gold_stream_status = 'IN_ACTIVE'
 
                 stream.save()
             except:

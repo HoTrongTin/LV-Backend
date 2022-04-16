@@ -6,7 +6,7 @@ import numpy as np
 import time
 import atexit
 
-from mongodb import app, CacheQuery
+from appSetup import app, CacheQuery
 from sparkSetup import spark
 from init_job import *
 from manage_user import *
@@ -116,15 +116,15 @@ def query():
     return jsonify({'time to execute': time.time() - startTime,
                     'body': results})
 
-@app.route('/manual-copy-gold')
-def manual_copy_gold():
-    cron_data_to_Gold()
-    return jsonify({'body': 'Copy successful!'})
+# @app.route('/manual-copy-gold')
+# def manual_copy_gold():
+#     cron_data_to_Gold()
+#     return jsonify({'body': 'Copy successful!'})
 
-@app.route('/manual-copy-mongoDB')
-def manual_copy_mongoDB():
-    cron_data_to_mongoDB()
-    return jsonify({'body': 'Copy successful!'})
+# @app.route('/manual-copy-mongoDB')
+# def manual_copy_mongoDB():
+#     cron_data_to_mongoDB()
+#     return jsonify({'body': 'Copy successful!'})
 
 @app.route('/manual-stop-scheduler')
 def manual_stop_scheduler():
@@ -156,8 +156,7 @@ def get_scheduler_jobs():
 atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
-    init_spark_streaming()
-    init_trigger()
+    init_project()
     print("List streamming queries: ")
     print(spark.streams.active)
 

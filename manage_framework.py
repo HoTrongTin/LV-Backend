@@ -5,7 +5,6 @@ from appSetup import app
 from user_defined_class import *
 from init_job import *
 from manage_user import token_required
-import copy
 
 ###################################################################### PROJECT ##################################################################
 # Create project
@@ -195,7 +194,7 @@ def update_streaming(current_user, project_id, streaming_id):
     project = Project.objects(id = project_id, user = current_user).first()
 
     if project:
-        old_streaming = copy.deepcopy(StreammingDefinition(id = streaming_id, project = project))
+        old_streaming = StreammingDefinition(id = streaming_id, project = project)
         print('-----------')
         print(old_streaming.status)
         streaming = StreammingDefinition(id = streaming_id, project = project)

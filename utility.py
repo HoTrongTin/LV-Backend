@@ -56,7 +56,7 @@ def stopStream(project, stream):
 
     dataset_sink = stream.dataset_sink
 
-    print(dataset_sink.folder_name)
+    print(dataset_sink)
 
     bronze_stream_name = "{project_name}-{folder_name}-{table_name}".format(project_name = project.name,folder_name=dataset_sink.folder_name, table_name = stream.table_name_sink)
     silver_stream_name = "{project_name}-silver-{table_name}".format(project_name = project.name, table_name = stream.table_name_sink)

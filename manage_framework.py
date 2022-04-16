@@ -547,11 +547,11 @@ def update_trigger(current_user, project_id, trigger_id):
 
         # Start trigger
         if trigger.status != 'ACTIVE' and old_trigger.status == 'ACTIVE':
-            stop_trigger(project=project, trigger=old_trigger)
+            stop_trigger(trigger=old_trigger)
         elif trigger.status == 'ACTIVE' and old_trigger.status != 'ACTIVE':
             start_trigger(project=project, trigger=trigger)
         else:
-            stop_trigger(project=project, trigger=old_trigger)
+            stop_trigger(trigger=old_trigger)
             start_trigger(project=project, trigger=trigger)
         
         return jsonify({'body': "Updated sucessful!"})

@@ -54,7 +54,7 @@ def stop_project_streaming(project):
     # For each stream
     for stream in streams:
         if stream.status == 'ACTIVE':
-            stopStream(stream=stream)
+            stopStream(project=project, stream=stream)
 
 #init Schedule jobs
 # def cron_data_to_Gold():

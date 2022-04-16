@@ -50,9 +50,9 @@ class StreammingDefinition(db.Document):
     # Manage stream
     # bronze_stream_id = db.StringField(default = '')
     # gold_stream_id = db.StringField(default = '')
-    bronze_stream_name = db.StringField(required=True)
+    # bronze_stream_name = db.StringField(required=True)
     # bronze_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
-    silver_stream_name = db.StringField(required=True)
+    # silver_stream_name = db.StringField(required=True)
     # gold_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
 
 class ApisDefinition(db.Document):

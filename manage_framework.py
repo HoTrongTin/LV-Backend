@@ -13,9 +13,7 @@ from manage_user import token_required
 def create_project(current_user):
     # creates a dictionary of the form data
     jsonData = request.get_json()
-    print('------')
-    print(jsonData)
-    print('------')
+    
   
     # gets project info
     name = jsonData['name']
@@ -88,9 +86,7 @@ def update_project(current_user, id):
 @token_required
 def create_streaming(current_user, project_id):
     jsonData = request.get_json()
-    print('------')
-    print(jsonData)
-    print('------')
+    
     print(project_id)
   
     # gets project info
@@ -165,9 +161,7 @@ def get_streaming(current_user, project_id):
 @token_required
 def update_streaming(current_user, project_id, streaming_id):
     jsonData = request.get_json()
-    print('------')
-    print(jsonData)
-    print('------')
+    
   
     # gets project info
     method = jsonData['method']
@@ -227,13 +221,13 @@ def update_streaming(current_user, project_id, streaming_id):
             print(old_streaming.status, streaming.status)
             if streaming.status != 'ACTIVE' and old_streaming.status == 'ACTIVE':
                 print('stop')
-                # stopStream(stream=old_streaming)
+                stopStream(project=project, stream=old_streaming)
             elif streaming.status == 'ACTIVE' and old_streaming.status != 'ACTIVE':
                 print('run')
-                # startStream(project=project, stream=streaming)
+                startStream(project=project, stream=streaming)
             else:
                 print('stop and run')
-                stopStream(stream=old_streaming)
+                stopStream(project=project, stream=old_streaming)
                 startStream(project=project, stream=streaming)
 
             return jsonify({'body': streaming})
@@ -256,7 +250,7 @@ def delete_streaming(current_user, project_id, streaming_id):
         StreammingDefinition(id = streaming_id, project = project).delete()
 
         # Stop streaming if exist
-        stopStream(stream=old_streaming)
+        stopStream(project=project, stream=old_streaming)
 
         return make_response('Streaming deleted.', 200)
 
@@ -270,9 +264,7 @@ def delete_streaming(current_user, project_id, streaming_id):
 @token_required
 def create_dataset(current_user, project_id):
     jsonData = request.get_json()
-    print('------')
-    print(jsonData)
-    print('------')
+    
     print(project_id)
   
     # gets project info
@@ -366,9 +358,7 @@ def get_dataset(current_user, project_id):
 @token_required
 def create_api(current_user, project_id):
     jsonData = request.get_json()
-    print('------')
-    print(jsonData)
-    print('------')
+    
     print(project_id)
   
     # gets api info
@@ -401,9 +391,7 @@ def create_api(current_user, project_id):
 @token_required
 def update_api(current_user, project_id, api_id):
     jsonData = request.get_json()
-    print('------')
-    print(jsonData)
-    print('------')
+    
     print(project_id)
   
     # gets api info
@@ -476,9 +464,7 @@ def delete_api(current_user, project_id, api_id):
 @token_required
 def create_trigger(current_user, project_id):
     jsonData = request.get_json()
-    print('------')
-    print(jsonData)
-    print('------')
+    
     print(project_id)
   
     # gets api info
@@ -538,9 +524,7 @@ def get_triggers(current_user, project_id):
 @token_required
 def update_trigger(current_user, project_id, trigger_id):
     jsonData = request.get_json()
-    print('------')
-    print(jsonData)
-    print('------')
+    
     print(project_id)
   
     # gets api info

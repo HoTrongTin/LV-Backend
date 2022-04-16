@@ -36,7 +36,6 @@ class StreammingDefinition(db.Document):
     columns = db.ListField(db.EmbeddedDocumentField(ColumnDefinition))
     merge_on = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
     partition_by = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
-
     name = db.StringField(required=True)
     description = db.StringField(default = '')
     status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
@@ -46,14 +45,6 @@ class StreammingDefinition(db.Document):
     dataset_sink = db.ReferenceField(DataSetDefinition, reverse_delete_rule=CASCADE)
     table_name_source = db.StringField(min_length=1, max_length=45, required=True, unique=True)
     table_name_sink = db.StringField(min_length=1, max_length=45, required=True, unique=True)
-
-    # Manage stream
-    # bronze_stream_id = db.StringField(default = '')
-    # gold_stream_id = db.StringField(default = '')
-    # bronze_stream_name = db.StringField(required=True)
-    # bronze_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
-    # silver_stream_name = db.StringField(required=True)
-    # gold_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
 
 class ApisDefinition(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)

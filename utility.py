@@ -70,8 +70,6 @@ def stopStream(stream):
                 # stream.silver_stream_name = ''
                 # stream.bronze_stream_status = 'IN_ACTIVE'
                 # stream.gold_stream_status = 'IN_ACTIVE'
-
-                stream.save()
             except:
                 print("Something went wrong")
 

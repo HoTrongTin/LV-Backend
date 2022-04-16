@@ -1,4 +1,4 @@
-from mongodb import db
+from appSetup import db
 from tkinter import CASCADE
 from enum import Enum
 
@@ -37,6 +37,10 @@ class StreammingDefinition(db.Document):
     merge_on = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
     partition_by = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
 
+    name = db.StringField(required=True)
+    description = db.StringField(default = '')
+    status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
+
     # Manage DataSetDefinition
     dataset_source = db.ReferenceField(DataSetDefinition, reverse_delete_rule=CASCADE)
     dataset_sink = db.ReferenceField(DataSetDefinition, reverse_delete_rule=CASCADE)
@@ -44,12 +48,12 @@ class StreammingDefinition(db.Document):
     table_name_sink = db.StringField(min_length=1, max_length=45, required=True, unique=True)
 
     # Manage stream
-    bronze_stream_id = db.StringField(default = '')
-    gold_stream_id = db.StringField(default = '')
-    bronze_stream_name = db.StringField(default = '')
-    bronze_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
-    gold_stream_name = db.StringField(default = '')
-    gold_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
+    # bronze_stream_id = db.StringField(default = '')
+    # gold_stream_id = db.StringField(default = '')
+    # bronze_stream_name = db.StringField(default = '')
+    # bronze_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
+    # gold_stream_name = db.StringField(default = '')
+    # gold_stream_status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
 
 class ApisDefinition(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)

@@ -5,7 +5,7 @@ from  werkzeug.security import generate_password_hash, check_password_hash
 import jwt
 from datetime import datetime, timedelta
 from functools import wraps  
-from mongodb import app
+from appSetup import app
 import configparser
 from user_defined_class import *
 

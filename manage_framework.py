@@ -224,15 +224,15 @@ def update_streaming(current_user, project_id, streaming_id):
             print('-----------')
             print(old_streaming.status, streaming.status)
             if streaming.status != 'ACTIVE' and old_streaming.status == 'ACTIVE':
-                print('111111111')
-                stopStream(stream=old_streaming)
+                print('stop')
+                # stopStream(stream=old_streaming)
             elif streaming.status == 'ACTIVE' and old_streaming.status != 'ACTIVE':
-                print('222222222')
-                startStream(project=project, stream=streaming)
+                print('run')
+                # startStream(project=project, stream=streaming)
             else:
-                print('333333333')
+                print('stop and run')
                 stopStream(stream=old_streaming)
-                startStream(project=project, stream=streaming)
+                # startStream(project=project, stream=streaming)
 
             return jsonify({'body': streaming})
         else:

@@ -121,8 +121,11 @@ def create_streaming(current_user, project_id):
     if project:
         dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project).first()
         dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project).first()
-  
-        new_streaming = StreammingDefinition(project = project, name = name, description = description, status = status, method = method, merge_on = merge_on, partition_by = partition_by, dataset_source=dataset_source, dataset_sink=dataset_sink, table_name_source=table_name_source, table_name_sink=table_name_sink)
+
+        bronze_stream_name = "{project_name}-{folder_name}-{table_name}".format(project_name = project.name,folder_name=dataset_sink.folder_name, table_name = table_name_sink)
+        silver_stream_name = "{project_name}-silver-{table_name}".format(project_name = project.name, table_name = table_name_sink)
+
+        new_streaming = StreammingDefinition(project = project, name = name, description = description, status = status, bronze_stream_name = bronze_stream_name, silver_stream_name = silver_stream_name, method = method, merge_on = merge_on, partition_by = partition_by, dataset_source=dataset_source, dataset_sink=dataset_sink, table_name_source=table_name_source, table_name_sink=table_name_sink)
 
         # Create columns in streaming
         for col in columns:
@@ -208,6 +211,9 @@ def update_streaming(current_user, project_id, streaming_id):
             streaming.table_name_sink = table_name_sink
             streaming.table_name_source = table_name_source
 
+            streaming.bronze_stream_name = "{project_name}-{folder_name}-{table_name}".format(project_name = project.name,folder_name=streaming.dataset_sink.folder_name, table_name = table_name_sink)
+            streaming.silver_stream_name = "{project_name}-silver-{table_name}".format(project_name = project.name, table_name = table_name_sink)
+
             for col in columns:
                 streaming.columns.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))
 
@@ -219,13 +225,13 @@ def update_streaming(current_user, project_id, streaming_id):
             print(old_streaming.status, streaming.status)
             if streaming.status != 'ACTIVE' and old_streaming.status == 'ACTIVE':
                 print('111111111')
-                stopStream(project=project, stream=old_streaming)
+                stopStream(stream=old_streaming)
             elif streaming.status == 'ACTIVE' and old_streaming.status != 'ACTIVE':
                 print('222222222')
                 startStream(project=project, stream=streaming)
             else:
                 print('333333333')
-                stopStream(project=project, stream=old_streaming)
+                stopStream(stream=old_streaming)
                 startStream(project=project, stream=streaming)
 
             return jsonify({'body': streaming})
@@ -248,7 +254,7 @@ def delete_streaming(current_user, project_id, streaming_id):
         StreammingDefinition(id = streaming_id, project = project).delete()
 
         # Stop streaming if exist
-        stopStream(project=project, stream=old_streaming)
+        stopStream(stream=old_streaming)
 
         return make_response('Streaming deleted.', 200)
 

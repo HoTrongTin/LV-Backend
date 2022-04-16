@@ -57,10 +57,10 @@ def update_project(current_user, id):
     new_name = jsonData['name']
     new_state = jsonData['state']
 
-    old_state = project.state
-
     # checking for existing project
     project = Project.objects(id = id, user = current_user).first()
+    old_state = project.state
+
     project.name = new_name
     project.state = new_state
 

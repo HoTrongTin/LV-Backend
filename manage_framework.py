@@ -117,10 +117,7 @@ def create_streaming(current_user, project_id):
         dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project).first()
         dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project).first()
 
-        bronze_stream_name = "{project_name}-{folder_name}-{table_name}".format(project_name = project.name,folder_name=dataset_sink.folder_name, table_name = table_name_sink)
-        silver_stream_name = "{project_name}-silver-{table_name}".format(project_name = project.name, table_name = table_name_sink)
-
-        new_streaming = StreammingDefinition(project = project, name = name, description = description, status = status, bronze_stream_name = bronze_stream_name, silver_stream_name = silver_stream_name, method = method, merge_on = merge_on, partition_by = partition_by, dataset_source=dataset_source, dataset_sink=dataset_sink, table_name_source=table_name_source, table_name_sink=table_name_sink)
+        new_streaming = StreammingDefinition(project = project, name = name, description = description, status = status, method = method, merge_on = merge_on, partition_by = partition_by, dataset_source=dataset_source, dataset_sink=dataset_sink, table_name_source=table_name_source, table_name_sink=table_name_sink)
 
         # Create columns in streaming
         for col in columns:

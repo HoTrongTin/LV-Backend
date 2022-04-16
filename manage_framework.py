@@ -481,7 +481,7 @@ def create_trigger(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-# Get api in project
+# Get triggers in project
 @app.route('/project/<project_id>/triggers', methods =['GET'])
 @token_required
 def get_triggers(current_user, project_id):
@@ -546,14 +546,15 @@ def update_trigger(current_user, project_id, trigger_id):
 
 
         # Start trigger
-        if trigger.status == 'ACTIVE' and old_trigger.status != 'ACTIVE':
+        if trigger.status != 'ACTIVE' and old_trigger.status == 'ACTIVE':
+            stop_trigger(project=project, trigger=old_trigger)
+        elif trigger.status == 'ACTIVE' and old_trigger.status != 'ACTIVE':
+            start_trigger(project=project, trigger=trigger)
+        else:
             stop_trigger(project=project, trigger=old_trigger)
             start_trigger(project=project, trigger=trigger)
-        elif trigger.status != 'ACTIVE' and old_trigger.status == 'ACTIVE':
-            stop_trigger(trigger=old_trigger)
-            stop_trigger(trigger=trigger)
         
-        return jsonify({'body': trigger})
+        return jsonify({'body': "Updated sucessful!"})
 
     else:  
         return make_response('Project does not exist.', 400)

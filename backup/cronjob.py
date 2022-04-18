@@ -1,4 +1,4 @@
-from backup.cronjobSilverToGold import *
+from cronjobSilverToGold import *
 from cronjobGoldToMongoDB import *
 from user_defined_class import *
 from utility import *

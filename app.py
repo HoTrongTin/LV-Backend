@@ -87,7 +87,7 @@ def get_cached_data(current_user, project_id):
 @app.route('/analysis-clinical-diseases-by-month', methods=['POST'])
 def test():
     months = request.json['months']
-    key = request.args.get('key')
+    key = 'medical_' + request.args.get('key')
     data = CacheQuery.objects(key=key).first().value
     res = []
     for item in data:

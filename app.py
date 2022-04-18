@@ -166,7 +166,8 @@ def build_model_CNNclassifier():
 
 @app.route('/predict-by-CNNclassifier')
 def predict_by_CNNclassifier():
-    res = predict(prob = 0.28)
+    df = predict(prob = 0.28)
+    res = spark.createDataFrame(df)
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
     return jsonify({'body': results})
 

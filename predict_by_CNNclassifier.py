@@ -17,7 +17,7 @@ def predict(prob = 0.28):
     # Check its architecture
     classifier.summary()
 
-    predict_data = pd.read_csv('/model_classifier/cleaned_data_test.csv')
+    predict_data = pd.read_csv('model_classifier/cleaned_data_test.csv')
 
     X_predict = predict_data.iloc[:,1:]
     X_predict = X_predict.to_numpy()
@@ -35,7 +35,7 @@ def predict(prob = 0.28):
             result[i] = 1
         else: result[i] = 0
 
-    q = pd.read_csv('/model_classifier/submission.csv')
+    q = pd.read_csv('model_classifier/submission.csv')
     encounter_id = q['encounter_id']
     dataset = pd.DataFrame({'encounter_id': encounter_id, 'diabetes_mellitus': result})
     return dataset

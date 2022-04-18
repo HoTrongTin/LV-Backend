@@ -22,7 +22,7 @@ warnings.filterwarnings('ignore')
 
 def build_model():
     #get data to train
-    train_ = spark.read.format("delta").load("/medical/silver/diabetes").toPandas().iloc[:,:-1]
+    train_ = pd.read_csv('../data/diabetes.csv')
     y = train_.iloc[:,-1]
     X = train_.iloc[:,1:-1]
     

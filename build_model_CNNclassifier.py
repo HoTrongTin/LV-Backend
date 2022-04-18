@@ -38,9 +38,11 @@ def build_model():
     X_under, y_under = under.fit_resample(X_over, y_over)
 
     #reshape train data to tain CNN
-    X_under_train = X_under.to_numpy().reshape(85928,1,171,1)
+    numRows_train = X_under.shape[0]
+    numRows_test = X_test.shape[0]
+    X_under_train = X_under.to_numpy().reshape(numRows_train,1,171,1)
     X_test = X_test.to_numpy()
-    X_test = X_test.reshape(25732,1,171,1)
+    X_test = X_test.reshape(numRows_test,1,171,1)
 
     #Built CNN
 

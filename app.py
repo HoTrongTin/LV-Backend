@@ -5,6 +5,8 @@ import pandas as pd
 import numpy as np
 import time
 import atexit
+from build_model_CNNclassifier import build_model
+from predict_by_CNNclassifier import predict
 
 from appSetup import app, CacheQuery
 from sparkSetup import spark
@@ -13,6 +15,9 @@ from manage_user import *
 from manage_framework import *
 from user_defined_class import *
 from utility import parseQuery
+
+from cronjobSilverToGold import *
+from cronjobGoldToMongoDB import *
 
 CORS(app)
 
@@ -116,15 +121,19 @@ def query():
     return jsonify({'time to execute': time.time() - startTime,
                     'body': results})
 
-# @app.route('/manual-copy-gold')
-# def manual_copy_gold():
-#     cron_data_to_Gold()
-#     return jsonify({'body': 'Copy successful!'})
+@app.route('/manual-copy-gold')
+def manual_copy_gold():
+    gold_analyze_admissions_and_deied_patients_in_hospital()
+    gold_analyze_state_affect_total_died_patients()
+    gold_analyze_patients_died_in_hospital()
+    return jsonify({'body': 'Copy successful!'})
 
-# @app.route('/manual-copy-mongoDB')
-# def manual_copy_mongoDB():
-#     cron_data_to_mongoDB()
-#     return jsonify({'body': 'Copy successful!'})
+@app.route('/manual-copy-mongoDB')
+def manual_copy_mongoDB():
+    cache_mongoDB_analyze_admissions_and_deied_patients_in_hospital()
+    cache_mongoDB_analyze_state_affect_total_died_patients()
+    cache_mongoDB_analyze_patients_died_in_hospital()
+    return jsonify({'body': 'Copy successful!'})
 
 @app.route('/manual-stop-scheduler')
 def manual_stop_scheduler():
@@ -149,6 +158,17 @@ def get_scheduler_jobs():
     scheduler.print_jobs()
     print('+++++++++++++++ ENDD ++++++++++++++')
     return jsonify({'body': '+++++++++++++++ ENDD ++++++++++++++'})
+
+@app.route('/build-model-CNNclassifier')
+def build_model_CNNclassifier():
+    build_model()
+    return jsonify({'body': 'Build model CNNclassifier successful!'})
+
+@app.route('/predict-by-CNNclassifier')
+def predict_by_CNNclassifier():
+    res = predict(prob = 0.28)
+    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+    return jsonify({'body': results})
 
 #init trigger by schedule
 

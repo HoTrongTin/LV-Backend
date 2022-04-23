@@ -142,6 +142,20 @@ def get_streaming(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+# Get streaming by id in project
+@app.route('/project/<project_id>/streaming/<stream_id>', methods =['GET'])
+@token_required
+def get_streaming_by_id(current_user, project_id, stream_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        streaming = StreammingDefinition.objects(id=stream_id, project = project).first()
+        return jsonify({'body': streaming})
+    else:  
+        return make_response('Project does not exist.', 400)
+
 # Update streaming in project
 @app.route('/project/<project_id>/streaming/<streaming_id>', methods =['PATCH'])
 @token_required
@@ -410,6 +424,22 @@ def get_apis(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+# Get api by id
+@app.route('/project/<project_id>/apis<api_id>', methods =['GET'])
+@token_required
+def get_api_by_id(current_user, project_id, api_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        api = ApisDefinition.objects(id=api_id, project = project).first()
+
+        return jsonify({'body': api})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
 @app.route('/project/<project_id>/apis/<api_id>', methods =['DELETE'])
 @token_required
 def delete_api(current_user, project_id, api_id):
@@ -480,6 +510,22 @@ def get_triggers(current_user, project_id):
         triggers = TriggerDefinition.objects(project = project)
 
         return jsonify({'body': triggers})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
+# Get trigger by id
+@app.route('/project/<project_id>/triggers/<trigger_id>', methods =['GET'])
+@token_required
+def get_trigger_by_id(current_user, project_id, trigger_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        trigger = TriggerDefinition.objects(id=trigger_id, project = project).first()
+
+        return jsonify({'body': trigger})
 
     else:  
         return make_response('Project does not exist.', 400)

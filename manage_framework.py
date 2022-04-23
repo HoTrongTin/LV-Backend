@@ -425,7 +425,7 @@ def get_apis(current_user, project_id):
         return make_response('Project does not exist.', 400)
 
 # Get api by id
-@app.route('/project/<project_id>/apis<api_id>', methods =['GET'])
+@app.route('/project/<project_id>/apis/<api_id>', methods =['GET'])
 @token_required
 def get_api_by_id(current_user, project_id, api_id):
 

@@ -142,6 +142,20 @@ def get_streaming(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+# Get streaming by id in project
+@app.route('/project/<project_id>/streaming/<stream_id>', methods =['GET'])
+@token_required
+def get_streaming_by_id(current_user, project_id, stream_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        streaming = StreammingDefinition.objects(id=stream_id, project = project).first()
+        return jsonify({'body': streaming})
+    else:  
+        return make_response('Project does not exist.', 400)
+
 # Update streaming in project
 @app.route('/project/<project_id>/streaming/<streaming_id>', methods =['PATCH'])
 @token_required
@@ -410,6 +424,22 @@ def get_apis(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+# Get api by id
+@app.route('/project/<project_id>/apis/<api_id>', methods =['GET'])
+@token_required
+def get_api_by_id(current_user, project_id, api_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        api = ApisDefinition.objects(id=api_id, project = project).first()
+
+        return jsonify({'body': api})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
 @app.route('/project/<project_id>/apis/<api_id>', methods =['DELETE'])
 @token_required
 def delete_api(current_user, project_id, api_id):
@@ -480,6 +510,22 @@ def get_triggers(current_user, project_id):
         triggers = TriggerDefinition.objects(project = project)
 
         return jsonify({'body': triggers})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
+# Get trigger by id
+@app.route('/project/<project_id>/triggers/<trigger_id>', methods =['GET'])
+@token_required
+def get_trigger_by_id(current_user, project_id, trigger_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        trigger = TriggerDefinition.objects(id=trigger_id, project = project).first()
+
+        return jsonify({'body': trigger})
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -560,7 +606,7 @@ def delete_trigger(current_user, project_id, trigger_id):
 # Get activities in project
 @app.route('/project/<project_id>/activities', methods =['GET'])
 @token_required
-def get_activities(current_user, project_id):
+def get_all_activities(current_user, project_id):
 
     # checking for existing project
     project = Project.objects(id = project_id, user = current_user).first()
@@ -575,6 +621,60 @@ def get_activities(current_user, project_id):
             activities = ActivitiesDefinition.objects(api=api)
             for act in activities:
                 result.append(act)
+
+        return jsonify({'body': result})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
+# Get activities in project
+@app.route('/project/<project_id>/trigger/<trigger_id>/activities', methods =['GET'])
+@token_required
+def get_activities_by_trigger(current_user, project_id, trigger_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+
+        apis = ApisDefinition.objects(project=project)
+
+        triggers = TriggerDefinition.objects(project=project)
+
+        found_trigger = TriggerDefinition.objects(id=trigger_id, project=project).first()
+        print('found_trigger: ');
+        print(found_trigger.id);
+
+        result = []
+
+        for api in apis:
+            print('---------------------------------')
+            activities = ActivitiesDefinition.objects(api=api)
+            for act in activities:
+                print('activity_id: ');
+                print(act.id);
+
+                is_used = False
+
+                for trigger in triggers:
+                    print('trigger_id: ')
+                    print(trigger.id)
+                    print('trigger.activity_ids')
+                    print(trigger.activity_ids)
+
+                    for activity_id in trigger.activity_ids:
+                        print(str(activity_id) == str(act.id))
+                        if str(activity_id) == str(act.id):
+                            print(str(trigger.id) != str(found_trigger.id))
+                            if (not found_trigger or (str(trigger.id) != str(found_trigger.id))):
+                                is_used = True
+                    # if (found_trigger and found_trigger.id == trigger.id): 
+                    #     print(found_trigger.id)
+                    #     is_used = False
+                    print(is_used)
+                
+                if not is_used:
+                    result.append(act)
 
         return jsonify({'body': result})
 

@@ -663,10 +663,10 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
                     print(trigger.activity_ids)
 
                     for activity_id in trigger.activity_ids:
-                        print(activity_id == act.id)
-                        if activity_id == act.id:
-                            print(trigger.id != found_trigger.id)
-                            if (not found_trigger or (trigger.id != found_trigger.id)):
+                        print(str(activity_id) == str(act.id))
+                        if str(activity_id) == str(act.id):
+                            print(str(trigger.id) != str(found_trigger.id))
+                            if (not found_trigger or (str(trigger.id) != str(found_trigger.id))):
                                 is_used = True
                     # if (found_trigger and found_trigger.id == trigger.id): 
                     #     print(found_trigger.id)

@@ -83,7 +83,7 @@ def getStreamSource(dataset_source, table_name):
 def getCheckpointLocation(project_name, stream, dataset_sink):
     return "/{project_name}/checkpoint/{folder_name}/{table_name}".format(project_name=project_name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink)
 
-#streaming Bronze To Gold With Merge Method
+#streaming Bronze To Silver With Merge Method
 def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, schema, stream_name, mergeOn, partitionedBy = []):
     def upsertToDelta(microBatchOutputDF, batchId): 
         microBatchOutputDF.createOrReplaceTempView("updates")
@@ -119,7 +119,7 @@ def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, sche
         .foreachBatch(upsertToDelta) \
         .start()
 
-#streaming Bronze To Gold With Append Method
+#streaming Bronze To Silver With Append Method
 def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, schema, stream_name, partitionedBy = []):
     def appendToDelta(microBatchOutputDF, batchId): 
         microBatchOutputDF.createOrReplaceTempView("batchData")

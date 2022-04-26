@@ -642,7 +642,8 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
         triggers = TriggerDefinition.objects(project=project)
 
         found_trigger = TriggerDefinition.objects(id=trigger_id, project=project).first()
-        print('found_trigger: ' + found_trigger.id);
+        print('found_trigger: ');
+        print(found_trigger.id);
 
         result = []
 
@@ -654,9 +655,11 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
                 for trigger in triggers:
                     if act.id in trigger.activity_ids:
                         is_used = True
-                    print('trigger_id: ' + trigger.id)
+                    print('trigger_id: ')
+                    print(trigger.id)
                     if (found_trigger and found_trigger.id == trigger.id): 
-                        print('found_t_id: ' + found_trigger.id)
+                        print('found_t_id: ')
+                        print(found_trigger.id)
                         is_used = False
                 
                 if not is_used:

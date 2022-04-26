@@ -642,7 +642,7 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
         triggers = TriggerDefinition.objects(project=project)
 
         found_trigger = TriggerDefinition.objects(id=trigger_id, project=project).first()
-        print('found_trigger: ' + str(found_trigger));
+        print('found_trigger: ' + found_trigger.id);
 
         result = []
 

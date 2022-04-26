@@ -648,6 +648,9 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
         result = []
 
         for api in apis:
+            print('---------------------------------')
+            print('activity_id: ');
+            print(act.id);
             activities = ActivitiesDefinition.objects(api=api)
             for act in activities:
                 is_used = False

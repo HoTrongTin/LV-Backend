@@ -114,6 +114,7 @@ def query():
     # gets project info
     sql = jsonData['sql']
     startTime = time.time()
+    print(startTime)
     res = spark.sql(sql)
 
     results = res.toJSON().map(lambda j: json.loads(j)).collect()

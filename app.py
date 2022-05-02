@@ -1,91 +1,29 @@
-from flask import Flask, jsonify, request
+from flask import jsonify, request
 from flask_cors import CORS
-import pyspark
-from delta import *
 import json
 import pandas as pd
 import numpy as np
 import time
-from pyspark.sql.types import StructType
-import os
-from flask_mongoengine import MongoEngine
 import atexit
-from apscheduler.schedulers.background import BackgroundScheduler
+from build_model_CNNclassifier import build_model
+from predict_by_CNNclassifier import predict
 
-os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.3.1 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" --master spark://10.1.8.101:7077 pyspark-shell'
-app = Flask(__name__)
+from appSetup import app, CacheQuery
+from sparkSetup import spark
+from init_job import *
+from manage_user import *
+from manage_framework import *
+from user_defined_class import *
+from utility import parseQuery
+
+from cronjobSilverToGold import *
+from cronjobGoldToMongoDB import *
+
 CORS(app)
-
-# Setup MongoDB
-app.config['MONGODB_SETTINGS'] = {
-    'db': 'delta_cache',
-    'host': '10.1.8.100',
-    'port': 27017
-}
-db = MongoEngine()
-db.init_app(app)
-
-# Setup Spark Application
-builder = pyspark.sql.SparkSession.builder.appName("pyspark-notebook") \
-    .master("spark://10.1.8.101:7077") \
-    .config("spark.sql.extensions", "io.delta.sql.DeltaSparkSessionExtension") \
-    .config("spark.sql.catalog.spark_catalog", "org.apache.spark.sql.delta.catalog.DeltaCatalog")
-
-spark = configure_spark_with_delta_pip(builder).getOrCreate()
-
-class CacheQuery(db.Document):
-    key = db.StringField()
-    value = db.ListField()
-    def to_json(self):
-        return {
-                    "key": self.key,
-                    "value": self.value
-                }
 
 @app.route('/')
 def hello_world():
-    return 'Hello, World!'
-
-@app.route('/test-json')
-def test_json():
-    return jsonify({
-        'name': 'Tin Ho Trongg',
-        'sex': 'No',
-        'age': '1000'
-    })
-
-@app.route('/test-spark')
-def test_spark():
-    df = spark.sql("""
-    select * from delta.`/delta_MIMIC2/d_patients`
-    where subject_id = '7391'
-    """)
-    df
-    df.show()
-    results = df.toJSON().map(lambda j: json.loads(j)).collect()
-    return jsonify({'body': results})
-
-@app.route('/test-spark2')
-def test_spark2():
-    # start test_spark2
-    t = time.localtime()
-    current_time = time.strftime("%H:%M:%S", t)
-    print('start test_spark2: ' + current_time)
-    # --
-    df = spark.sql("""
-    select * from delta.`/delta_MIMIC2/d_patients`
-    where subject_id = '1000'
-    """)
-
-    results = df.toJSON().map(lambda j: json.loads(j)).collect()
-
-    # end test_spark2
-    t = time.localtime()
-    current_time = time.strftime("%H:%M:%S", t)
-    print('end test_spark2: ' + current_time)
-    # --
-
-    return jsonify({'body': results})
+    return 'Hello, My name is SMART MEDICAL SYSTEM!'
 
 @app.route('/test-spark3/<id>')
 def test_spark3(id):
@@ -118,141 +56,123 @@ def test_spark3(id):
     current_time = time.strftime("%H:%M:%S", t)
     print('end-' + id + ': ' + current_time)
 
-    # --
-
     return jsonify({'body': results})
 
-@app.route('/test-spark4')
-def test_spark4():
+@app.route('/test-chartevents/<subject_id>')
+def test_chartevents(subject_id):
+    startTime = time.time()
     res = spark.sql("""
-    select year(admit_dt) year, count(*) num from delta.`/delta_MIMIC2/admissions` as admissions
-    where year(admit_dt) >= 2005 and year(admit_dt) <= 2015
-    group by year(admit_dt)
-    order by year(admit_dt)
-    """).toPandas()
-
-    dfdied = spark.sql("""
-    select year(dod) year, count(*) num from delta.`/delta_MIMIC2/d_patients` as d_patients
-    where year(dod) >= 2005 and year(dod) <= 2015 and hospital_expire_flg = 'Y'
-    group by year(dod)
-    order by year(dod)
-    """).toPandas()
-    
-    res['numDied'] = dfdied['num']
-    res = spark.createDataFrame(res)
+    select * from delta.`/delta_MIMIC2/chartevents` as chartevents
+    where subject_id = """ + subject_id)
+    print("Execution time: " + str(time.time() - startTime))
 
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
 
     return jsonify({'body': results})
 
-@app.route('/test-spark5')
-def test_spark5():
-    res = spark.sql("""
-    select period, count(*) num from
-    (select 
-    case 
-        WHEN age < 2 THEN 'Infancy' 
-        WHEN age >= 2 and age < 6 THEN 'Early Childhood' 
-        WHEN age >= 6 and age < 12 THEN 'Later Childhood'
-        WHEN age >= 12 and age < 20 THEN 'Adolescence'
-        WHEN age >= 20 and age < 40 THEN 'Young adult'
-        WHEN age >= 40 and age < 60 THEN 'Middle-aged'
-        ELSE 'Senior Citizen' 
-    END as period from
-    (select extract(day from dod - dob)/365 as age from delta.`/delta_MIMIC2/d_patients`) age) period
-    group by period
-    order by num desc
-    """)
+@app.route('/project/<project_id>/get-cached-data')
+@token_required
+def get_cached_data(current_user, project_id):
 
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+    project = Project.objects(id=project_id, user=current_user).first()
 
-    return jsonify({'body': results})
+    if project:
+        key = request.args.get('key')
+        data = CacheQuery.objects(key= project.name + '_'+ key).first()
+        return jsonify(data.to_json())
 
-@app.route('/test-spark6')
-def test_spark6():
-    res = spark.sql("""
-select drgevents.itemid,description, count(*) as numCases  from delta.`/delta_MIMIC2/drgevents` as drgevents 
-join delta.`/delta_MIMIC2/d_codeditems` as d_codeditems 
-on drgevents.itemid = d_codeditems.itemid
-group by drgevents.itemid, description, type
-order by numCases desc
-""").toPandas().head(20)
-    res = spark.createDataFrame(res)
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+    else:
+        return make_response('Project does not exist.', 400)
 
-    return jsonify({'body': results})
-
-@app.route('/test-spark7', methods=['POST'])
-def test_spark7():
+@app.route('/analysis-clinical-diseases-by-month', methods=['POST'])
+def test():
     months = request.json['months']
-    res = spark.sql("""
-select * from
-(select drgevents.itemid, description, month(admit_dt) as month, count(*) as num 
-from delta.`/delta_MIMIC2/drgevents` as drgevents
-join delta.`/delta_MIMIC2/d_codeditems` as d_codeditems
-join delta.`/delta_MIMIC2/admissions` as admissions
-on drgevents.itemid = d_codeditems.itemid and admissions.hadm_id = drgevents.hadm_id
-group by drgevents.itemid, description, month
-order by num desc) tmp
-where month in ( """ + months + ')').toPandas().head(20)
-    res = spark.createDataFrame(res)
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+    key = 'medical_' + request.args.get('key')
+    data = CacheQuery.objects(key=key).first().value
+    res = []
+    for item in data:
+        if item['month'] in months:
+            res.append(item)
+    return jsonify({'body': res})
 
-    return jsonify({'body': results})
-
-@app.route('/test-spark8')
-def test_spark8():
-    res = spark.sql("""
-select * from 
-(select ROW_NUMBER() OVER(PARTITION BY month ORDER BY num desc) 
-    AS ROW_NUMBER, * from
-(select drgevents.itemid, description, month(admit_dt) as month, count(*) as num 
-from delta.`/delta_MIMIC2/drgevents` as drgevents
-join delta.`/delta_MIMIC2/d_codeditems` as d_codeditems
-join delta.`/delta_MIMIC2/admissions` as admissions
-on drgevents.itemid = d_codeditems.itemid and admissions.hadm_id = drgevents.hadm_id
-group by drgevents.itemid, description, month
-order by num desc) tmp) tmp1
-where ROW_NUMBER < 6""")
+@app.route('/queryFormatted', methods=['POST'])
+def queryFormatted():
+    jsonData = request.get_json()
+    # gets project info
+    sql = jsonData['sql']
+    startTime = time.time()
+    res = spark.sql(parseQuery(sql, '/medical/silver/'))
 
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
 
-    return jsonify({'body': results})
+    return jsonify({'time to execute': time.time() - startTime,
+                    'body': results})
 
-@app.route('/test-spark9')
-def test_spark9():
-    res = spark.sql("""
-select itemid, description, avg(stay_days) as avgStayDays from
-(select EXTRACT( DAY FROM (disch_dt - admit_dt)) as stay_days, description, drgevents.itemid 
-from delta.`/delta_MIMIC2/drgevents` as drgevents 
-join delta.`/delta_MIMIC2/admissions` as admissions
-join delta.`/delta_MIMIC2/d_codeditems` as d_codeditems
-on d_codeditems.itemid = drgevents.itemid 
-and drgevents.hadm_id = admissions.hadm_id) tmp
-group by itemid, description
-order by avg(stay_days) desc
-""")
+@app.route('/query', methods=['POST'])
+def query():
+    jsonData = request.get_json()
+    # gets project info
+    sql = jsonData['sql']
+    startTime = time.time()
+    print(startTime)
+    res = spark.sql(sql)
 
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
 
-    return jsonify({'body': results})
+    return jsonify({'time to execute': time.time() - startTime,
+                    'body': results})
 
-@app.route('/test-streamming-1')
-def test_streamming_1():
-    res = spark.read.format("delta").load("/tmp/admissions")
-    res.show()
+@app.route('/manual-copy-gold')
+def manual_copy_gold():
+    gold_analyze_admissions_and_deied_patients_in_hospital()
+    gold_analyze_state_affect_total_died_patients()
+    gold_analyze_patients_died_in_hospital()
+    return jsonify({'body': 'Copy successful!'})
+
+@app.route('/manual-copy-mongoDB')
+def manual_copy_mongoDB():
+    cache_mongoDB_analyze_admissions_and_deied_patients_in_hospital()
+    cache_mongoDB_analyze_state_affect_total_died_patients()
+    cache_mongoDB_analyze_patients_died_in_hospital()
+    return jsonify({'body': 'Copy successful!'})
+
+@app.route('/manual-stop-scheduler')
+def manual_stop_scheduler():
+    scheduler.remove_all_jobs()
+    return jsonify({'body': 'Stop scheduler successful!'})
+
+@app.route('/manual-start-scheduler')
+def manual_start_scheduler():
+    scheduler.start()
+    return jsonify({'body': 'Stop scheduler successful!'})
+
+@app.route('/get-spark-streaming')
+def get_spark_streaming():
+    ls = []
+    for stream in spark.streams.active:
+        ls.append({'id': stream.id,'name': stream.name})
+    return jsonify({'body': ls})
+
+@app.route('/scheduler-jobs')
+def get_scheduler_jobs():
+    print('+++++++++++++++ JOBS ++++++++++++++')
+    scheduler.print_jobs()
+    print('+++++++++++++++ ENDD ++++++++++++++')
+    return jsonify({'body': '+++++++++++++++ ENDD ++++++++++++++'})
+
+@app.route('/build-model-CNNclassifier')
+def build_model_CNNclassifier():
+    build_model()
+    return jsonify({'body': 'Build model CNNclassifier successful!'})
+
+@app.route('/predict-by-CNNclassifier')
+def predict_by_CNNclassifier():
+    df = predict(prob = 0.28)
+    res = spark.createDataFrame(df)
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
-
     return jsonify({'body': results})
 
-@app.route('/test-streamming-2')
-def test_streamming_2():
-    res = spark.read.format("delta").load("/tmp/d_patients")
-    res.show()
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-
-    return jsonify({'body': results})
-
+<<<<<<< HEAD
 @app.route('/test-cache-query')
 def test_cache_query():
     key = request.args.get('key')
@@ -348,11 +268,15 @@ def cache_test_streaming_1():
 scheduler = BackgroundScheduler()
 scheduler.add_job(func=cron_cache_query, trigger="interval", seconds=60)
 scheduler.start()
+=======
+#init trigger by schedule
+>>>>>>> phuc
 
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
+<<<<<<< HEAD
     init_spark_streamming()
 <<<<<<< HEAD
     # print("List streamming queries: ")
@@ -362,3 +286,15 @@ if __name__ == '__main__':
     print(spark.streams.active)
 >>>>>>> 31664328f8f833849074155d0b74fcc6a9019455
     app.run()
+=======
+    init_project()
+    print("List streamming queries: ")
+    print(spark.streams.active)
+
+    for stream in spark.streams.active:
+        print("+++++ Name +++++")
+        print(stream.id)
+        print(stream.name)
+
+    app.run()
+>>>>>>> phuc

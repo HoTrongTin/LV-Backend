@@ -1,0 +1,71 @@
+from appSetup import db
+from tkinter import CASCADE
+from enum import Enum
+
+# class UserRole(str, Enum):
+#     DOCTOR = 'doctor'
+#     PATIENT = 'patient'
+  
+# Database ORMs
+class User(db.Document):
+    email = db.EmailField(min_length=6, max_length=200, required=True, unique=True)
+    password = db.StringField(required=True)
+    name = db.StringField(required=True)
+    role = db.StringField(choices=['DOCTOR', 'PATIENT', 'ADMIN'])
+
+class Project(db.Document):
+    name = db.StringField(min_length=6, max_length=200, required=True, unique=True)
+    state = db.StringField(choices=['RUNNING', 'STOPPED'], default = 'RUNNING')
+    user = db.ReferenceField(User, reverse_delete_rule=CASCADE)
+
+class DataSetDefinition(db.Document):
+    project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
+    dataset_name = db.StringField(min_length=1, max_length=45, required=True)
+    dataset_type = db.StringField(required=True, choices=['S3', 'HDFS', 'KAFKA'])
+    folder_name = db.StringField(default = '')
+
+
+class ColumnDefinition(db.EmbeddedDocument):
+    name = db.StringField(min_length=1, max_length=45, required=True)
+    field_type = db.StringField(required=True, choices=['integer', 'float', 'string', 'boolean', 'timestamp'])
+    nullable = db.BooleanField(required=True, default=True)
+
+class StreammingDefinition(db.Document):
+    project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
+    method = db.StringField(required=True, choices=['APPEND', 'MERGE'])
+    columns = db.ListField(db.EmbeddedDocumentField(ColumnDefinition))
+    merge_on = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
+    partition_by = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
+    name = db.StringField(required=True)
+    description = db.StringField(default = '')
+    status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'IN_ACTIVE')
+
+    # Manage DataSetDefinition
+    dataset_source = db.ReferenceField(DataSetDefinition, reverse_delete_rule=CASCADE)
+    dataset_sink = db.ReferenceField(DataSetDefinition, reverse_delete_rule=CASCADE)
+    table_name_source = db.StringField(min_length=1, max_length=45, required=True, unique=True)
+    table_name_sink = db.StringField(min_length=1, max_length=45, required=True, unique=True)
+
+class ApisDefinition(db.Document):
+    project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
+    key = db.StringField(required=True)
+    description = db.StringField(default = '')
+    sql = db.StringField(default = '')
+
+class ActivitiesDefinition(db.Document):
+    api = db.ReferenceField(ApisDefinition, reverse_delete_rule=CASCADE)
+    key = db.StringField(required=True)
+    name = db.StringField(default = '')
+    sql = db.StringField(default = '')
+
+class TriggerDefinition(db.Document):
+    project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
+    name = db.StringField(required=True)
+    status = db.StringField(choices=['ACTIVE', 'IN_ACTIVE'], default = 'ACTIVE')
+    trigger_type = db.StringField(required=True, choices=['INTERVAL', 'CRON'])
+    time_interval = db.FloatField(default = 1)
+    time_interval_unit = db.StringField(choices=['SECOND', 'MINUTE', 'HOUR', 'DAY', 'WEEK'], default = 'HOUR')
+    cron_day_of_week = db.StringField(default = '')
+    cron_hour = db.StringField(default = '')
+    cron_minute = db.StringField(default = '')
+    activity_ids = db.ListField(db.StringField())

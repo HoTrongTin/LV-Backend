@@ -354,6 +354,11 @@ atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
     init_spark_streamming()
+<<<<<<< HEAD
     # print("List streamming queries: ")
     # print(spark.streams().active)
+=======
+    print("List streamming queries: ")
+    print(spark.streams.active)
+>>>>>>> 31664328f8f833849074155d0b74fcc6a9019455
     app.run()

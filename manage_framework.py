@@ -387,7 +387,7 @@ def testSchema(current_user, project_id):
     project = Project.objects(id = project_id, user = current_user).first()
 
     if project:
-        res = spark.sql('DESCRIBE TABLE delta.`/{projectName}/silver/{tableName}`'.format(project_name = project.name, tableName = tableName))
+        res = spark.sql('DESCRIBE TABLE delta.`/{project_name}/silver/{tableName}`'.format(project_name = project.name, tableName = tableName))
         results = res.toJSON().map(lambda j: json.loads(j)).collect()
         return jsonify({'body': results})
 

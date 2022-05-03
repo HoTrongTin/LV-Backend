@@ -16,6 +16,7 @@ JwtParam = config_obj["jwt"]
 
   
 # decorator for verifying the JWT
+# decorator for verifying the JWT
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -32,18 +33,17 @@ def token_required(f):
         if not token:
             return jsonify({'message' : 'Token is missing !!'}), 401
   
-        try:
+        # try:
             # decoding the payload to fetch the stored details
-            data = jwt.decode(token, JwtParam['secretKey'], algorithms=['HS256'])
-            # print({'data: ', data});
-            current_user = User.objects(email=data['email']).first()
-            
-            # returns the current logged in users contex to the routes
-            return  f(current_user, *args, **kwargs)
-        except:
-            return jsonify({
-                'message' : 'Token is invalid !!'
-            }), 401
+        data = jwt.decode(token, JwtParam['secretKey'], algorithms=['HS256'])
+        # print({'data: ', data});
+        current_user = User.objects(email=data['email']).first()
+        # except:
+        #     return jsonify({
+        #         'message' : 'Token is invalid !!'
+        #     }), 401
+        # returns the current logged in users contex to the routes
+        return  f(current_user, *args, **kwargs)
     return decorated
   
 # User Database Route

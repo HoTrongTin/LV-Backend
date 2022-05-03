@@ -1,10 +1,11 @@
 from email.policy import default
 from turtle import st
+from urllib import response
 from flask import request, jsonify, make_response
 from appSetup import app
 from user_defined_class import *
 from init_job import *
-from manage_user import get_parent_from_child, token_required
+from manage_user import get_parent_from_child, token_required, track_activity
 
 ###################################################################### PROJECT ##################################################################
 # Create project
@@ -27,7 +28,7 @@ def create_project(current_user):
         new_project = Project(
             name = name,
             state = state,
-            user = get_parent_from_child(current_user)
+            user = current_user
         )
         # insert new_project
         new_project.save()
@@ -58,7 +59,7 @@ def update_project(current_user, id):
     new_state = jsonData['state']
 
     # checking for existing project
-    project = Project.objects(id = id, user = get_parent_from_child(current_user)).first()
+    project = Project.objects(id = id, user = current_user).first()
     old_state = project.state
 
     project.name = new_name
@@ -123,7 +124,8 @@ def create_streaming(current_user, project_id):
         if new_streaming.status == 'ACTIVE':
             startStream(project=project, stream=new_streaming)
 
-        return jsonify({'body': new_streaming})
+        response = jsonify({'body': new_streaming})
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -226,7 +228,8 @@ def update_streaming(current_user, project_id, streaming_id):
                 stopStream(project=project, stream=old_streaming)
                 startStream(project=project, stream=streaming)
 
-            return jsonify({'body': streaming})
+            response = jsonify({'body': streaming})
+            return track_activity(current_user, project, request, response)
         else:
             return make_response('streaming does not exist.', 400)
 
@@ -273,7 +276,8 @@ def create_dataset(current_user, project_id):
         new_dataset = DataSetDefinition(project=project, folder_name=folder_name, dataset_type=dataset_type, dataset_name=dataset_name)
         new_dataset.save()
 
-        return jsonify({'body': new_dataset})
+        response = jsonify({'body': new_dataset})
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -370,7 +374,8 @@ def create_api(current_user, project_id):
         cache_gold_analysis_query(project_name=project.name, sql=new_api.sql, key=new_api.key)
         cache_data_to_mongoDB(project_name=project.name, key=new_api.key)
 
-        return jsonify({'body': new_api})
+        response = jsonify({'body': new_api})
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -401,7 +406,8 @@ def update_api(current_user, project_id, api_id):
             # TODO: if change key --> delete old key
             # TODO: run api cache for new key setup
 
-            return jsonify({'body': api})
+            response = jsonify({'body': api})
+            return track_activity(current_user, project, request, response)
         else:
             return make_response('Api does not exist.', 400)
 
@@ -452,7 +458,8 @@ def delete_api(current_user, project_id, api_id):
 
         ApisDefinition(id = api_id, project = project).delete()
 
-        return make_response('Deleted.', 200)
+        response = make_response('Deleted.', 200)
+        return track_activity(current_user, project, request, response)
     else:  
         return make_response('Project does not exist.', 400)
 
@@ -493,7 +500,8 @@ def create_trigger(current_user, project_id):
         if new_trigger.status == 'ACTIVE':
             start_trigger(project=project, trigger=new_trigger)
         
-        return jsonify({'body': new_trigger})
+        response = jsonify({'body': new_trigger})
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -580,7 +588,8 @@ def update_trigger(current_user, project_id, trigger_id):
             stop_trigger(trigger=old_trigger)
             start_trigger(project=project, trigger=trigger)
         
-        return jsonify({'body': "Updated sucessful!"})
+        response = jsonify({'body': "Updated sucessful!"})
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -598,7 +607,8 @@ def delete_trigger(current_user, project_id, trigger_id):
 
         TriggerDefinition(id = trigger_id, project = project).delete()
 
-        return make_response('Deleted.', 200)
+        response = make_response('Deleted.', 200)
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)

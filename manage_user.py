@@ -1,3 +1,4 @@
+import json
 from flask import request, jsonify, make_response
 import uuid # for public id
 from  werkzeug.security import generate_password_hash, check_password_hash
@@ -182,7 +183,16 @@ def get_parent_from_child(current_user):
     else:
         return current_user
 
-def trackUserActivities():
+def track_activity(current_user, project, request, response):
     # Change from assistant to parent role
-    if (current_user.role == 'ASSISTANT'):
-        current_user = User.objects(id=current_user.parentID).first()
+    log = ActivityLog(
+        project = project,
+        actor = current_user,
+        api_path = request.path,
+        body = json.dumps(request.get_json()),
+        response = json.dumps(response)
+    )
+
+    log.save()
+
+    return response

@@ -181,7 +181,7 @@ def createChildAccount(current_user):
             name = name,
             email = email,
             role = role,
-            parentID = current_user.id,
+            parentID = str(current_user.id),
             password = generate_password_hash(password)
         )
         # insert user

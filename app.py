@@ -172,122 +172,16 @@ def predict_by_CNNclassifier():
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
     return jsonify({'body': results})
 
-<<<<<<< HEAD
-@app.route('/test-cache-query')
-def test_cache_query():
-    key = request.args.get('key')
-    print(key)
-    if key == 'cache_test_streaming_1':
-        data = CacheQuery.objects(key=key).first()
-        print('--Found Mongo Data--')
-        print(data)
-        return jsonify(data.to_json())
-    else:
-        return jsonify({'error': 'data not found'})
-
-#streamming
-def init_spark_streamming():
-    print('init streamming')
-    hadoop_conf = spark._jsc.hadoopConfiguration()
-    hadoop_conf.set("fs.s3a.impl", "org.apache.hadoop.fs.s3a.S3AFileSystem")
-    hadoop_conf.set("fs.s3a.access.key", "AKIASIV2BBOBY7OLXVET")
-    hadoop_conf.set("fs.s3a.secret.key", "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")
-
-    start_d_patient_stream()
-    start_admission_stream()
-
-
-def start_d_patient_stream():
-    # Define schema of the csv
-    d_patientsSchema = StructType() \
-        .add("subject_id", "string") \
-        .add("sex", "string") \
-        .add("dob", "string") \
-        .add("dod", "string") \
-        .add("hospital_expire_flg", "string")
-
-    dfD_patients = spark.readStream.option("sep", ",").option("header", "true").schema(d_patientsSchema).csv("s3a://sister-team/spark-streamming/d_patients")
-
-    # dfD_patients = spark.readStream.option("sep", ",").option("inferSchema" , "true").option("header", "true").csv("s3a://sister-team/spark-streamming/d_patients")
-    dfD_patients \
-    .writeStream \
-    .format('delta') \
-    .outputMode("append") \
-    .option("checkpointLocation", "/tmp/d_patients/checkpointD_patients") \
-    .start("/tmp/d_patients")
-
-def start_admission_stream():
-    admissionsSchema = StructType() \
-    .add("hadm_id", "string") \
-    .add("subject_id", "string") \
-    .add("admit_dt", "string") \
-    .add("disch_dt", "string")
-
-    dfAdmissions = spark.readStream.option("sep", ",").option("header", "true").schema(admissionsSchema).csv("s3a://sister-team/spark-streamming/admissions")
-    dfAdmissions \
-    .writeStream \
-    .format('delta') \
-    .outputMode("append") \
-    .option("checkpointLocation", "/tmp/admissions/checkpointAdmissions") \
-    .start("/tmp/admissions")
-
-#Create Silver table
-# @app.route('/create-silver-table')
-# def create_silver_table():
-#     #d_patients
-#     spark.sql("CREATE TABLE silver_d_patients (subject_id string, sex string, dob timestamp, dod timestamp, hospital_expire_flg string, Date_Time timestamp) USING DELTA LOCATION '/medical/silver/d_patients'")
-
-#Schedule jobs
-def cron_cache_query():
-    print('Cron job running...')
-    cache_test_streaming_1()
-    # merge_silver_d_patients()
-
-# def merge_silver_d_patients():
-#     spark.sql("""
-# MERGE INTO delta.`/medical/silver/d_patients` silver_d_patients
-# USING (select * from delta.`/medical/bronze/d_patients`
-# where Date_Time > (select CASE WHEN max(Date_Time) is not NULL THEN max(Date_Time) ELSE '2000-01-01 00:00:00' END from delta.`/medical/bronze/d_patients`)
-# ) updates
-# ON silver_d_patients.subject_id = updates.subject_id
-# WHEN MATCHED THEN
-#   UPDATE SET *
-# WHEN NOT MATCHED
-#   THEN INSERT *
-# """)
-
-def cache_test_streaming_1():
-    res = spark.read.format("delta").load("/tmp/admissions")
-    res.show()
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-    
-    data = CacheQuery(key='cache_test_streaming_1',value=results)
-    data.save()
-
-# Setup CronJob
-scheduler = BackgroundScheduler()
-scheduler.add_job(func=cron_cache_query, trigger="interval", seconds=60)
-scheduler.start()
-=======
 #init trigger by schedule
->>>>>>> phuc
 
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
 
 if __name__ == '__main__':
-<<<<<<< HEAD
-    init_spark_streamming()
-<<<<<<< HEAD
     # print("List streamming queries: ")
     # print(spark.streams().active)
-=======
-    print("List streamming queries: ")
-    print(spark.streams.active)
->>>>>>> 31664328f8f833849074155d0b74fcc6a9019455
-    app.run()
-=======
     init_project()
+
     print("List streamming queries: ")
     print(spark.streams.active)
 
@@ -297,4 +191,3 @@ if __name__ == '__main__':
         print(stream.name)
 
     app.run()
->>>>>>> phuc

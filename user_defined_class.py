@@ -1,3 +1,4 @@
+from email.policy import default
 from appSetup import db
 from tkinter import CASCADE
 from enum import Enum
@@ -11,7 +12,8 @@ class User(db.Document):
     email = db.EmailField(min_length=6, max_length=200, required=True, unique=True)
     password = db.StringField(required=True)
     name = db.StringField(required=True)
-    role = db.StringField(choices=['DOCTOR', 'PATIENT', 'ADMIN'])
+    role = db.StringField(choices=['DOCTOR', 'PATIENT', 'ADMIN', 'ASSISTANT'])
+    parentID = db.StringField(default='')
 
 class Project(db.Document):
     name = db.StringField(min_length=6, max_length=200, required=True, unique=True)

@@ -219,7 +219,8 @@ def update_user_by_parent(current_user, user_id):
 
         user.name = name
         user.role = role
-        user.password = generate_password_hash(password)
+        if (password):
+            user.password = generate_password_hash(password)
 
         user.save()
         

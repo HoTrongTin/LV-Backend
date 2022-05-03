@@ -141,3 +141,48 @@ def signup():
         return jsonify({'body': user})
     else:
         return make_response('User already exists. Please Log in.', 400)
+
+# signup route
+@app.route('/create-child', methods =['POST'])
+@token_required
+def createChildAccount(current_user):
+    # creates a dictionary of the form data
+    jsonData = request.get_json()
+    print('------')
+    print(jsonData)
+    print('------')
+  
+    # gets name, email and password
+    name, email, role = jsonData['name'], jsonData['email'], 'ASSISTANT'
+    password = jsonData['password']
+  
+    # checking for existing user
+    user = User.objects(email = email).first()
+
+    if not user:
+        # database ORM object
+        user = User(
+            name = name,
+            email = email,
+            role = role,
+            parentID = current_user.id,
+            password = generate_password_hash(password)
+        )
+        # insert user
+        user.save()
+        
+        return jsonify({'body': user})
+    else:
+        return make_response('Email already registered. Try another email.', 400)
+
+def get_parent_from_child(current_user):
+    # Change from assistant to parent role
+    if (current_user.role == 'ASSISTANT'):
+        return User.objects(id=current_user.parentID).first()
+    else:
+        return current_user
+
+def trackUserActivities():
+    # Change from assistant to parent role
+    if (current_user.role == 'ASSISTANT'):
+        current_user = User.objects(id=current_user.parentID).first()

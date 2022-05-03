@@ -4,7 +4,7 @@ from flask import request, jsonify, make_response
 from appSetup import app
 from user_defined_class import *
 from init_job import *
-from manage_user import token_required
+from manage_user import get_parent_from_child, token_required
 
 ###################################################################### PROJECT ##################################################################
 # Create project
@@ -27,7 +27,7 @@ def create_project(current_user):
         new_project = Project(
             name = name,
             state = state,
-            user = current_user
+            user = get_parent_from_child(current_user)
         )
         # insert new_project
         new_project.save()
@@ -43,7 +43,7 @@ def create_project(current_user):
 def get_project(current_user):
   
     # checking for existing project
-    project = Project.objects(user = current_user)
+    project = Project.objects(user = get_parent_from_child(current_user))
 
     return jsonify({'body': project})
 
@@ -58,7 +58,7 @@ def update_project(current_user, id):
     new_state = jsonData['state']
 
     # checking for existing project
-    project = Project.objects(id = id, user = current_user).first()
+    project = Project.objects(id = id, user = get_parent_from_child(current_user)).first()
     old_state = project.state
 
     project.name = new_name
@@ -105,7 +105,7 @@ def create_streaming(current_user, project_id):
         partition_by.append(item)
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project).first()
@@ -134,7 +134,7 @@ def create_streaming(current_user, project_id):
 def get_streaming(current_user, project_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         streamings = StreammingDefinition.objects(project = project)
@@ -148,7 +148,7 @@ def get_streaming(current_user, project_id):
 def get_streaming_by_id(current_user, project_id, stream_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         streaming = StreammingDefinition.objects(id=stream_id, project = project).first()
@@ -185,7 +185,7 @@ def update_streaming(current_user, project_id, streaming_id):
         partition_by.append(item)
   
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         old_streaming = StreammingDefinition.objects(id = streaming_id, project = project).first()
@@ -237,7 +237,7 @@ def update_streaming(current_user, project_id, streaming_id):
 @token_required
 def delete_streaming(current_user, project_id, streaming_id):
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -267,7 +267,7 @@ def create_dataset(current_user, project_id):
     folder_name = jsonData['folder_name']
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         new_dataset = DataSetDefinition(project=project, folder_name=folder_name, dataset_type=dataset_type, dataset_name=dataset_name)
@@ -318,7 +318,7 @@ def create_dataset(current_user, project_id):
 def get_dataset(current_user, project_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         datasets = DataSetDefinition.objects(project = project)
@@ -356,7 +356,7 @@ def create_api(current_user, project_id):
     sql = jsonData['sql']
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         new_api = ApisDefinition(project=project, key=key, description=description, sql=sql)
@@ -387,7 +387,7 @@ def update_api(current_user, project_id, api_id):
     sql = jsonData['sql']
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         api = ApisDefinition.objects(id=api_id, project=project).first()
@@ -414,7 +414,7 @@ def update_api(current_user, project_id, api_id):
 def get_apis(current_user, project_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         apis = ApisDefinition.objects(project = project)
@@ -430,7 +430,7 @@ def get_apis(current_user, project_id):
 def get_api_by_id(current_user, project_id, api_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         api = ApisDefinition.objects(id=api_id, project = project).first()
@@ -444,7 +444,7 @@ def get_api_by_id(current_user, project_id, api_id):
 @token_required
 def delete_api(current_user, project_id, api_id):
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -480,7 +480,7 @@ def create_trigger(current_user, project_id):
     
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -504,7 +504,7 @@ def create_trigger(current_user, project_id):
 def get_triggers(current_user, project_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         triggers = TriggerDefinition.objects(project = project)
@@ -520,7 +520,7 @@ def get_triggers(current_user, project_id):
 def get_trigger_by_id(current_user, project_id, trigger_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         trigger = TriggerDefinition.objects(id=trigger_id, project = project).first()
@@ -551,7 +551,7 @@ def update_trigger(current_user, project_id, trigger_id):
     
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -589,7 +589,7 @@ def update_trigger(current_user, project_id, trigger_id):
 @token_required
 def delete_trigger(current_user, project_id, trigger_id):
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -609,7 +609,7 @@ def delete_trigger(current_user, project_id, trigger_id):
 def get_all_activities(current_user, project_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -633,7 +633,7 @@ def get_all_activities(current_user, project_id):
 def get_activities_by_trigger(current_user, project_id, trigger_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 

@@ -208,7 +208,7 @@ def update_user_by_parent(current_user, user_id):
     # checking for existing user
     user = User.objects(id=user_id).first()
 
-    if not user or str(user.parentID) != str(current_user.id):
+    if not user:
         # database ORM object
         # user = User(
         #     name = name,

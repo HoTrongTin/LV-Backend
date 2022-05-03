@@ -84,7 +84,7 @@ def getCheckpointLocation(project_name, stream, dataset_sink):
     return "/{project_name}/checkpoint/{folder_name}/{table_name}".format(project_name=project_name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink)
 
 #streaming Bronze To Silver With Merge Method
-def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, schema, stream_name, mergeOn, partitionedBy = []):
+def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, schema, schemaInSilver, stream_name, mergeOn, partitionedBy = []):
     def upsertToDelta(microBatchOutputDF, batchId): 
         microBatchOutputDF.createOrReplaceTempView("updates")
         

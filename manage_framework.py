@@ -375,6 +375,25 @@ def create_api(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+@app.route('/project/<project_id>/testSchema', methods =['POST'])
+@token_required
+def testSchema(current_user, project_id):
+    jsonData = request.get_json()
+  
+    # gets api info
+    tableName = jsonData['tableName']
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = current_user).first()
+
+    if project:
+        res = spark.sql('DESCRIBE TABLE delta.`/{projectName}/silver/{tableName}`'.format(project_name = project.name, tableName = tableName))
+        results = res.toJSON().map(lambda j: json.loads(j)).collect()
+        return jsonify({'body': results})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
 # Update api in project
 @app.route('/project/<project_id>/apis/<api_id>', methods =['PATCH'])
 @token_required

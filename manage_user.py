@@ -60,7 +60,7 @@ def get_all_users(current_user):
         # appending the user data json
         # to the response list
         output.append({
-            'id': user['id'],
+            'id': str(user.id),
             'role': user['role'],
             'name' : user['name'],
             'email' : user['email']

@@ -70,7 +70,7 @@ def get_all_users(current_user):
 
 @app.route('/user/<user_id>', methods =['GET'])
 @token_required
-def get_all_users(current_user, user_id):
+def get_user_by_id(current_user, user_id):
     # querying the database
     # for all the entries in it
     user = User.objects(id=user_id).first()

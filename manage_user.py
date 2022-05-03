@@ -60,12 +60,27 @@ def get_all_users(current_user):
         # appending the user data json
         # to the response list
         output.append({
+            'id': user['id'],
             'role': user['role'],
             'name' : user['name'],
             'email' : user['email']
         })
   
     return jsonify({'users': output})
+
+@app.route('/user/<user_id>', methods =['GET'])
+@token_required
+def get_all_users(current_user, user_id):
+    # querying the database
+    # for all the entries in it
+    user = User.objects(id=user_id).first()
+  
+    return jsonify({
+        'id': user['id'],
+        'role': user['role'],
+        'name' : user['name'],
+        'email' : user['email']
+    })
   
 # route for logging user in
 @app.route('/login', methods =['POST'])
@@ -195,4 +210,4 @@ def track_activity(current_user, project, request, response):
 
     log.save()
 
-    return response
+    return jsonify(response)

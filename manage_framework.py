@@ -124,7 +124,7 @@ def create_streaming(current_user, project_id):
         if new_streaming.status == 'ACTIVE':
             startStream(project=project, stream=new_streaming)
 
-        response = jsonify({'body': new_streaming})
+        response = {'body': new_streaming}
         return track_activity(current_user, project, request, response)
 
     else:  
@@ -228,7 +228,7 @@ def update_streaming(current_user, project_id, streaming_id):
                 stopStream(project=project, stream=old_streaming)
                 startStream(project=project, stream=streaming)
 
-            response = jsonify({'body': streaming})
+            response = {'body': streaming}
             return track_activity(current_user, project, request, response)
         else:
             return make_response('streaming does not exist.', 400)
@@ -276,7 +276,7 @@ def create_dataset(current_user, project_id):
         new_dataset = DataSetDefinition(project=project, folder_name=folder_name, dataset_type=dataset_type, dataset_name=dataset_name)
         new_dataset.save()
 
-        response = jsonify({'body': new_dataset})
+        response = {'body': new_dataset}
         return track_activity(current_user, project, request, response)
 
     else:  
@@ -374,7 +374,7 @@ def create_api(current_user, project_id):
         cache_gold_analysis_query(project_name=project.name, sql=new_api.sql, key=new_api.key)
         cache_data_to_mongoDB(project_name=project.name, key=new_api.key)
 
-        response = jsonify({'body': new_api})
+        response = {'body': new_api}
         return track_activity(current_user, project, request, response)
 
     else:  
@@ -406,7 +406,7 @@ def update_api(current_user, project_id, api_id):
             # TODO: if change key --> delete old key
             # TODO: run api cache for new key setup
 
-            response = jsonify({'body': api})
+            response = {'body': api}
             return track_activity(current_user, project, request, response)
         else:
             return make_response('Api does not exist.', 400)
@@ -500,7 +500,7 @@ def create_trigger(current_user, project_id):
         if new_trigger.status == 'ACTIVE':
             start_trigger(project=project, trigger=new_trigger)
         
-        response = jsonify({'body': new_trigger})
+        response = {'body': new_trigger}
         return track_activity(current_user, project, request, response)
 
     else:  
@@ -588,7 +588,7 @@ def update_trigger(current_user, project_id, trigger_id):
             stop_trigger(trigger=old_trigger)
             start_trigger(project=project, trigger=trigger)
         
-        response = jsonify({'body': "Updated sucessful!"})
+        response = {'body': "Updated sucessful!"}
         return track_activity(current_user, project, request, response)
 
     else:  

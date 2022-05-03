@@ -77,7 +77,7 @@ def get_user_by_id(current_user, user_id):
     user = User.objects(id=user_id).first()
   
     return jsonify({
-        'id': user['id'],
+        'id': str(user.id),
         'role': user['role'],
         'name' : user['name'],
         'email' : user['email']
@@ -159,10 +159,9 @@ def signup():
     else:
         return make_response('User already exists. Please Log in.', 400)
 
-# signup route
 @app.route('/create-child', methods =['POST'])
 @token_required
-def createChildAccount(current_user):
+def create_child_account(current_user):
     # creates a dictionary of the form data
     jsonData = request.get_json()
     print('------')
@@ -186,6 +185,42 @@ def createChildAccount(current_user):
             password = generate_password_hash(password)
         )
         # insert user
+        user.save()
+        
+        return jsonify({'body': user})
+    else:
+        return make_response('Email already registered. Try another email.', 400)
+
+
+@app.route('/user/<user_id>', methods =['PATCH'])
+@token_required
+def update_user_by_parent(current_user, user_id):
+    # creates a dictionary of the form data
+    jsonData = request.get_json()
+    print('------')
+    print(jsonData)
+    print('------')
+  
+    # gets name, email and password
+    name, role = jsonData['name'], 'ASSISTANT'
+    password = jsonData['password']
+  
+    # checking for existing user
+    user = User.objects(id=user_id).first()
+
+    if not user or str(user.parentID) != str(current_user.id):
+        # database ORM object
+        # user = User(
+        #     name = name,
+        #     role = role,
+        #     parentID = str(current_user.id),
+        #     password = generate_password_hash(password)
+        # )
+
+        user.name = name
+        user.role = role
+        user.password = generate_password_hash(password)
+
         user.save()
         
         return jsonify({'body': user})

@@ -9,6 +9,7 @@ from functools import wraps
 from appSetup import app
 import configparser
 from user_defined_class import *
+from bson import json_util
 
 config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
@@ -236,15 +237,15 @@ def get_parent_from_child(current_user):
         return current_user
 
 def track_activity(current_user, project, request, response):
-    # Change from assistant to parent role
-    # log = ActivityLog(
-    #     project = project,
-    #     actor = current_user,
-    #     api_path = request.path,
-    #     body = json.dumps(request.get_json()),
-    #     response = json.dumps(response)
-    # )
+    
+    log = ActivityLog(
+        project = project,
+        actor = current_user,
+        api_path = request.path,
+        body = json.dumps(request.get_json()),
+        response = json_util.dumps(response)
+    )
 
-    # log.save()
+    log.save()
 
     return jsonify(response)

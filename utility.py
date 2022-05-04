@@ -102,10 +102,10 @@ def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, sche
         microBatchOutputDF._jdf.sparkSession().sql("""
             MERGE INTO delta.`/{project_name}/silver/{table_name}` silver_{table_name}
             USING (select {query}, Date_Time from bronze) s
-            ON """ + mergeOnparser[:-5] + """
+            ON {mergeOnparser}
             WHEN MATCHED THEN UPDATE SET *
             WHEN NOT MATCHED THEN INSERT *
-        """.format(project_name=project_name, table_name= table_name, query= query))
+        """.format(project_name=project_name, table_name= table_name, query= query, mergeOnparser = mergeOnparser[:-5]))
 
     setColumnsOnBronze = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schemaOnBronze])
     setColumnsOnSilver = ', '.join([' '.join(x for x in col) for col in schemaOnSilver])

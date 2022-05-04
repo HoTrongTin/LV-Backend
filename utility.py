@@ -132,14 +132,12 @@ def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, sch
     def appendToDelta(microBatchOutputDF, batchId): 
         microBatchOutputDF.createOrReplaceTempView("bronze")
 
-        setFields = ', '.join([field[0] for field in schemaOnSilver])
-
         microBatchOutputDF._jdf.sparkSession().sql("""
             INSERT INTO delta.`/{project_name}/silver/{table_name}`
-            ({setFields}, Date_Time)
+            ({query}, Date_Time)
             SELECT {query}, Date_Time
             FROM bronze
-        """.format(project_name=project_name, table_name=table_name, setFields = setFields, ))
+        """.format(project_name=project_name, table_name=table_name, query = query))
 
     setColumnsOnBronze = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schemaOnBronze])
     setColumnsOnSilver = ', '.join([' '.join(x for x in col) for col in schemaOnSilver])

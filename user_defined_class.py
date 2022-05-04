@@ -74,3 +74,10 @@ class TriggerDefinition(db.Document):
     cron_hour = db.StringField(default = '')
     cron_minute = db.StringField(default = '')
     activity_ids = db.ListField(db.StringField())
+
+class ActivityLog(db.Document):
+    project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
+    actor = db.ReferenceField(User, reverse_delete_rule=CASCADE)
+    api_path = db.StringField()
+    body = db.StringField()
+    response = db.StringField()

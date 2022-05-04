@@ -1,10 +1,11 @@
 from email.policy import default
 from turtle import st
+from urllib import response
 from flask import request, jsonify, make_response
 from appSetup import app
 from user_defined_class import *
 from init_job import *
-from manage_user import token_required
+from manage_user import get_parent_from_child, token_required, track_activity
 
 ###################################################################### PROJECT ##################################################################
 # Create project
@@ -43,7 +44,7 @@ def create_project(current_user):
 def get_project(current_user):
   
     # checking for existing project
-    project = Project.objects(user = current_user)
+    project = Project.objects(user = get_parent_from_child(current_user))
 
     return jsonify({'body': project})
 
@@ -111,7 +112,7 @@ def create_streaming(current_user, project_id):
         partition_by.append(item)
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project).first()
@@ -133,7 +134,8 @@ def create_streaming(current_user, project_id):
         if new_streaming.status == 'ACTIVE':
             startStream(project=project, stream=new_streaming)
 
-        return jsonify({'body': new_streaming})
+        response = {'body': new_streaming}
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -144,7 +146,7 @@ def create_streaming(current_user, project_id):
 def get_streaming(current_user, project_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         streamings = StreammingDefinition.objects(project = project)
@@ -158,7 +160,7 @@ def get_streaming(current_user, project_id):
 def get_streaming_by_id(current_user, project_id, stream_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         streaming = StreammingDefinition.objects(id=stream_id, project = project).first()
@@ -195,7 +197,7 @@ def update_streaming(current_user, project_id, streaming_id):
         partition_by.append(item)
   
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         old_streaming = StreammingDefinition.objects(id = streaming_id, project = project).first()
@@ -236,7 +238,8 @@ def update_streaming(current_user, project_id, streaming_id):
                 stopStream(project=project, stream=old_streaming)
                 startStream(project=project, stream=streaming)
 
-            return jsonify({'body': streaming})
+            response = {'body': streaming}
+            return track_activity(current_user, project, request, response)
         else:
             return make_response('streaming does not exist.', 400)
 
@@ -247,7 +250,7 @@ def update_streaming(current_user, project_id, streaming_id):
 @token_required
 def delete_streaming(current_user, project_id, streaming_id):
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -277,13 +280,14 @@ def create_dataset(current_user, project_id):
     folder_name = jsonData['folder_name']
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         new_dataset = DataSetDefinition(project=project, folder_name=folder_name, dataset_type=dataset_type, dataset_name=dataset_name)
         new_dataset.save()
 
-        return jsonify({'body': new_dataset})
+        response = {'body': new_dataset}
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -328,7 +332,7 @@ def create_dataset(current_user, project_id):
 def get_dataset(current_user, project_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         datasets = DataSetDefinition.objects(project = project)
@@ -366,7 +370,7 @@ def create_api(current_user, project_id):
     sql = jsonData['sql']
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         new_api = ApisDefinition(project=project, key=key, description=description, sql=sql)
@@ -380,7 +384,8 @@ def create_api(current_user, project_id):
         cache_gold_analysis_query(project_name=project.name, sql=new_api.sql, key=new_api.key)
         cache_data_to_mongoDB(project_name=project.name, key=new_api.key)
 
-        return jsonify({'body': new_api})
+        response = {'body': new_api}
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -416,7 +421,7 @@ def update_api(current_user, project_id, api_id):
     sql = jsonData['sql']
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         api = ApisDefinition.objects(id=api_id, project=project).first()
@@ -430,7 +435,8 @@ def update_api(current_user, project_id, api_id):
             # TODO: if change key --> delete old key
             # TODO: run api cache for new key setup
 
-            return jsonify({'body': api})
+            response = {'body': api}
+            return track_activity(current_user, project, request, response)
         else:
             return make_response('Api does not exist.', 400)
 
@@ -443,7 +449,7 @@ def update_api(current_user, project_id, api_id):
 def get_apis(current_user, project_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         apis = ApisDefinition.objects(project = project)
@@ -459,7 +465,7 @@ def get_apis(current_user, project_id):
 def get_api_by_id(current_user, project_id, api_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         api = ApisDefinition.objects(id=api_id, project = project).first()
@@ -473,7 +479,7 @@ def get_api_by_id(current_user, project_id, api_id):
 @token_required
 def delete_api(current_user, project_id, api_id):
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -481,7 +487,8 @@ def delete_api(current_user, project_id, api_id):
 
         ApisDefinition(id = api_id, project = project).delete()
 
-        return make_response('Deleted.', 200)
+        response = make_response('Deleted.', 200)
+        return track_activity(current_user, project, request, response)
     else:  
         return make_response('Project does not exist.', 400)
 
@@ -509,7 +516,7 @@ def create_trigger(current_user, project_id):
     
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -522,7 +529,8 @@ def create_trigger(current_user, project_id):
         if new_trigger.status == 'ACTIVE':
             start_trigger(project=project, trigger=new_trigger)
         
-        return jsonify({'body': new_trigger})
+        response = {'body': new_trigger}
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -533,7 +541,7 @@ def create_trigger(current_user, project_id):
 def get_triggers(current_user, project_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         triggers = TriggerDefinition.objects(project = project)
@@ -549,7 +557,7 @@ def get_triggers(current_user, project_id):
 def get_trigger_by_id(current_user, project_id, trigger_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         trigger = TriggerDefinition.objects(id=trigger_id, project = project).first()
@@ -580,7 +588,7 @@ def update_trigger(current_user, project_id, trigger_id):
     
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -609,7 +617,8 @@ def update_trigger(current_user, project_id, trigger_id):
             stop_trigger(trigger=old_trigger)
             start_trigger(project=project, trigger=trigger)
         
-        return jsonify({'body': "Updated sucessful!"})
+        response = {'body': "Updated sucessful!"}
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -618,7 +627,7 @@ def update_trigger(current_user, project_id, trigger_id):
 @token_required
 def delete_trigger(current_user, project_id, trigger_id):
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -627,7 +636,8 @@ def delete_trigger(current_user, project_id, trigger_id):
 
         TriggerDefinition(id = trigger_id, project = project).delete()
 
-        return make_response('Deleted.', 200)
+        response = make_response('Deleted.', 200)
+        return track_activity(current_user, project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -638,7 +648,7 @@ def delete_trigger(current_user, project_id, trigger_id):
 def get_all_activities(current_user, project_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 
@@ -662,7 +672,7 @@ def get_all_activities(current_user, project_id):
 def get_activities_by_trigger(current_user, project_id, trigger_id):
 
     # checking for existing project
-    project = Project.objects(id = project_id, user = current_user).first()
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
 

@@ -1,3 +1,4 @@
+import json
 from flask import request, jsonify, make_response
 import uuid # for public id
 from  werkzeug.security import generate_password_hash, check_password_hash
@@ -8,12 +9,14 @@ from functools import wraps
 from appSetup import app
 import configparser
 from user_defined_class import *
+from bson import json_util
 
 config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
 JwtParam = config_obj["jwt"]
 
   
+# decorator for verifying the JWT
 # decorator for verifying the JWT
 def token_required(f):
     @wraps(f)
@@ -59,12 +62,27 @@ def get_all_users(current_user):
         # appending the user data json
         # to the response list
         output.append({
+            'id': str(user.id),
             'role': user['role'],
             'name' : user['name'],
             'email' : user['email']
         })
   
     return jsonify({'users': output})
+
+@app.route('/user/<user_id>', methods =['GET'])
+@token_required
+def get_user_by_id(current_user, user_id):
+    # querying the database
+    # for all the entries in it
+    user = User.objects(id=user_id).first()
+  
+    return jsonify({
+        'id': str(user.id),
+        'role': user['role'],
+        'name' : user['name'],
+        'email' : user['email']
+    })
   
 # route for logging user in
 @app.route('/login', methods =['POST'])
@@ -141,3 +159,93 @@ def signup():
         return jsonify({'body': user})
     else:
         return make_response('User already exists. Please Log in.', 400)
+
+@app.route('/create-child', methods =['POST'])
+@token_required
+def create_child_account(current_user):
+    # creates a dictionary of the form data
+    jsonData = request.get_json()
+    print('------')
+    print(jsonData)
+    print('------')
+  
+    # gets name, email and password
+    name, email, role = jsonData['name'], jsonData['email'], 'ASSISTANT'
+    password = jsonData['password']
+  
+    # checking for existing user
+    user = User.objects(email = email).first()
+
+    if not user:
+        # database ORM object
+        user = User(
+            name = name,
+            email = email,
+            role = role,
+            parentID = str(current_user.id),
+            password = generate_password_hash(password)
+        )
+        # insert user
+        user.save()
+        
+        return jsonify({'body': user})
+    else:
+        return make_response('Email already registered. Try another email.', 400)
+
+
+@app.route('/user/<user_id>', methods =['PATCH'])
+@token_required
+def update_user_by_parent(current_user, user_id):
+    # creates a dictionary of the form data
+    jsonData = request.get_json()
+    print('------')
+    print(jsonData)
+    print('------')
+  
+    # gets name, email and password
+    name, role = jsonData['name'], 'ASSISTANT'
+    password = jsonData['password']
+  
+    # checking for existing user
+    user = User.objects(id=user_id).first()
+
+    if user:
+        # database ORM object
+        # user = User(
+        #     name = name,
+        #     role = role,
+        #     parentID = str(current_user.id),
+        #     password = generate_password_hash(password)
+        # )
+
+        user.name = name
+        user.role = role
+        if (password):
+            user.password = generate_password_hash(password)
+
+        user.save()
+        
+        return jsonify({'body': user})
+    else:
+        return make_response('Email already registered. Try another email.', 400)
+
+def get_parent_from_child(current_user):
+    # Change from assistant to parent role
+    if (current_user.role == 'ASSISTANT'):
+        return User.objects(id=current_user.parentID).first()
+    else:
+        return current_user
+
+def track_activity(current_user, project, request, response):
+    
+    log = ActivityLog(
+        project = project,
+        actor = current_user,
+        api_path = request.path,
+        body = json.dumps(request.get_json()),
+        response = json_util.dumps(response)
+    )
+
+    log.save()
+
+    return jsonify(response)

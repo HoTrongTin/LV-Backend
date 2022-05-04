@@ -35,7 +35,10 @@ class ColumnDefinition(db.EmbeddedDocument):
 class StreammingDefinition(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
     method = db.StringField(required=True, choices=['APPEND', 'MERGE'])
-    columns = db.ListField(db.EmbeddedDocumentField(ColumnDefinition))
+    schemaOnBronze = db.ListField(db.EmbeddedDocumentField(ColumnDefinition))
+    schemaOnSilver = db.ListField(db.EmbeddedDocumentField(ColumnDefinition))
+    query = db.StringField(required=True)
+
     merge_on = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
     partition_by = db.ListField(db.StringField(min_length=1, max_length=45, required=True))
     name = db.StringField(required=True)

@@ -92,9 +92,15 @@ def create_streaming(current_user, project_id):
     description = jsonData['description']
     status = jsonData['status']
 
-    columns = []
-    for col in jsonData['columns']:
-        columns.append(col)
+    query = jsonData['query']
+
+    schemaOnBronze = []
+    for col in jsonData['schemaOnBronze']:
+        schemaOnBronze.append(col)
+
+    schemaOnSilver = []
+    for col in jsonData['schemaOnSilver']:
+        schemaOnSilver.append(col)
     
     merge_on = []
     for item in jsonData['merge_on']:
@@ -111,11 +117,15 @@ def create_streaming(current_user, project_id):
         dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project).first()
         dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project).first()
 
-        new_streaming = StreammingDefinition(project = project, name = name, description = description, status = status, method = method, merge_on = merge_on, partition_by = partition_by, dataset_source=dataset_source, dataset_sink=dataset_sink, table_name_source=table_name_source, table_name_sink=table_name_sink)
+        new_streaming = StreammingDefinition(project = project, name = name, description = description, status = status, method = method, merge_on = merge_on, partition_by = partition_by, dataset_source=dataset_source, dataset_sink=dataset_sink, table_name_source=table_name_source, table_name_sink=table_name_sink, query=query)
 
-        # Create columns in streaming
-        for col in columns:
-            new_streaming.columns.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))
+        # Create schemaOnBronze in streaming
+        for col in schemaOnBronze:
+            new_streaming.schemaOnBronze.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))
+
+        # Create schemaOnSilver in streaming
+        for col in schemaOnSilver:
+            new_streaming.schemaOnSilver.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = True))
 
         new_streaming.save()
 

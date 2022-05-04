@@ -14,15 +14,20 @@ amazonS3param = config_obj["amazonS3"]
 
 def startStream(project, stream):
     
-    # Create DF schema
-    schema = []
-    for col in stream.columns:
-        schema.append((col['name'], col['field_type'], col['nullable']))
-    schema = tuple(schema)
-    print('schema: ', str(schema))
+    # Create DF schemaOnBronze
+    schemaOnBronze = []
+    for col in stream.schemaOnBronze:
+        schemaOnBronze.append((col['name'], col['field_type'], col['nullable']))
+    schemaOnBronze = tuple(schemaOnBronze)
+
+    # Create DF schemaOnBronze
+    schemaOnSilver = []
+    for col in stream.schemaOnSilver:
+        schemaOnSilver.append((col['name'], col['field_type']))
+    schemaOnSilver = tuple(schemaOnSilver)
 
     streamingSchema = StructType()
-    for col in schema:
+    for col in schemaOnBronze:
         streamingSchema.add(col[0], col[1], col[2])
 
     dataset_source = stream.dataset_source
@@ -40,9 +45,9 @@ def startStream(project, stream):
         pass
     
     if stream.method == 'MERGE':
-        streamingBronzeToGoldMergeMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schema, stream_name=silver_stream_name, mergeOn=stream.merge_on, partitionedBy=stream.partition_by)
+        streamingBronzeToGoldMergeMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schemaOnBronze, stream_name=silver_stream_name, mergeOn=stream.merge_on, partitionedBy=stream.partition_by)
     elif stream.method == 'APPEND':
-        streamingBronzeToGoldAppendMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schema, stream_name=silver_stream_name, partitionedBy=stream.partition_by)
+        streamingBronzeToGoldAppendMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schemaOnBronze, stream_name=silver_stream_name, partitionedBy=stream.partition_by)
 
     stream.save()
 
@@ -84,7 +89,7 @@ def getCheckpointLocation(project_name, stream, dataset_sink):
     return "/{project_name}/checkpoint/{folder_name}/{table_name}".format(project_name=project_name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink)
 
 #streaming Bronze To Silver With Merge Method
-def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, schema, query, schemaInSilver, stream_name, mergeOn, partitionedBy = []):
+def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, schemaOnBronze, schemaOnSilver, query, stream_name, mergeOn, partitionedBy = []):
     def upsertToDelta(microBatchOutputDF, batchId): 
         microBatchOutputDF.createOrReplaceTempView("bronze")
         
@@ -94,22 +99,23 @@ def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, sche
 
         microBatchOutputDF._jdf.sparkSession().sql("""
             MERGE INTO delta.`/{project_name}/silver/{table_name}` silver_{table_name}
-            USING (""" + query + """) s
+            USING (select """ + query + """ from bronze) s
             ON """ + mergeOnparser[:-5] + """
             WHEN MATCHED THEN UPDATE SET *
             WHEN NOT MATCHED THEN INSERT *
         """.format(project_name=project_name, table_name= table_name))
 
-    setColumns = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schema])
+    setColumnsOnBronze = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schemaOnBronze])
+    setColumnsOnSilver = ', '.join([' '.join(x for x in col) for col in schemaOnSilver])
     setPartitionedBy = ', '.join(partitionedBy)
 
     #create bronze
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/{folder_name}/{table_name}'.format(project_name=project_name, folder_name=folder_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE {folder_name}_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/{folder_name}/{table_name}\'""".format(folder_name=folder_name, table_name=table_name, setColumns = setColumns, project_name=project_name))
+        spark.sql("""CREATE TABLE {folder_name}_{table_name} ({setColumnsOnBronze}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/{folder_name}/{table_name}\'""".format(folder_name=folder_name, table_name=table_name, setColumnsOnBronze = setColumnsOnBronze, project_name=project_name))
 
     #create silver
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/silver/{table_name}'.format(project_name=project_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE silver_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name)
+        spark.sql("""CREATE TABLE silver_{table_name} ({setColumnsOnSilver}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumnsOnSilver = setColumnsOnSilver, project_name=project_name)
             + (" PARTITIONED BY (" + setPartitionedBy + ")" if partitionedBy != [] else '')
         )
 
@@ -120,29 +126,30 @@ def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, sche
         .start()
 
 #streaming Bronze To Silver With Append Method
-def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, schema, stream_name, partitionedBy = []):
+def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, schemaOnBronze, schemaOnSilver, query, stream_name, partitionedBy = []):
     def appendToDelta(microBatchOutputDF, batchId): 
-        microBatchOutputDF.createOrReplaceTempView("batchData")
+        microBatchOutputDF.createOrReplaceTempView("bronze")
 
-        setFields = ', '.join([field[0] for field in schema])
+        setFields = ', '.join([field[0] for field in schemaOnSilver])
 
         microBatchOutputDF._jdf.sparkSession().sql("""
             INSERT INTO delta.`/{project_name}/silver/{table_name}`
             ({setFields}, Date_Time)
             SELECT {setFields}, Date_Time
-            FROM batchData
+            FROM (select """ + query + """ from bronze) tmp
         """.format(project_name=project_name, table_name=table_name, setFields = setFields))
 
-    setColumns = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schema])
+    setColumnsOnBronze = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schemaOnBronze])
+    setColumnsOnSilver = ', '.join([' '.join(x for x in col) for col in schemaOnSilver])
     setPartitionedBy = ', '.join(partitionedBy)
 
     #create bronze
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/{folder_name}/{table_name}'.format(project_name=project_name, folder_name=folder_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE {folder_name}_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/{folder_name}/{table_name}\'""".format(folder_name=folder_name, table_name=table_name, setColumns = setColumns, project_name=project_name))
+        spark.sql("""CREATE TABLE {folder_name}_{table_name} ({setColumnsOnBronze}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/{folder_name}/{table_name}\'""".format(folder_name=folder_name, table_name=table_name, setColumnsOnBronze = setColumnsOnBronze, project_name=project_name))
 
     #create silver
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/silver/{table_name}'.format(project_name=project_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE silver_{table_name} ({setColumns}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumns = setColumns, project_name=project_name)
+        spark.sql("""CREATE TABLE silver_{table_name} ({setColumnsOnSilver}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumnsOnSilver = setColumnsOnSilver, project_name=project_name)
             + (" PARTITIONED BY (" + setPartitionedBy + ")" if partitionedBy != [] else '')
         )
 

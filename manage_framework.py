@@ -231,7 +231,7 @@ def update_streaming(current_user, project_id, streaming_id):
                 streaming.schemaOnBronze.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))
 
             for col in schemaOnSilver:
-                streaming.schemaOnSilver.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))
+                streaming.schemaOnSilver.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = True))
 
             streaming.save()
             

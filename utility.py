@@ -30,6 +30,8 @@ def startStream(project, stream):
     for col in schemaOnBronze:
         streamingSchema.add(col[0], col[1], col[2])
 
+    query = stream.query
+
     dataset_source = stream.dataset_source
     dataset_sink = stream.dataset_sink
 
@@ -45,9 +47,9 @@ def startStream(project, stream):
         pass
     
     if stream.method == 'MERGE':
-        streamingBronzeToGoldMergeMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schemaOnBronze, stream_name=silver_stream_name, mergeOn=stream.merge_on, partitionedBy=stream.partition_by)
+        streamingBronzeToGoldMergeMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schemaOnBronze=schemaOnBronze, schemaOnSilver=schemaOnSilver, query=query, stream_name=silver_stream_name, mergeOn=stream.merge_on, partitionedBy=stream.partition_by)
     elif stream.method == 'APPEND':
-        streamingBronzeToGoldAppendMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schema=schemaOnBronze, stream_name=silver_stream_name, partitionedBy=stream.partition_by)
+        streamingBronzeToGoldAppendMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schemaOnBronze=schemaOnBronze, schemaOnSilver=schemaOnSilver, query=query, stream_name=silver_stream_name, partitionedBy=stream.partition_by)
 
     stream.save()
 

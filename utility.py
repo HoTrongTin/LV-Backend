@@ -99,11 +99,11 @@ def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, sche
 
         microBatchOutputDF._jdf.sparkSession().sql("""
             MERGE INTO delta.`/{project_name}/silver/{table_name}` silver_{table_name}
-            USING (select """ + query + """ from bronze) s
+            USING (select {query} from bronze) s
             ON """ + mergeOnparser[:-5] + """
             WHEN MATCHED THEN UPDATE SET *
             WHEN NOT MATCHED THEN INSERT *
-        """.format(project_name=project_name, table_name= table_name))
+        """.format(project_name=project_name, table_name= table_name, query= query))
 
     setColumnsOnBronze = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schemaOnBronze])
     setColumnsOnSilver = ', '.join([' '.join(x for x in col) for col in schemaOnSilver])
@@ -135,9 +135,9 @@ def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, sch
         microBatchOutputDF._jdf.sparkSession().sql("""
             INSERT INTO delta.`/{project_name}/silver/{table_name}`
             ({setFields}, Date_Time)
-            SELECT {setFields}, Date_Time
-            FROM (select """ + query + """ from bronze) tmp
-        """.format(project_name=project_name, table_name=table_name, setFields = setFields))
+            SELECT {query}, Date_Time
+            FROM bronze
+        """.format(project_name=project_name, table_name=table_name, setFields = setFields, ))
 
     setColumnsOnBronze = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schemaOnBronze])
     setColumnsOnSilver = ', '.join([' '.join(x for x in col) for col in schemaOnSilver])

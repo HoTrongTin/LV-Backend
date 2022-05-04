@@ -214,6 +214,7 @@ def update_streaming(current_user, project_id, streaming_id):
             streaming.description = description
             streaming.status = status
             streaming.method = method
+            streaming.query = query
             streaming.merge_on = merge_on
             streaming.partition_by = partition_by
             streaming.schemaOnBronze = []

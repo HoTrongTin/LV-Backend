@@ -184,9 +184,15 @@ def update_streaming(current_user, project_id, streaming_id):
     description = jsonData['description']
     status = jsonData['status']
 
-    columns = []
-    for col in jsonData['columns']:
-        columns.append(col)
+    query = jsonData['query']
+
+    schemaOnBronze = []
+    for col in jsonData['schemaOnBronze']:
+        schemaOnBronze.append(col)
+        
+    schemaOnSilver = []
+    for col in jsonData['schemaOnSilver']:
+        schemaOnSilver.append(col)
 
     merge_on = []
     for item in jsonData['merge_on']:
@@ -210,7 +216,8 @@ def update_streaming(current_user, project_id, streaming_id):
             streaming.method = method
             streaming.merge_on = merge_on
             streaming.partition_by = partition_by
-            streaming.columns = []
+            streaming.schemaOnBronze = []
+            streaming.schemaOnSilver = []
             streaming.dataset_source = DataSetDefinition.objects(id=jsonData['dataset_source'], project=project).first()
             streaming.dataset_sink = DataSetDefinition.objects(id=jsonData['dataset_sink'], project=project).first()
             streaming.table_name_sink = table_name_sink
@@ -219,8 +226,11 @@ def update_streaming(current_user, project_id, streaming_id):
             streaming.bronze_stream_name = "{project_name}-{folder_name}-{table_name}".format(project_name = project.name,folder_name=streaming.dataset_sink.folder_name, table_name = table_name_sink)
             streaming.silver_stream_name = "{project_name}-silver-{table_name}".format(project_name = project.name, table_name = table_name_sink)
 
-            for col in columns:
-                streaming.columns.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))
+            for col in schemaOnBronze:
+                streaming.schemaOnBronze.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))
+
+            for col in schemaOnSilver:
+                streaming.schemaOnSilver.append(ColumnDefinition(name = col['name'], field_type = col['field_type'], nullable = col['nullable']))
 
             streaming.save()
             

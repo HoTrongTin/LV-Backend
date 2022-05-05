@@ -57,6 +57,18 @@ class ApisDefinition(db.Document):
     description = db.StringField(default = '')
     sql = db.StringField(default = '')
 
+class ApisDefinition_Test(db.Document):
+    project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
+    key = db.StringField(required=True)
+    description = db.StringField(default = '')
+    sql = db.StringField(default = '')
+    chartType = db.StringField(choices=['BAR', 'PIE', 'LINE', 'TABLE'], required=True)
+    xLabel = db.StringField(default = '')
+    xLabelField = db.StringField(default = '')
+    yLabel = db.StringField(default = '')
+    yLabelField = db.StringField(default = '')
+    descField = db.StringField(default = '')
+
 class ActivitiesDefinition(db.Document):
     api = db.ReferenceField(ApisDefinition, reverse_delete_rule=CASCADE)
     key = db.StringField(required=True)

@@ -401,6 +401,44 @@ def create_api(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+# Create test api in project
+@app.route('/project/<project_id>/apis_test', methods =['POST'])
+@token_required
+def create_api_test(current_user, project_id):
+    jsonData = request.get_json()
+  
+    # gets api info
+    key = jsonData['key']
+    description = jsonData['description']
+    sql = jsonData['sql']
+    chartType = jsonData['chartType']
+    xLabel = jsonData['xLabel']
+    xLabelField = jsonData['xLabelField']
+    yLabel = jsonData['yLabel']
+    yLabelField = jsonData['yLabelField']
+    descField = jsonData['descField']
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
+
+    if project:
+        new_api = ApisDefinition_Test(project=project, key=key, description=description, sql=sql, chartType=chartType, xLabel=xLabel, xLabelField=xLabelField, yLabel=yLabel, yLabelField=yLabelField, descField=descField)
+        new_api.save()
+
+        # Create 2 activities: gold + mongo
+        ActivitiesDefinition(api=new_api, key=new_api.key, name=project.name + '_test_gold_' + key, sql=new_api.sql).save()
+        ActivitiesDefinition(api=new_api, key=new_api.key, name=project.name + '_test_mongo_' + key, sql='').save()
+
+        # Run api cache for first time
+        # cache_gold_analysis_query(project_name=project.name, sql=new_api.sql, key=new_api.key)
+        # cache_data_to_mongoDB(project_name=project.name, key=new_api.key)
+
+        response = {'body': new_api}
+        return track_activity(current_user, project, request, response)
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
 @app.route('/project/<project_id>/testSchema', methods =['POST'])
 @token_required
 def testSchema(current_user, project_id):

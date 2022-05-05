@@ -426,8 +426,8 @@ def create_api_test(current_user, project_id):
         new_api.save()
 
         # Create 2 activities: gold + mongo
-        ActivitiesDefinition(api=new_api, key=new_api.key, name=project.name + '_test_gold_' + key, sql=new_api.sql).save()
-        ActivitiesDefinition(api=new_api, key=new_api.key, name=project.name + '_test_mongo_' + key, sql='').save()
+        ActivitiesDefinition_Test(api=new_api, key=new_api.key, name=project.name + '_test_gold_' + key, sql=new_api.sql).save()
+        ActivitiesDefinition_Test(api=new_api, key=new_api.key, name=project.name + '_test_mongo_' + key, sql='').save()
 
         # Run api cache for first time
         # cache_gold_analysis_query(project_name=project.name, sql=new_api.sql, key=new_api.key)

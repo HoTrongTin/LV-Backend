@@ -75,6 +75,12 @@ class ActivitiesDefinition(db.Document):
     name = db.StringField(default = '')
     sql = db.StringField(default = '')
 
+class ActivitiesDefinition_Test(db.Document):
+    api = db.ReferenceField(ApisDefinition_Test, reverse_delete_rule=CASCADE)
+    key = db.StringField(required=True)
+    name = db.StringField(default = '')
+    sql = db.StringField(default = '')
+
 class TriggerDefinition(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
     name = db.StringField(required=True)

@@ -508,6 +508,22 @@ def get_apis(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+# Get test api in project
+@app.route('/project/<project_id>/apis_test', methods =['GET'])
+@token_required
+def get_apis_test(current_user, project_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
+
+    if project:
+        apis = ApisDefinition_Test.objects(project = project)
+
+        return jsonify({'body': apis})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
 # Get api by id
 @app.route('/project/<project_id>/apis/<api_id>', methods =['GET'])
 @token_required

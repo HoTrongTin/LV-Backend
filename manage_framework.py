@@ -420,7 +420,7 @@ def create_api_test(current_user, project_id):
     descField = jsonData['descField']
     numLines = jsonData['numLines']
 
-    lineNames = []
+    lineNames = [{'yLabel': yLabel, 'yLabelField': yLabelField}]
     for item in jsonData['lineNames']:
         lineNames.append(item)
 

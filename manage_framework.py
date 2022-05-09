@@ -418,12 +418,35 @@ def create_api_test(current_user, project_id):
     yLabel = jsonData['yLabel']
     yLabelField = jsonData['yLabelField']
     descField = jsonData['descField']
+    numLines = jsonData['numLines']
+
+    lineNames = []
+    for item in jsonData['lineNames']:
+        lineNames.append(item)
 
     # checking for existing project
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
-        new_api = ApisDefinition_Test(project=project, title = title, key=key, description=description, sql=sql, chartType=chartType, xLabel=xLabel, xLabelField=xLabelField, yLabel=yLabel, yLabelField=yLabelField, descField=descField)
+        new_api = ApisDefinition_Test(
+            project=project, 
+            title = title, 
+            key=key, 
+            description=description, 
+            sql=sql, 
+            chartType=chartType, 
+            xLabel=xLabel, 
+            xLabelField=xLabelField, 
+            yLabel=yLabel, 
+            yLabelField=yLabelField, 
+            descField=descField,
+            numLines=numLines,
+            lineNames=lineNames
+        )
+
+        for line in lineNames:
+            new_api.schemaOnBronze.append(LineNameDefinition(yLabel = line['yLabel'], yLabelField = line['yLabelField']))
+
         new_api.save()
 
         # Create 2 activities: gold + mongo

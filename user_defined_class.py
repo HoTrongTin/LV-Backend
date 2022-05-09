@@ -60,6 +60,7 @@ class ApisDefinition(db.Document):
 class ApisDefinition_Test(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
     key = db.StringField(required=True)
+    title = db.StringField(required=True)
     description = db.StringField(default = '')
     sql = db.StringField(default = '')
     chartType = db.StringField(choices=['BAR', 'PIE', 'LINE', 'TABLE'], required=True)

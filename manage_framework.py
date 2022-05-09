@@ -410,6 +410,7 @@ def create_api_test(current_user, project_id):
     # gets api info
     key = jsonData['key']
     description = jsonData['description']
+    title = jsonData['title']
     sql = jsonData['sql']
     chartType = jsonData['chartType']
     xLabel = jsonData['xLabel']
@@ -422,7 +423,7 @@ def create_api_test(current_user, project_id):
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
-        new_api = ApisDefinition_Test(project=project, key=key, description=description, sql=sql, chartType=chartType, xLabel=xLabel, xLabelField=xLabelField, yLabel=yLabel, yLabelField=yLabelField, descField=descField)
+        new_api = ApisDefinition_Test(project=project, title = title, key=key, description=description, sql=sql, chartType=chartType, xLabel=xLabel, xLabelField=xLabelField, yLabel=yLabel, yLabelField=yLabelField, descField=descField)
         new_api.save()
 
         # Create 2 activities: gold + mongo

@@ -424,6 +424,7 @@ def create_api_test(current_user, project_id):
     for item in jsonData['lineNames']:
         lineNames.append(item)
 
+    print(jsonData['lineNames'])
     # checking for existing project
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 

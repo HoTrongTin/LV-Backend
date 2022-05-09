@@ -518,8 +518,7 @@ def get_apis_test(current_user, project_id):
 
     if project:
         apis = ApisDefinition_Test.objects(project = project)
-        data = CacheQuery.objects(key= project.name + '_'+ apis.key).first()
-        return jsonify({'body': apis, 'dataset' : jsonify(data.to_json())})
+        return jsonify({'body': apis})
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -534,9 +533,8 @@ def get_api_test_by_id(current_user, project_id, api_id):
 
     if project:
         api = ApisDefinition_Test.objects(id=api_id, project = project).first()
-
-        return jsonify({'body': api})
-
+        data = CacheQuery.objects(key= project.name + '_'+ api.key).first()
+        return jsonify({'body': api, 'dataset' : jsonify(data.to_json())})
     else:  
         return make_response('Project does not exist.', 400)
 

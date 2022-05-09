@@ -518,8 +518,8 @@ def get_apis_test(current_user, project_id):
 
     if project:
         apis = ApisDefinition_Test.objects(project = project)
-
-        return jsonify({'body': apis})
+        data = CacheQuery.objects(key= project.name + '_'+ apis.key).first()
+        return jsonify({'body': apis, 'dataset' : jsonify(data.to_json())})
 
     else:  
         return make_response('Project does not exist.', 400)

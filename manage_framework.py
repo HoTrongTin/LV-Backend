@@ -445,7 +445,7 @@ def create_api_test(current_user, project_id):
         )
 
         for line in lineNames:
-            new_api.schemaOnBronze.append(LineNameDefinition(yLabel = line['yLabel'], yLabelField = line['yLabelField']))
+            new_api.lineNames.append(LineNameDefinition(yLabel = line['yLabel'], yLabelField = line['yLabelField']))
 
         new_api.save()
 

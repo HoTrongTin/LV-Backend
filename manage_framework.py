@@ -538,7 +538,7 @@ def get_api_test_by_id(current_user, project_id, api_id):
         res = {
             "body": {
                 "api": api,
-                "dataset": data
+                "dataset": data['value']
             }
         }
 

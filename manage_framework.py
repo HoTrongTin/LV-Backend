@@ -527,7 +527,7 @@ def get_apis_test(current_user, project_id):
 # Get api test by id
 @app.route('/project/<project_id>/apis_test/<api_id>', methods =['GET'])
 @token_required
-def get_api_by_id(current_user, project_id, api_id):
+def get_api_test_by_id(current_user, project_id, api_id):
 
     # checking for existing project
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
@@ -575,7 +575,7 @@ def delete_api(current_user, project_id, api_id):
 
 @app.route('/project/<project_id>/apis_test/<api_id>', methods =['DELETE'])
 @token_required
-def delete_api(current_user, project_id, api_id):
+def delete_api_test(current_user, project_id, api_id):
     # checking for existing project
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 

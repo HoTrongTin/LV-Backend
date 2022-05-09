@@ -443,7 +443,7 @@ def create_api_test(current_user, project_id):
             numLines=numLines,
             lineNames=lineNames
         )
-
+        new_api.lineNames = []
         for line in lineNames:
             new_api.lineNames.append(LineNameDefinition(yLabel = line['yLabel'], yLabelField = line['yLabelField']))
 

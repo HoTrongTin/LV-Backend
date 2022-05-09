@@ -455,8 +455,8 @@ def create_api_test(current_user, project_id):
         ActivitiesDefinition_Test(api=new_api, key=new_api.key, name=project.name + '_test_mongo_' + key, sql='').save()
 
         # Run api cache for first time
-        # cache_gold_analysis_query(project_name=project.name, sql=new_api.sql, key=new_api.key)
-        # cache_data_to_mongoDB(project_name=project.name, key=new_api.key)
+        cache_gold_analysis_query(project_name=project.name, sql=new_api.sql, key=new_api.key)
+        cache_data_to_mongoDB(project_name=project.name, key=new_api.key)
 
         response = {'body': new_api}
         return track_activity(current_user, project, request, response)

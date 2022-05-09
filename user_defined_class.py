@@ -73,7 +73,7 @@ class ApisDefinition_Test(db.Document):
     yLabel = db.StringField(default = '')
     yLabelField = db.StringField(default = '')
     descField = db.StringField(default = '')
-    numLines = db.IntegerField(default = 0)
+    numLines = db.FloatField(default = 0)
     lineNames = db.ListField(db.EmbeddedDocumentField(LineNameDefinition))
 
 class ActivitiesDefinition(db.Document):

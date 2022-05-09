@@ -524,6 +524,22 @@ def get_apis_test(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+# Get api test by id
+@app.route('/project/<project_id>/apis_test/<api_id>', methods =['GET'])
+@token_required
+def get_api_by_id(current_user, project_id, api_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
+
+    if project:
+        api = ApisDefinition_Test.objects(id=api_id, project = project).first()
+
+        return jsonify({'body': api})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
 # Get api by id
 @app.route('/project/<project_id>/apis/<api_id>', methods =['GET'])
 @token_required
@@ -556,6 +572,24 @@ def delete_api(current_user, project_id, api_id):
         return track_activity(current_user, project, request, response)
     else:  
         return make_response('Project does not exist.', 400)
+
+@app.route('/project/<project_id>/apis_test/<api_id>', methods =['DELETE'])
+@token_required
+def delete_api(current_user, project_id, api_id):
+    # checking for existing project
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
+
+    if project:
+
+        # TODO: delete cache key
+
+        ApisDefinition_Test(id = api_id, project = project).delete()
+
+        response = make_response('Deleted.', 200)
+        return track_activity(current_user, project, request, response)
+    else:  
+        return make_response('Project does not exist.', 400)
+
 
 
 

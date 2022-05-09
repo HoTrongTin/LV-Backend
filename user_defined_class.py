@@ -32,6 +32,10 @@ class ColumnDefinition(db.EmbeddedDocument):
     field_type = db.StringField(required=True, choices=['integer', 'float', 'string', 'boolean', 'timestamp'])
     nullable = db.BooleanField(required=True, default=True)
 
+class LineNameDefinition(db.EmbeddedDocument):
+    yLabel = db.StringField(default = '')
+    yLabelField = db.StringField(default = '')
+
 class StreammingDefinition(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
     method = db.StringField(required=True, choices=['APPEND', 'MERGE'])
@@ -69,6 +73,8 @@ class ApisDefinition_Test(db.Document):
     yLabel = db.StringField(default = '')
     yLabelField = db.StringField(default = '')
     descField = db.StringField(default = '')
+    numLines = db.IntegerField(default = 0)
+    lineNames = db.ListField(db.EmbeddedDocumentField(LineNameDefinition))
 
 class ActivitiesDefinition(db.Document):
     api = db.ReferenceField(ApisDefinition, reverse_delete_rule=CASCADE)

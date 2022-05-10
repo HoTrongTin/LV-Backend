@@ -101,7 +101,7 @@ def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, sche
 
         microBatchOutputDF._jdf.sparkSession().sql("""
             MERGE INTO delta.`/{project_name}/silver/{table_name}` silver_{table_name}
-            USING (select {query}, Date_Time from bronze) s
+            USING ({query}) s
             ON {mergeOnparser}
             WHEN MATCHED THEN UPDATE SET *
             WHEN NOT MATCHED THEN INSERT *
@@ -117,7 +117,7 @@ def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, sche
 
     #create silver
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/silver/{table_name}'.format(project_name=project_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE silver_{table_name} ({setColumnsOnSilver}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumnsOnSilver = setColumnsOnSilver, project_name=project_name)
+        spark.sql("""CREATE TABLE silver_{table_name} ({setColumnsOnSilver}) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumnsOnSilver = setColumnsOnSilver, project_name=project_name)
             + (" PARTITIONED BY (" + setPartitionedBy + ")" if partitionedBy != [] else '')
         )
 
@@ -132,12 +132,13 @@ def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, sch
     def appendToDelta(microBatchOutputDF, batchId): 
         microBatchOutputDF.createOrReplaceTempView("bronze")
 
+        columsName = ', '.join([col[0] for col in schemaOnSilver])
+
         microBatchOutputDF._jdf.sparkSession().sql("""
             INSERT INTO delta.`/{project_name}/silver/{table_name}`
-            ({query}, Date_Time)
-            SELECT {query}, Date_Time
-            FROM bronze
-        """.format(project_name=project_name, table_name=table_name, query = query))
+            ({columsName})
+            SELECT * FROM ({query})
+        """.format(project_name=project_name, table_name=table_name, query = query, columsName = columsName))
 
     setColumnsOnBronze = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schemaOnBronze])
     setColumnsOnSilver = ', '.join([' '.join(x for x in col) for col in schemaOnSilver])
@@ -149,7 +150,7 @@ def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, sch
 
     #create silver
     if not(DeltaTable.isDeltaTable(spark, '/{project_name}/silver/{table_name}'.format(project_name=project_name, table_name=table_name))):
-        spark.sql("""CREATE TABLE silver_{table_name} ({setColumnsOnSilver}, Date_Time timestamp) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumnsOnSilver = setColumnsOnSilver, project_name=project_name)
+        spark.sql("""CREATE TABLE silver_{table_name} ({setColumnsOnSilver}) USING DELTA LOCATION \'/{project_name}/silver/{table_name}\'""".format(table_name=table_name, setColumnsOnSilver = setColumnsOnSilver, project_name=project_name)
             + (" PARTITIONED BY (" + setPartitionedBy + ")" if partitionedBy != [] else '')
         )
 
@@ -176,9 +177,9 @@ def parseQuery(query, pathHDFS):
     else:
         queryRes = fromSplit[0]
         for itemSplit in fromSplit[1:]:
-            if itemSplit[0] != '(':
-                queryRes += 'from delta.`' + pathHDFS + (itemSplit[:itemSplit.index(' ') - 1] + '`)' if itemSplit[itemSplit.index(' ') - 1] == ')' else itemSplit[:itemSplit.index(' ')] + '`') + itemSplit[itemSplit.index(' '):]
-            else: queryRes += 'from ' + itemSplit
+            if itemSplit[0] == '(' or itemSplit[0:6] == 'bronze':
+                queryRes += 'from ' + itemSplit
+            else: queryRes += 'from delta.`' + pathHDFS + (itemSplit[:itemSplit.index(' ') - 1] + '`)' if itemSplit[itemSplit.index(' ') - 1] == ')' else itemSplit[:itemSplit.index(' ')] + '`') + itemSplit[itemSplit.index(' '):]
     
     joinSplit = queryRes.split('join ')
     if len(joinSplit) == 1:
@@ -186,9 +187,9 @@ def parseQuery(query, pathHDFS):
     else:
         queryRes = joinSplit[0]
         for itemSplit in joinSplit[1:]:
-            if itemSplit[0] != '(':
-                queryRes += 'join delta.`' + pathHDFS + (itemSplit[:itemSplit.index(' ') - 1] + '`)' if itemSplit[itemSplit.index(' ') -1] == ')' else itemSplit[:itemSplit.index(' ')] + '`') + itemSplit[itemSplit.index(' '):]
-            else: queryRes += 'join ' + itemSplit
+            if itemSplit[0] == '(' or itemSplit[0:6] == 'bronze':
+                queryRes += 'join ' + itemSplit
+            else: queryRes += 'join delta.`' + pathHDFS + (itemSplit[:itemSplit.index(' ') - 1] + '`)' if itemSplit[itemSplit.index(' ') -1] == ')' else itemSplit[:itemSplit.index(' ')] + '`') + itemSplit[itemSplit.index(' '):]
             
     return queryRes
 

@@ -105,7 +105,7 @@ def streamingBronzeToGoldMergeMethod(project_name, folder_name, table_name, sche
             ON {mergeOnparser}
             WHEN MATCHED THEN UPDATE SET *
             WHEN NOT MATCHED THEN INSERT *
-        """.format(project_name=project_name, table_name= table_name, query= query, mergeOnparser = mergeOnparser[:-5]))
+        """.format(project_name=project_name, table_name= table_name, query= parseQuery(query, "/{project_name}/silver/".format(project_name=project_name)), mergeOnparser = mergeOnparser[:-5]))
 
     setColumnsOnBronze = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schemaOnBronze])
     setColumnsOnSilver = ', '.join([' '.join(x for x in col) for col in schemaOnSilver])
@@ -138,7 +138,7 @@ def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, sch
             INSERT INTO delta.`/{project_name}/silver/{table_name}`
             ({columsName})
             SELECT * FROM ({query})
-        """.format(project_name=project_name, table_name=table_name, query = query, columsName = columsName))
+        """.format(project_name=project_name, table_name=table_name, query = parseQuery(query, "/{project_name}/silver/".format(project_name=project_name)), columsName = columsName))
 
     setColumnsOnBronze = ', '.join([' '.join(x for x in col if isinstance(x, str)) for col in schemaOnBronze])
     setColumnsOnSilver = ', '.join([' '.join(x for x in col) for col in schemaOnSilver])

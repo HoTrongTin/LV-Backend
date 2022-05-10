@@ -75,6 +75,7 @@ class ApisDefinition_Test(db.Document):
     descField = db.StringField(default = '')
     numLines = db.FloatField(default = 0)
     lineNames = db.ListField(db.EmbeddedDocumentField(LineNameDefinition))
+    tableFields = db.ListField(db.StringField())
 
 class ActivitiesDefinition(db.Document):
     api = db.ReferenceField(ApisDefinition, reverse_delete_rule=CASCADE)

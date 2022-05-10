@@ -419,6 +419,7 @@ def create_api_test(current_user, project_id):
     yLabelField = jsonData['yLabelField']
     descField = jsonData['descField']
     numLines = jsonData['numLines']
+    tableFields = jsonData['tableFields']
 
     lineNames = [{'yLabel': yLabel, 'yLabelField': yLabelField}]
     for item in jsonData['lineNames']:
@@ -442,7 +443,8 @@ def create_api_test(current_user, project_id):
             yLabelField=yLabelField, 
             descField=descField,
             numLines=numLines,
-            lineNames=lineNames
+            lineNames=lineNames,
+            tableFields=tableFields
         )
         new_api.lineNames = []
         for line in lineNames:
@@ -811,8 +813,8 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
         triggers = TriggerDefinition.objects(project=project)
 
         found_trigger = TriggerDefinition.objects(id=trigger_id, project=project).first()
-        print('found_trigger: ');
-        print(found_trigger.id);
+        print('found_trigger: ')
+        print(found_trigger.id)
 
         result = []
 
@@ -820,8 +822,8 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
             print('---------------------------------')
             activities = ActivitiesDefinition.objects(api=api)
             for act in activities:
-                print('activity_id: ');
-                print(act.id);
+                print('activity_id: ')
+                print(act.id)
 
                 is_used = False
 

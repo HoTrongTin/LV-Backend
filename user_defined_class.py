@@ -52,8 +52,8 @@ class StreammingDefinition(db.Document):
     # Manage DataSetDefinition
     dataset_source = db.ReferenceField(DataSetDefinition, reverse_delete_rule=CASCADE)
     dataset_sink = db.ReferenceField(DataSetDefinition, reverse_delete_rule=CASCADE)
-    table_name_source = db.StringField(min_length=1, max_length=45, required=True, unique=True)
-    table_name_sink = db.StringField(min_length=1, max_length=45, required=True, unique=True)
+    table_name_source = db.StringField(min_length=1, max_length=45, required=True)
+    table_name_sink = db.StringField(min_length=1, max_length=45, required=True)
 
 class ApisDefinition(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)

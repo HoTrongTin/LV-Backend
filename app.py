@@ -18,6 +18,7 @@ from utility import parseQuery
 
 from cronjobSilverToGold import *
 from cronjobGoldToMongoDB import *
+from build_models import buildModels
 
 CORS(app)
 
@@ -164,6 +165,13 @@ def get_scheduler_jobs():
 def build_model_CNNclassifier():
     build_model()
     return jsonify({'body': 'Build model CNNclassifier successful!'})
+
+@app.route('/build-models')
+def build_models():
+    startTime = time.time()
+    buildModels()
+    return jsonify({'body': 'Build models successful!',
+                    'time to execute': time.time() - startTime})
 
 @app.route('/predict-by-CNNclassifier')
 def predict_by_CNNclassifier():

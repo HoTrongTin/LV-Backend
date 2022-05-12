@@ -49,14 +49,8 @@ stdScaler = StandardScaler(inputCol="features", \
                         outputCol="scaledFeatures", \
                         withStd=True, \
                         withMean=False)
-# Optional - as we're using Pipeline
-# Compute summary statistics by fitting the StandardScaler
-scalerModel = stdScaler.fit(vecTrainDF)
-# Normalize each feature to have unit standard deviation.
-scaledDataDF = scalerModel.transform(vecTrainDF)
 
-
-def saveModels():
+def buildModels():
     # 1. LogisticRegression
     lr = LogisticRegression(maxIter=100, \
                         featuresCol="scaledFeatures", \

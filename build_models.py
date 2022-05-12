@@ -1,5 +1,6 @@
 from sparkSetup import spark
 from pyspark.sql.types import StructType
+from pyspark.sql.functions import *
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.feature import StandardScaler
 from pyspark.ml.classification import LogisticRegression

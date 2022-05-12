@@ -18,7 +18,6 @@ vecAssembler = VectorAssembler(\
                               .setHandleInvalid("skip")
 vecAssembler.setInputCols(['age', 'weight', 'gender_M', 'platelets', 'spo2', 'creatinine', 'hematocrit', 'aids', 'lymphoma', 'solid_tumor_with_metastasis', 'heartrate', 'calcium', 'wbc', 'glucose', 'inr', 'potassium', 'sodium', 'ethnicity'])
 
-from pyspark.sql.types import StructType
 schema = StructType() \
       .add("age",FloatType(),True) \
       .add("weight",FloatType(),True) \

@@ -46,7 +46,7 @@ def buildModels():
       trainDF = spark.read.format("csv") \
       .option("header", True) \
       .schema(schema) \
-      .load("model_classifier/dataTrain0405.csv")
+      .load("/dataML/dataTrain0405.csv")
 
       stdScaler = StandardScaler(inputCol="features", \
                               outputCol="scaledFeatures", \

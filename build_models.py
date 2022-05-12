@@ -20,25 +20,25 @@ vecAssembler = VectorAssembler(\
 vecAssembler.setInputCols(['age', 'weight', 'gender_M', 'platelets', 'spo2', 'creatinine', 'hematocrit', 'aids', 'lymphoma', 'solid_tumor_with_metastasis', 'heartrate', 'calcium', 'wbc', 'glucose', 'inr', 'potassium', 'sodium', 'ethnicity'])
 
 schema = StructType() \
-      .add("age",FloatType(),True) \
-      .add("weight",FloatType(),True) \
-      .add("gender_M",IntegerType(),True) \
-      .add("platelets",FloatType(),True) \
-      .add("spo2",FloatType(),True) \
-      .add("creatinine",FloatType(),True) \
-      .add("hematocrit",FloatType(),True) \
-      .add("aids",IntegerType(),True) \
-      .add("lymphoma",IntegerType(),True) \
-      .add("solid_tumor_with_metastasis",IntegerType(),True) \
-      .add("heartrate",FloatType(),True) \
-      .add("calcium",FloatType(),True) \
-      .add("wbc",FloatType(),True) \
-      .add("glucose",FloatType(),True) \
-      .add("inr",FloatType(),True) \
-      .add("potassium",FloatType(),True) \
-      .add("sodium",FloatType(),True) \
-      .add("ethnicity",IntegerType(),True) \
-      .add("label",FloatType(),True)
+      .add("age","float",True) \
+      .add("weight","float",True) \
+      .add("gender_M","integer",True) \
+      .add("platelets","float",True) \
+      .add("spo2","float",True) \
+      .add("creatinine","float",True) \
+      .add("hematocrit","float",True) \
+      .add("aids","integer",True) \
+      .add("lymphoma","integer",True) \
+      .add("solid_tumor_with_metastasis","integer",True) \
+      .add("heartrate","float",True) \
+      .add("calcium","float",True) \
+      .add("wbc","float",True) \
+      .add("glucose","float",True) \
+      .add("inr","float",True) \
+      .add("potassium","float",True) \
+      .add("sodium","float",True) \
+      .add("ethnicity","integer",True) \
+      .add("label","float",True)
 
 trainDF = spark.read.format("csv") \
       .option("header", True) \

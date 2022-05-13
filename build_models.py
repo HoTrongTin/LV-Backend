@@ -1,6 +1,5 @@
 from sparkSetup import spark
 from pyspark.sql.types import StructType
-from pyspark.sql.functions import *
 from pyspark.ml.feature import VectorAssembler
 from pyspark.ml.feature import StandardScaler
 from pyspark.ml.classification import LogisticRegression
@@ -15,34 +14,6 @@ from pyspark.ml.classification import OneVsRest
 from pyspark.ml.classification import FMClassifier
 from pyspark.ml import PipelineModel
 
-vecAssembler = VectorAssembler(\
-                               outputCol = "features") \
-                              .setHandleInvalid("skip")
-vecAssembler.setInputCols(['age', 'weight', 'gender_M', 'platelets', 'spo2', 'creatinine', 'hematocrit', 'aids', 'lymphoma', 'solid_tumor_with_metastasis', 'heartrate', 'calcium', 'wbc', 'glucose', 'inr', 'potassium', 'sodium', 'ethnicity'])
-
-schema = StructType() \
-      .add("age","float",True) \
-      .add("weight","float",True) \
-      .add("gender_M","integer",True) \
-      .add("platelets","float",True) \
-      .add("spo2","float",True) \
-      .add("creatinine","float",True) \
-      .add("hematocrit","float",True) \
-      .add("aids","integer",True) \
-      .add("lymphoma","integer",True) \
-      .add("solid_tumor_with_metastasis","integer",True) \
-      .add("heartrate","float",True) \
-      .add("calcium","float",True) \
-      .add("wbc","float",True) \
-      .add("glucose","float",True) \
-      .add("inr","float",True) \
-      .add("potassium","float",True) \
-      .add("sodium","float",True) \
-      .add("ethnicity","integer",True) \
-      .add("label","float",True)
-
-
-
 def buildModels():
       trainDF = spark.read.format("csv") \
       .option("header", True) \
@@ -53,6 +24,32 @@ def buildModels():
       .option("header", True) \
       .schema(schema) \
       .load("/dataML/data0405_ver4.csv")
+
+      vecAssembler = VectorAssembler(\
+                                    outputCol = "features") \
+                                    .setHandleInvalid("skip")
+      vecAssembler.setInputCols(['age', 'weight', 'gender_M', 'platelets', 'spo2', 'creatinine', 'hematocrit', 'aids', 'lymphoma', 'solid_tumor_with_metastasis', 'heartrate', 'calcium', 'wbc', 'glucose', 'inr', 'potassium', 'sodium', 'ethnicity'])
+
+      schema = StructType() \
+            .add("age","float",True) \
+            .add("weight","float",True) \
+            .add("gender_M","integer",True) \
+            .add("platelets","float",True) \
+            .add("spo2","float",True) \
+            .add("creatinine","float",True) \
+            .add("hematocrit","float",True) \
+            .add("aids","integer",True) \
+            .add("lymphoma","integer",True) \
+            .add("solid_tumor_with_metastasis","integer",True) \
+            .add("heartrate","float",True) \
+            .add("calcium","float",True) \
+            .add("wbc","float",True) \
+            .add("glucose","float",True) \
+            .add("inr","float",True) \
+            .add("potassium","float",True) \
+            .add("sodium","float",True) \
+            .add("ethnicity","integer",True) \
+            .add("label","float",True)
 
       stdScaler = StandardScaler(inputCol="features", \
                               outputCol="scaledFeatures", \

@@ -2,6 +2,19 @@ from sparkSetup import spark
 from pyspark.sql.types import StructType
 from pyspark.ml import PipelineModel
 from pyspark.ml.evaluation import MulticlassClassificationEvaluator
+from sklearn.metrics import confusion_matrix
+
+def accuracy(resDF):
+    label = resDF.select('label').rdd.flatMap(lambda x: x).collect()
+    predict = resDF.select('prediction').rdd.flatMap(lambda x: x).collect()
+    tn, fp, fn, tp = confusion_matrix(label, predict).ravel()
+    print(tn, fp, fn, tp)
+    print('Accuracy: {0}'.format((tp+tn)/4029))
+    print('True Positive Rate (TPR): {0}'.format(tp/(tp+fn)))
+    print('Positive Predictive Value (PPV): {0}'.format(tp/(tp+fp)))
+    print('Negative Predictive Value (NPV): {0}'.format(tn/(tn+fn)))
+    print('False Negative Rate (FNR): {0}'.format(fn/(tp+fn)))
+    print('False Positive Rate (FPR): {0}'.format(fp/(fp+tn)))
 
 def predict(algorithm):
       testDF = spark.read.format("csv") \
@@ -42,5 +55,6 @@ def predict(algorithm):
       print("Accuracy of LogisticRegression is = %g"%(accuracy))
       print("Test Error of LogisticRegression = %g "%(1.0 - accuracy))
       print('---------------------------------------------------')
+      accuracy(predRes)
 
       return predRes.select("label", "prediction").limit(5)

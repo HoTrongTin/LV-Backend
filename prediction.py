@@ -1,12 +1,18 @@
 from sparkSetup import spark
 from pyspark.sql.types import StructType
 from pyspark.ml import PipelineModel
+from pyspark.ml.evaluation import MulticlassClassificationEvaluator
 
 def predict(algorithm):
       testDF = spark.read.format("csv") \
       .option("header", True) \
       .schema(schema) \
       .load("/dataML/data0405_ver4.csv")
+
+      evaluator = MulticlassClassificationEvaluator( \
+                  labelCol="label", \
+                  predictionCol="prediction", \
+                  metricName="accuracy")
 
       schema = StructType() \
             .add("age","float",True) \
@@ -30,6 +36,11 @@ def predict(algorithm):
             .add("label","float",True)
 
       pipeline = PipelineModel.load("model_classifier/" + algorithm)
-      transformeddataset = pipeline.transform(testDF)
+      predRes = pipeline.transform(testDF)
 
-      return transformeddataset.select("label", "prediction").limit(5)
+      accuracy = evaluator.evaluate(predRes)
+      print("Accuracy of LogisticRegression is = %g"%(accuracy))
+      print("Test Error of LogisticRegression = %g "%(1.0 - accuracy))
+      print('---------------------------------------------------')
+
+      return predRes.select("label", "prediction").limit(5)

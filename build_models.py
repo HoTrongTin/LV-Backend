@@ -62,9 +62,9 @@ def buildModels():
                               labelCol="label")
       pipeline_lr = Pipeline(stages=[vecAssembler, stdScaler, lr])
       pipelineModel_lr = pipeline_lr.fit(trainDF)
-      pipelineModel_lr.write().overwrite().save("model_classifier/FMClassifier")
+      pipelineModel_lr.write().overwrite().save("model_classifier/LogisticRegression")
 
-      pipeline = PipelineModel.load("model_classifier/FMClassifier")
+      pipeline = PipelineModel.load("model_classifier/LogisticRegression")
       transformeddataset = pipeline.transform(testDF)
 
       # 2.LinearSVC

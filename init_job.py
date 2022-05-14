@@ -130,16 +130,18 @@ def start_trigger(project, trigger):
 
         for activity_id in activity_ids:
             activity = ActivitiesDefinition_Test.objects(id = activity_id).first()
-            print("dmmmmmmm" + activity.name)
+            print("Activity name: " + str(activity.id))
 
             def cache_gold():
+                print("Cache gold SQL: " + activity.sql)
                 cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key)
             def cache_mongoDB():
+                print("Cache MongoDB key: " + activity.key)
                 cache_data_to_mongoDB(project_name=project.name, key=activity.key)
 
-            if "_gold_" in activity.name:
+            if "_test_gold_" in activity.name:
                 scheduler.add_job(id = activity_id, func=cache_gold, trigger="interval", seconds=seconds)
-            elif "_mongo_" in activity.name:
+            elif "_test_mongo_" in activity.name:
                 scheduler.add_job(id = activity_id, func=cache_mongoDB, trigger="interval", seconds=seconds)
             
     else:
@@ -151,9 +153,9 @@ def start_trigger(project, trigger):
             def cache_mongoDB():
                 cache_data_to_mongoDB(project_name=project.name, key=activity.key)
 
-            if "_gold_" in activity.name:
+            if "_test_gold_" in activity.name:
                 scheduler.add_job(id = activity_id, func=cache_gold, trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)                
-            elif "_mongo_" in activity.name:
+            elif "_test_mongo_" in activity.name:
                 scheduler.add_job(id = activity_id, func=cache_mongoDB, trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
 
 def stop_trigger(trigger):

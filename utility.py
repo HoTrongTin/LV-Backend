@@ -197,6 +197,8 @@ def parseQuery(query, pathHDFS):
 def cache_gold_analysis_query(project_name, sql, key):
     pathHDFSsilver = "/{project_name}/silver/".format(project_name=project_name)
     sqlFormatted = parseQuery(sql, pathHDFSsilver)
+    print('-----------')
+    print(sqlFormatted)
     res = spark.sql(sqlFormatted)
     print(sqlFormatted)
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/{project_name}/gold/gold_{key}".format(project_name=project_name, key=key))

@@ -19,6 +19,7 @@ from utility import parseQuery
 from cronjobSilverToGold import *
 from cronjobGoldToMongoDB import *
 from build_models import buildModels
+from prediction import predict
 
 CORS(app)
 
@@ -102,6 +103,7 @@ def queryFormatted():
     # gets project info
     sql = jsonData['sql']
     startTime = time.time()
+    print(parseQuery(sql, '/medical/silver/'))
     res = spark.sql(parseQuery(sql, '/medical/silver/'))
 
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
@@ -173,6 +175,17 @@ def build_models():
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
     return jsonify({'body': results,
                     'time to execute': time.time() - startTime})
+
+@app.route('/predict', methods=['POST'])
+def predict():
+    jsonData = request.get_json()
+    algorithm = jsonData['algorithm']
+    startTime = time.time()
+    res = predict(algorithm)
+    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+
+    return jsonify({'time to execute': time.time() - startTime,
+                    'body': results})
 
 @app.route('/predict-by-CNNclassifier')
 def predict_by_CNNclassifier():

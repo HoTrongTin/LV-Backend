@@ -129,7 +129,7 @@ def start_trigger(project, trigger):
             seconds *= 60*60*24*7
 
         for activity_id in activity_ids:
-            activity = ActivitiesDefinition.objects(id = activity_id).first()
+            activity = ActivitiesDefinition_Test.objects(id = activity_id).first()
 
             def cache_gold():
                 cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key)
@@ -143,7 +143,7 @@ def start_trigger(project, trigger):
             
     else:
         for activity_id in activity_ids:
-            activity = ActivitiesDefinition.objects(id = activity_id).first()
+            activity = ActivitiesDefinition_Test.objects(id = activity_id).first()
 
             def cache_gold():
                 cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key)

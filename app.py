@@ -103,6 +103,7 @@ def queryFormatted():
     # gets project info
     sql = jsonData['sql']
     startTime = time.time()
+    print(parseQuery(sql, '/medical/silver/'))
     res = spark.sql(parseQuery(sql, '/medical/silver/'))
 
     results = res.toJSON().map(lambda j: json.loads(j)).collect()

@@ -500,7 +500,7 @@ def update_api(current_user, project_id, api_id):
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
-        api = ApisDefinition.objects(id=api_id, project=project).first()
+        api = ApisDefinition_Test.objects(id=api_id, project=project).first()
 
         if api:
             api.key = key
@@ -582,7 +582,7 @@ def get_api_by_id(current_user, project_id, api_id):
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
-        api = ApisDefinition.objects(id=api_id, project = project).first()
+        api = ApisDefinition_Test.objects(id=api_id, project = project).first()
 
         return jsonify({'body': api})
 
@@ -599,7 +599,7 @@ def delete_api(current_user, project_id, api_id):
 
         # TODO: delete cache key
 
-        ApisDefinition(id = api_id, project = project).delete()
+        ApisDefinition_Test(id = api_id, project = project).delete()
 
         response = make_response('Deleted.', 200)
         return track_activity(current_user, project, request, response)
@@ -784,7 +784,7 @@ def get_all_activities(current_user, project_id):
 
     if project:
 
-        apis = ApisDefinition.objects(project=project)
+        apis = ApisDefinition_Test.objects(project=project)
 
         result = []
 
@@ -808,7 +808,7 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
 
     if project:
 
-        apis = ApisDefinition.objects(project=project)
+        apis = ApisDefinition_Test.objects(project=project)
 
         triggers = TriggerDefinition.objects(project=project)
 

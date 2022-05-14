@@ -22,7 +22,7 @@ def cron_data_to_mongoDB():
 
     # Query all streams in each project
     for project in projects:
-        apis = ApisDefinition.objects(project = project)
+        apis = ApisDefinition_Test.objects(project = project)
 
         # For each stream
         for api in apis:
@@ -46,7 +46,7 @@ def cron_data_to_Gold():
 
     # Query all streams in each project
     for project in projects:
-        apis = ApisDefinition.objects(project = project)
+        apis = ApisDefinition_Test.objects(project = project)
 
         # For each stream
         for api in apis:

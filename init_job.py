@@ -130,13 +130,11 @@ def start_trigger(project, trigger):
 
         for activity_id in activity_ids:
             activity = ActivitiesDefinition_Test.objects(id = activity_id).first()
-            print("Activity name: " + str(activity.sql))
+            print("Activity name: " + str(activity.id))
 
             def cache_gold(project, activity):
-                print("Cache gold SQL: " + activity.sql)
                 cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key)
             def cache_mongoDB(project, activity):
-                print("Cache MongoDB key: " + activity.key)
                 cache_data_to_mongoDB(project_name=project.name, key=activity.key)
 
             if "_test_gold_" in activity.name:

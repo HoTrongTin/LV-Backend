@@ -132,31 +132,31 @@ def start_trigger(project, trigger):
             activity = ActivitiesDefinition_Test.objects(id = activity_id).first()
             print("Activity name: " + str(activity.sql))
 
-            def cache_gold():
+            def cache_gold(project, activity):
                 print("Cache gold SQL: " + activity.sql)
                 cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key)
-            def cache_mongoDB():
+            def cache_mongoDB(project, activity):
                 print("Cache MongoDB key: " + activity.key)
                 cache_data_to_mongoDB(project_name=project.name, key=activity.key)
 
             if "_test_gold_" in activity.name:
-                scheduler.add_job(id = activity_id, func=cache_gold, trigger="interval", seconds=seconds)
+                scheduler.add_job(id = activity_id, func=cache_gold, args=[project, activity], trigger="interval", seconds=seconds)
             elif "_test_mongo_" in activity.name:
-                scheduler.add_job(id = activity_id, func=cache_mongoDB, trigger="interval", seconds=seconds)
+                scheduler.add_job(id = activity_id, func=cache_mongoDB, args=[project, activity], trigger="interval", seconds=seconds)
             
     else:
         for activity_id in activity_ids:
             activity = ActivitiesDefinition_Test.objects(id = activity_id).first()
 
-            def cache_gold():
+            def cache_gold(project, activity):
                 cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key)
-            def cache_mongoDB():
+            def cache_mongoDB(project, activity):
                 cache_data_to_mongoDB(project_name=project.name, key=activity.key)
 
             if "_test_gold_" in activity.name:
-                scheduler.add_job(id = activity_id, func=cache_gold, trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)                
+                scheduler.add_job(id = activity_id, func=cache_gold, args=[project, activity], trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)                
             elif "_test_mongo_" in activity.name:
-                scheduler.add_job(id = activity_id, func=cache_mongoDB, trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
+                scheduler.add_job(id = activity_id, func=cache_mongoDB, args=[project, activity], trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
 
 def stop_trigger(trigger):
     activity_ids = trigger.activity_ids

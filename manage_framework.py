@@ -789,7 +789,7 @@ def get_all_activities(current_user, project_id):
         result = []
 
         for api in apis:
-            activities = ActivitiesDefinition.objects(api=api)
+            activities = ActivitiesDefinition_Test.objects(api=api)
             for act in activities:
                 result.append(act)
 
@@ -820,7 +820,7 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
 
         for api in apis:
             print('---------------------------------')
-            activities = ActivitiesDefinition.objects(api=api)
+            activities = ActivitiesDefinition_Test.objects(api=api)
             for act in activities:
                 print('activity_id: ')
                 print(act.id)

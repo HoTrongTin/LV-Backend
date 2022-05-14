@@ -130,6 +130,7 @@ def start_trigger(project, trigger):
 
         for activity_id in activity_ids:
             activity = ActivitiesDefinition_Test.objects(id = activity_id).first()
+            print("dmmmmmmm" + activity.name)
 
             def cache_gold():
                 cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key)

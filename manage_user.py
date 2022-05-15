@@ -236,11 +236,12 @@ def get_parent_from_child(current_user):
     else:
         return current_user
 
-def track_activity(current_user, project, request, response):
+def track_activity(current_user, action, project, request, response):
     
     log = ActivityLog(
         project = project,
         actor = current_user,
+        action = action,
         api_path = request.path,
         body = json.dumps(request.get_json()),
         response = json_util.dumps(response)

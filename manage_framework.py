@@ -135,7 +135,7 @@ def create_streaming(current_user, project_id):
             startStream(project=project, stream=new_streaming)
 
         response = {'body': new_streaming}
-        return track_activity(current_user, project, request, response)
+        return track_activity(current_user, 'Create Streaming', project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -250,7 +250,7 @@ def update_streaming(current_user, project_id, streaming_id):
                 startStream(project=project, stream=streaming)
 
             response = {'body': streaming}
-            return track_activity(current_user, project, request, response)
+            return track_activity(current_user, 'Update Streaming', project, request, response)
         else:
             return make_response('streaming does not exist.', 400)
 
@@ -298,7 +298,7 @@ def create_dataset(current_user, project_id):
         new_dataset.save()
 
         response = {'body': new_dataset}
-        return track_activity(current_user, project, request, response)
+        return track_activity(current_user, 'Create Dataset' ,project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -396,7 +396,7 @@ def create_api(current_user, project_id):
         cache_data_to_mongoDB(project_name=project.name, key=new_api.key)
 
         response = {'body': new_api}
-        return track_activity(current_user, project, request, response)
+        return track_activity(current_user, 'Create API', project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -461,7 +461,7 @@ def create_api_test(current_user, project_id):
         cache_data_to_mongoDB(project_name=project.name, key=new_api.key)
 
         response = {'body': new_api}
-        return track_activity(current_user, project, request, response)
+        return track_activity(current_user, 'Create API', project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -512,7 +512,7 @@ def update_api(current_user, project_id, api_id):
             # TODO: run api cache for new key setup
 
             response = {'body': api}
-            return track_activity(current_user, project, request, response)
+            return track_activity(current_user, 'Update API', project, request, response)
         else:
             return make_response('Api does not exist.', 400)
 
@@ -602,7 +602,7 @@ def delete_api(current_user, project_id, api_id):
         ApisDefinition_Test(id = api_id, project = project).delete()
 
         response = make_response('Deleted.', 200)
-        return track_activity(current_user, project, request, response)
+        return track_activity(current_user, 'Delete API', project, request, response)
     else:  
         return make_response('Project does not exist.', 400)
 
@@ -619,7 +619,7 @@ def delete_api_test(current_user, project_id, api_id):
         ApisDefinition_Test(id = api_id, project = project).delete()
 
         response = make_response('Deleted.', 200)
-        return track_activity(current_user, project, request, response)
+        return track_activity(current_user, 'Delete API', project, request, response)
     else:  
         return make_response('Project does not exist.', 400)
 
@@ -662,7 +662,7 @@ def create_trigger(current_user, project_id):
             start_trigger(project=project, trigger=new_trigger)
         
         response = {'body': new_trigger}
-        return track_activity(current_user, project, request, response)
+        return track_activity(current_user, 'Create Trigger', project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -750,7 +750,7 @@ def update_trigger(current_user, project_id, trigger_id):
             start_trigger(project=project, trigger=trigger)
         
         response = {'body': "Updated sucessful!"}
-        return track_activity(current_user, project, request, response)
+        return track_activity(current_user, 'Update trigger', project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -769,7 +769,7 @@ def delete_trigger(current_user, project_id, trigger_id):
         TriggerDefinition(id = trigger_id, project = project).delete()
 
         response = make_response('Deleted.', 200)
-        return track_activity(current_user, project, request, response)
+        return track_activity(current_user, 'Delete Trigger', project, request, response)
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -848,6 +848,24 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
                     result.append(act)
 
         return jsonify({'body': result})
+
+    else:  
+        return make_response('Project does not exist.', 400)
+
+
+####################################################################################################################
+# Get activities log in project
+@app.route('/project/<project_id>/activity-log', methods =['GET'])
+@token_required
+def get_activity_log(current_user, project_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
+
+    if project:
+        activities_logs = ActivityLog.objects(project = project).order_by("-id")
+
+        return jsonify({'body': activities_logs})
 
     else:  
         return make_response('Project does not exist.', 400)

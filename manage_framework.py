@@ -244,7 +244,7 @@ def update_streaming(current_user, project_id, streaming_id):
             elif streaming.status == 'ACTIVE' and old_streaming.status != 'ACTIVE':
                 
                 startStream(project=project, stream=streaming)
-            else:
+            elif streaming.status == 'ACTIVE' and old_streaming.status == 'ACTIVE':
                 
                 stopStream(project=project, stream=old_streaming)
                 startStream(project=project, stream=streaming)
@@ -740,12 +740,12 @@ def update_trigger(current_user, project_id, trigger_id):
         trigger.save()
 
 
-        # Start trigger
+        # Reset trigger
         if trigger.status != 'ACTIVE' and old_trigger.status == 'ACTIVE':
             stop_trigger(trigger=old_trigger)
         elif trigger.status == 'ACTIVE' and old_trigger.status != 'ACTIVE':
             start_trigger(project=project, trigger=trigger)
-        else:
+        elif trigger.status == 'ACTIVE' and old_trigger.status == 'ACTIVE':
             stop_trigger(trigger=old_trigger)
             start_trigger(project=project, trigger=trigger)
         

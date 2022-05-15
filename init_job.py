@@ -24,7 +24,6 @@ def init_project():
     scheduler.start()
 
     projects = Project.objects()
-    print('Projects: ' + str(projects))
 
     # Query all streams in each project
     for project in projects:
@@ -130,7 +129,6 @@ def start_trigger(project, trigger):
 
         for activity_id in activity_ids:
             activity = ActivitiesDefinition_Test.objects(id = activity_id).first()
-            print("Activity name: " + str(activity.id))
 
             def cache_gold(project, activity):
                 cache_gold_analysis_query(project_name=project.name, sql=activity.sql, key=activity.key)

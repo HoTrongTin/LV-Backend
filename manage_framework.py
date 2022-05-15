@@ -851,3 +851,21 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
 
     else:  
         return make_response('Project does not exist.', 400)
+
+
+####################################################################################################################
+# Get activities log in project
+@app.route('/project/<project_id>/activity-log', methods =['GET'])
+@token_required
+def get_activity_log(current_user, project_id):
+
+    # checking for existing project
+    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
+
+    if project:
+        activities_logs = ActivityLog.objects(project = project).order_by("-id")
+
+        return jsonify({'body': activities_logs})
+
+    else:  
+        return make_response('Project does not exist.', 400)

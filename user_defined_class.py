@@ -103,7 +103,7 @@ class TriggerDefinition(db.Document):
 
 class ActivityLog(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
-    actor = db.ReferenceField(User, reverse_delete_rule=CASCADE)
+    actor = db.ReferenceField(User, reverse_delete_rule=CASCADE, dbref=True)
     action = db.StringField()
     api_path = db.StringField()
     body = db.StringField()

@@ -105,6 +105,7 @@ class ActivityLog(db.Document):
     project = db.ReferenceField(Project, reverse_delete_rule=CASCADE)
     actor = db.ReferenceField(User, reverse_delete_rule=CASCADE, dbref=True)
     actor_name = db.StringField()
+    actor_role = db.StringField()
     action = db.StringField()
     api_path = db.StringField()
     body = db.StringField()

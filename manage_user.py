@@ -240,6 +240,7 @@ def track_activity(current_user, action, project, request, response):
     log = ActivityLog(
         project = project,
         actor = current_user,
+        actor_name = current_user.name,
         action = action,
         api_path = request.path,
         body = json.dumps(request.get_json()),

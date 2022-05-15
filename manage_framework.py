@@ -244,7 +244,7 @@ def update_streaming(current_user, project_id, streaming_id):
             elif streaming.status == 'ACTIVE' and old_streaming.status != 'ACTIVE':
                 
                 startStream(project=project, stream=streaming)
-            else:
+            elif streaming.status == 'ACTIVE' and old_streaming.status == 'ACTIVE':
                 
                 stopStream(project=project, stream=old_streaming)
                 startStream(project=project, stream=streaming)

@@ -1,3 +1,4 @@
+import datetime
 from email.policy import default
 from appSetup import db
 from tkinter import CASCADE
@@ -108,3 +109,4 @@ class ActivityLog(db.Document):
     api_path = db.StringField()
     body = db.StringField()
     response = db.StringField()
+    created_at = db.DateTimeField(default=datetime.datetime.utcnow)

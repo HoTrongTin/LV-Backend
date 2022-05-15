@@ -709,7 +709,7 @@ def update_trigger(current_user, project_id, trigger_id):
     name = jsonData['name']
     status = jsonData['status']
     trigger_type = jsonData['trigger_type']
-    time_interval = jsonData['time_interval']
+    time_interval = float(jsonData['time_interval'])
     time_interval_unit = jsonData['time_interval_unit']
     cron_day_of_week = jsonData['cron_day_of_week']
     cron_hour = jsonData['cron_hour']

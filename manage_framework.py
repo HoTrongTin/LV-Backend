@@ -863,7 +863,7 @@ def get_activity_log(current_user, project_id):
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
-        activities_logs = ActivityLog.objects(project = project).order_by("-created_at").select_related()
+        activities_logs = ActivityLog.objects(project = project).select_related(max_depth=2).order_by("-created_at")
 
         return jsonify({'body': activities_logs})
 

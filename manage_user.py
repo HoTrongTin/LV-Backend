@@ -241,6 +241,7 @@ def track_activity(current_user, action, project, request, response):
         project = project,
         actor = current_user,
         actor_name = current_user.name,
+        actor_role = current_user.role,
         action = action,
         api_path = request.path,
         body = json.dumps(request.get_json()),

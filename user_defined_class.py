@@ -108,4 +108,4 @@ class ActivityLog(db.Document):
     api_path = db.StringField()
     body = db.StringField()
     response = db.StringField()
-    created_at = db.DateTimeField(default=datetime.datetime.utcnow)
+    created_at = db.DateTimeField(default=datetime.utcnow)

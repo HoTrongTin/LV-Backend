@@ -1,9 +1,8 @@
-import datetime
 from email.policy import default
 from appSetup import db
 from tkinter import CASCADE
 from enum import Enum
-
+from datetime import datetime, timedelta
 # class UserRole(str, Enum):
 #     DOCTOR = 'doctor'
 #     PATIENT = 'patient'
@@ -109,4 +108,4 @@ class ActivityLog(db.Document):
     api_path = db.StringField()
     body = db.StringField()
     response = db.StringField()
-    created_at = db.DateTimeField(default=datetime.datetime.utcnow())
+    created_at = db.DateTimeField(default=datetime.datetime.utcnow)

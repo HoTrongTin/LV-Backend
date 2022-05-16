@@ -17,16 +17,6 @@ def accuracy(resDF):
     print('False Positive Rate (FPR): {0}'.format(fp/(fp+tn)))
 
 def predict(algorithm):
-      testDF = spark.read.format("csv") \
-      .option("header", True) \
-      .schema(schema) \
-      .load("/dataML/data0405_ver4.csv")
-
-      evaluator = MulticlassClassificationEvaluator( \
-                  labelCol="label", \
-                  predictionCol="prediction", \
-                  metricName="accuracy")
-
       schema = StructType() \
             .add("age","float",True) \
             .add("weight","float",True) \
@@ -47,6 +37,16 @@ def predict(algorithm):
             .add("sodium","float",True) \
             .add("ethnicity","integer",True) \
             .add("label","float",True)
+            
+      testDF = spark.read.format("csv") \
+      .option("header", True) \
+      .schema(schema) \
+      .load("/dataML/data0405_ver4.csv")
+
+      evaluator = MulticlassClassificationEvaluator( \
+                  labelCol="label", \
+                  predictionCol="prediction", \
+                  metricName="accuracy")
 
       pipeline = PipelineModel.load("model_classifier/" + algorithm)
       predRes = pipeline.transform(testDF)

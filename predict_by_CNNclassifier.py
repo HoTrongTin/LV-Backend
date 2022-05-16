@@ -11,7 +11,7 @@ import pandas as pd
 #   b = len(testTest[testTest >= prob]) / len(y_test[y_test == 1])
 #   print(prob, m, a, b)
 
-def predict(prob = 0.28):
+def predictANN(prob = 0.28):
     classifier = tf.keras.models.load_model('model_classifier/CNN_classifier')
 
     # Check its architecture

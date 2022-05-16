@@ -6,7 +6,7 @@ import numpy as np
 import time
 import atexit
 from build_model_CNNclassifier import build_model
-from predict_by_CNNclassifier import predict
+from predict_by_CNNclassifier import predictANN
 
 from appSetup import app, CacheQuery
 from sparkSetup import spark
@@ -188,7 +188,7 @@ def predict():
 
 @app.route('/predict-by-CNNclassifier')
 def predict_by_CNNclassifier():
-    df = predict(prob = 0.28)
+    df = predictANN(prob = 0.28)
     res = spark.createDataFrame(df)
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
     return jsonify({'body': results})

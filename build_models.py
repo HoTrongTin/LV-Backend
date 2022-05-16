@@ -58,6 +58,7 @@ def buildModels():
       pipeline_lr = Pipeline(stages=[vecAssembler, stdScaler, lr])
       pipelineModel_lr = pipeline_lr.fit(trainDF)
       pipelineModel_lr.write().overwrite().save("model_classifier/LogisticRegression")
+      print('Built LogisticRegression model successful!')
 
       # 2.LinearSVC
       lsvc = LinearSVC(maxIter=10, \
@@ -67,6 +68,7 @@ def buildModels():
       pipeline_lsvc = Pipeline(stages=[vecAssembler, stdScaler, lsvc])
       pipelineModel_lsvc = pipeline_lsvc.fit(trainDF)
       pipelineModel_lsvc.write().overwrite().save("model_classifier/LinearSVC")
+      print('Built LinearSVC model successful!')
 
       # 3. NaiveBayes
       nb = NaiveBayes(smoothing=1.0, \
@@ -76,6 +78,7 @@ def buildModels():
       pipeline_nb = Pipeline(stages=[vecAssembler, stdScaler, nb])
       pipelineModel_nb = pipeline_nb.fit(trainDF)
       pipelineModel_nb.write().overwrite().save("model_classifier/NaiveBayes")
+      print('Built NaiveBayes model successful!')
 
       # 4. DecisionTreeClassifier
       dt = DecisionTreeClassifier(labelCol="label", \
@@ -84,6 +87,7 @@ def buildModels():
       pipeline_dt = Pipeline(stages=[vecAssembler, stdScaler, dt])
       pipelineModel_dt = pipeline_dt.fit(trainDF)
       pipelineModel_dt.write().overwrite().save("model_classifier/DecisionTreeClassifier")
+      print('Built DecisionTreeClassifier model successful!')
 
       # 5 . RandomForestClassifier
       rf = RandomForestClassifier(labelCol="label", \
@@ -92,6 +96,7 @@ def buildModels():
       pipeline_rf = Pipeline(stages=[vecAssembler, stdScaler, rf])
       pipelineModel_rf = pipeline_rf.fit(trainDF)
       pipelineModel_rf.write().overwrite().save("model_classifier/RandomForestClassifier")
+      print('Built RandomForestClassifier model successful!')
 
       # 6 . GBTClassifier
       gbt = GBTClassifier(labelCol="label", \
@@ -100,6 +105,7 @@ def buildModels():
       pipeline_gbt = Pipeline(stages=[vecAssembler, stdScaler, gbt])
       pipelineModel_gbt = pipeline_gbt.fit(trainDF)
       pipelineModel_gbt.write().overwrite().save("model_classifier/GBTClassifier")
+      print('Built GBTClassifier model successful!')
 
       # 7 . MultilayerPerceptronClassifier
       layers = [18, 5, 4, 2]
@@ -112,6 +118,7 @@ def buildModels():
       pipeline_mlp = Pipeline(stages=[vecAssembler, stdScaler, mlp])
       pipelineModel_mlp = pipeline_mlp.fit(trainDF)
       pipelineModel_mlp.write().overwrite().save("model_classifier/MultilayerPerceptronClassifier")
+      print('Built MultilayerPerceptronClassifier model successful!')
 
       # 8 . OneVsRest
       ovr = OneVsRest(classifier=lr, \
@@ -120,6 +127,7 @@ def buildModels():
       pipeline_ovr = Pipeline(stages=[vecAssembler, stdScaler, ovr])
       pipelineModel_ovr = pipeline_ovr.fit(trainDF)
       pipelineModel_ovr.write().overwrite().save("model_classifier/OneVsRest")
+      print('Built OneVsRest model successful!')
 
       # 9 . FMClassifier
       fm = FMClassifier(labelCol="label", \
@@ -128,3 +136,4 @@ def buildModels():
       pipeline_fm = Pipeline(stages=[vecAssembler, stdScaler, fm])
       pipelineModel_fm = pipeline_fm.fit(trainDF)
       pipelineModel_fm.write().overwrite().save("model_classifier/FMClassifier")
+      print('Built FMClassifier model successful!')

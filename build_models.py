@@ -99,8 +99,8 @@ def buildModels():
 
       # 6 . GBTClassifier
       gbt = GBTClassifier(labelCol="label", \
-                    featuresCol="scaledFeatures", maxDepth = 30,\
-                    maxIter=20)
+                        featuresCol="scaledFeatures", \
+                        maxIter=10)
       pipeline_gbt = Pipeline(stages=[vecAssembler, stdScaler, gbt])
       pipelineModel_gbt = pipeline_gbt.fit(trainDF)
       pipelineModel_gbt.write().overwrite().save("model_classifier/GBTClassifier")

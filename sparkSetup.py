@@ -3,7 +3,7 @@ import configparser
 from delta import *
 import os
 
-os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.3.1 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.autoBroadcastJoinThreshold" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" --conf "spark.sql.debug.maxToStringFields=100" --master spark://10.1.8.101:7077 pyspark-shell'
+os.environ['PYSPARK_SUBMIT_ARGS'] = '--packages io.delta:delta-core_2.12:1.1.0,org.apache.hadoop:hadoop-aws:3.3.1 --conf "spark.sql.extensions=io.delta.sql.DeltaSparkSessionExtension" --conf "spark.sql.autoBroadcastJoinThreshold=-1" --conf "spark.sql.catalog.spark_catalog=org.apache.spark.sql.delta.catalog.DeltaCatalog" --conf "spark.sql.debug.maxToStringFields=100" --master spark://10.1.8.101:7077 pyspark-shell'
 
 #config
 config_obj = configparser.ConfigParser()

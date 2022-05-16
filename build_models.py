@@ -15,21 +15,6 @@ from pyspark.ml.classification import FMClassifier
 from pyspark.ml import PipelineModel
 
 def buildModels():
-      trainDF = spark.read.format("csv") \
-      .option("header", True) \
-      .schema(schema) \
-      .load("/dataML/dataTrain0405.csv")
-
-      testDF = spark.read.format("csv") \
-      .option("header", True) \
-      .schema(schema) \
-      .load("/dataML/data0405_ver4.csv")
-
-      vecAssembler = VectorAssembler(\
-                                    outputCol = "features") \
-                                    .setHandleInvalid("skip")
-      vecAssembler.setInputCols(['age', 'weight', 'gender_M', 'platelets', 'spo2', 'creatinine', 'hematocrit', 'aids', 'lymphoma', 'solid_tumor_with_metastasis', 'heartrate', 'calcium', 'wbc', 'glucose', 'inr', 'potassium', 'sodium', 'ethnicity'])
-
       schema = StructType() \
             .add("age","float",True) \
             .add("weight","float",True) \
@@ -50,6 +35,21 @@ def buildModels():
             .add("sodium","float",True) \
             .add("ethnicity","integer",True) \
             .add("label","float",True)
+            
+      trainDF = spark.read.format("csv") \
+      .option("header", True) \
+      .schema(schema) \
+      .load("/dataML/dataTrain0405.csv")
+
+      testDF = spark.read.format("csv") \
+      .option("header", True) \
+      .schema(schema) \
+      .load("/dataML/data0405_ver4.csv")
+
+      vecAssembler = VectorAssembler(\
+                                    outputCol = "features") \
+                                    .setHandleInvalid("skip")
+      vecAssembler.setInputCols(['age', 'weight', 'gender_M', 'platelets', 'spo2', 'creatinine', 'hematocrit', 'aids', 'lymphoma', 'solid_tumor_with_metastasis', 'heartrate', 'calcium', 'wbc', 'glucose', 'inr', 'potassium', 'sodium', 'ethnicity'])
 
       stdScaler = StandardScaler(inputCol="features", \
                               outputCol="scaledFeatures", \

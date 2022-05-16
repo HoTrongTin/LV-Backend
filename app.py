@@ -176,7 +176,7 @@ def build_models():
                     'time to execute': time.time() - startTime})
 
 @app.route('/predict', methods=['POST'])
-def predict():
+def predictModels():
     jsonData = request.get_json()
     algorithm = jsonData['algorithm']
     startTime = time.time()

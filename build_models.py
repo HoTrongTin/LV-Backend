@@ -12,7 +12,6 @@ from pyspark.ml.classification import GBTClassifier
 from pyspark.ml.classification import MultilayerPerceptronClassifier
 from pyspark.ml.classification import OneVsRest
 from pyspark.ml.classification import FMClassifier
-from pyspark.ml import PipelineModel
 
 def buildModels():
       schema = StructType() \
@@ -46,6 +45,7 @@ def buildModels():
                                     .setHandleInvalid("skip")
       vecAssembler.setInputCols(['age', 'weight', 'gender_M', 'platelets', 'spo2', 'creatinine', 'hematocrit', 'aids', 'lymphoma', 'solid_tumor_with_metastasis', 'heartrate', 'calcium', 'wbc', 'glucose', 'inr', 'potassium', 'sodium', 'ethnicity'])
 
+
       stdScaler = StandardScaler(inputCol="features", \
                               outputCol="scaledFeatures", \
                               withStd=True, \
@@ -61,60 +61,60 @@ def buildModels():
 
       # 2.LinearSVC
       lsvc = LinearSVC(maxIter=10, \
-                 featuresCol="scaledFeatures", \
-                 labelCol="label")
+                  regParam=0.1, \
+                  featuresCol="scaledFeatures", \
+                  labelCol="label")
       pipeline_lsvc = Pipeline(stages=[vecAssembler, stdScaler, lsvc])
       pipelineModel_lsvc = pipeline_lsvc.fit(trainDF)
       pipelineModel_lsvc.write().overwrite().save("model_classifier/LinearSVC")
 
       # 3. NaiveBayes
-      nb = NaiveBayes(smoothing=0, \
-                modelType="gaussian", \
-                featuresCol="scaledFeatures", \
-                labelCol="label")
+      nb = NaiveBayes(smoothing=1.0, \
+                  modelType="gaussian", \
+                  featuresCol="scaledFeatures", \
+                  labelCol="label")
       pipeline_nb = Pipeline(stages=[vecAssembler, stdScaler, nb])
       pipelineModel_nb = pipeline_nb.fit(trainDF)
       pipelineModel_nb.write().overwrite().save("model_classifier/NaiveBayes")
 
       # 4. DecisionTreeClassifier
       dt = DecisionTreeClassifier(labelCol="label", \
-                            featuresCol="scaledFeatures", \
-                            impurity="gini", maxDepth = 30)
+                              featuresCol="scaledFeatures", \
+                              impurity="gini")
       pipeline_dt = Pipeline(stages=[vecAssembler, stdScaler, dt])
       pipelineModel_dt = pipeline_dt.fit(trainDF)
       pipelineModel_dt.write().overwrite().save("model_classifier/DecisionTreeClassifier")
 
       # 5 . RandomForestClassifier
       rf = RandomForestClassifier(labelCol="label", \
-                            featuresCol="scaledFeatures", maxDepth = 30,\
-                            numTrees=1)
+                              featuresCol="scaledFeatures", \
+                              numTrees=50)
       pipeline_rf = Pipeline(stages=[vecAssembler, stdScaler, rf])
       pipelineModel_rf = pipeline_rf.fit(trainDF)
       pipelineModel_rf.write().overwrite().save("model_classifier/RandomForestClassifier")
 
       # 6 . GBTClassifier
       gbt = GBTClassifier(labelCol="label", \
-                    featuresCol="scaledFeatures", maxDepth = 30,\
-                    maxIter=20)
+                        featuresCol="scaledFeatures", \
+                        maxIter=10)
       pipeline_gbt = Pipeline(stages=[vecAssembler, stdScaler, gbt])
       pipelineModel_gbt = pipeline_gbt.fit(trainDF)
       pipelineModel_gbt.write().overwrite().save("model_classifier/GBTClassifier")
 
       # 7 . MultilayerPerceptronClassifier
-      layers = [18, 16, 8, 2]
+      layers = [18, 5, 4, 2]
       # create the trainer and set its parameters
       mlp = MultilayerPerceptronClassifier(labelCol="label", \
-                                     featuresCol="scaledFeatures", \
-                                     maxIter=1, layers=layers, \
-                                     blockSize=128, \
-                                     seed=1234)
+                                          featuresCol="scaledFeatures", \
+                                          maxIter=100, layers=layers, \
+                                          blockSize=128, \
+                                          seed=1234)
       pipeline_mlp = Pipeline(stages=[vecAssembler, stdScaler, mlp])
       pipelineModel_mlp = pipeline_mlp.fit(trainDF)
       pipelineModel_mlp.write().overwrite().save("model_classifier/MultilayerPerceptronClassifier")
 
       # 8 . OneVsRest
-      lr_ovr = LogisticRegression(maxIter=10, tol=1E-6, fitIntercept=True)
-      ovr = OneVsRest(classifier=lr_ovr, \
+      ovr = OneVsRest(classifier=lr, \
                   labelCol="label", \
                   featuresCol="scaledFeatures")
       pipeline_ovr = Pipeline(stages=[vecAssembler, stdScaler, ovr])
@@ -123,10 +123,8 @@ def buildModels():
 
       # 9 . FMClassifier
       fm = FMClassifier(labelCol="label", \
-                  featuresCol="scaledFeatures", \
-                  stepSize=0.01)
+                        featuresCol="scaledFeatures", \
+                        stepSize=0.001)
       pipeline_fm = Pipeline(stages=[vecAssembler, stdScaler, fm])
       pipelineModel_fm = pipeline_fm.fit(trainDF)
       pipelineModel_fm.write().overwrite().save("model_classifier/FMClassifier")
-
-      return transformeddataset.select("label", "prediction").limit(5)

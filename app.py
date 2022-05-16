@@ -171,6 +171,7 @@ def build_model_CNNclassifier():
 @app.route('/build-models')
 def build_models():
     startTime = time.time()
+    buildModels()
     return jsonify({'body': 'Build models successful!',
                     'time to execute': time.time() - startTime})
 

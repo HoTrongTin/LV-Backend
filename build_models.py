@@ -35,16 +35,11 @@ def buildModels():
             .add("sodium","float",True) \
             .add("ethnicity","integer",True) \
             .add("label","float",True)
-            
+
       trainDF = spark.read.format("csv") \
       .option("header", True) \
       .schema(schema) \
       .load("/dataML/dataTrain0405.csv")
-
-      testDF = spark.read.format("csv") \
-      .option("header", True) \
-      .schema(schema) \
-      .load("/dataML/data0405_ver4.csv")
 
       vecAssembler = VectorAssembler(\
                                     outputCol = "features") \
@@ -63,9 +58,6 @@ def buildModels():
       pipeline_lr = Pipeline(stages=[vecAssembler, stdScaler, lr])
       pipelineModel_lr = pipeline_lr.fit(trainDF)
       pipelineModel_lr.write().overwrite().save("model_classifier/LogisticRegression")
-
-      pipeline = PipelineModel.load("model_classifier/LogisticRegression")
-      transformeddataset = pipeline.transform(testDF)
 
       # 2.LinearSVC
       lsvc = LinearSVC(maxIter=10, \

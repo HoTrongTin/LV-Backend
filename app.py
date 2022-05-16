@@ -171,9 +171,7 @@ def build_model_CNNclassifier():
 @app.route('/build-models')
 def build_models():
     startTime = time.time()
-    res = buildModels()
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-    return jsonify({'body': results,
+    return jsonify({'body': 'Build models successful!',
                     'time to execute': time.time() - startTime})
 
 @app.route('/predict', methods=['POST'])

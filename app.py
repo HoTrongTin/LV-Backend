@@ -5,8 +5,8 @@ import pandas as pd
 import numpy as np
 import time
 import atexit
-from build_model_CNNclassifier import build_model
-from predict_by_CNNclassifier import predictANN
+from build_model_ANNclassifier import build_model
+from predict_by_ANNclassifier import predictANN
 
 from appSetup import app, CacheQuery
 from sparkSetup import spark
@@ -179,10 +179,12 @@ def build_models():
 def predictModels():
     jsonData = request.get_json()
     algorithm = jsonData['algorithm']
+    filename = jsonData['filename']
     startTime = time.time()
-    res = predict(algorithm)
+    if algorithm == 'ANN':
+        res = predictANN(prob = 0.28, filename = filename)
+    else: res = predict(algorithm, filename = filename)
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
-
     return jsonify({'time to execute': time.time() - startTime,
                     'body': results})
 

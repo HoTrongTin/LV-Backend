@@ -163,15 +163,11 @@ def get_scheduler_jobs():
     print('+++++++++++++++ ENDD ++++++++++++++')
     return jsonify({'body': '+++++++++++++++ ENDD ++++++++++++++'})
 
-@app.route('/build-model-CNNclassifier')
-def build_model_CNNclassifier():
-    build_model()
-    return jsonify({'body': 'Build model CNNclassifier successful!'})
-
 @app.route('/build-models')
 def build_models():
     startTime = time.time()
     buildModels()
+    build_model()
     return jsonify({'body': 'Build models successful!',
                     'time to execute': time.time() - startTime})
 
@@ -187,13 +183,6 @@ def predictModels():
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
     return jsonify({'time to execute': time.time() - startTime,
                     'body': results})
-
-@app.route('/predict-by-CNNclassifier')
-def predict_by_CNNclassifier():
-    df = predictANN(prob = 0.28)
-    res = spark.createDataFrame(df)
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-    return jsonify({'body': results})
 
 #init trigger by schedule
 

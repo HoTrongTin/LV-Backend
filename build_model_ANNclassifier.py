@@ -47,3 +47,4 @@ def build_model():
 
     #save model
     classifier.save('model_classifier/ANN_classifier')
+    print('Built ANN model successful!')

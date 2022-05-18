@@ -4,6 +4,7 @@ from sparkSetup import spark
 from delta.tables import *
 from appSetup import CacheQuery
 import json
+import time
 
 import configparser
 
@@ -162,11 +163,13 @@ def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, sch
 
 #cache data to mongoDB
 def cache_data_to_mongoDB(project_name, key):
+    print('--------startTime: ' + str(time.time()))
     res = spark.read.format("delta").load("/{project_name}/gold/gold_{key}".format(project_name=project_name, key=key))
     results = res.toJSON().map(lambda j: json.loads(j)).collect()
     CacheQuery.objects(key=project_name + "_" + key).delete()
     data = CacheQuery(key=project_name + "_" + key,value=results)
     data.save()
+    print('--------endTime: ' + str(time.time()))
 
 #parseQuery
 def parseQuery(query, pathHDFS):
@@ -195,10 +198,10 @@ def parseQuery(query, pathHDFS):
 
 #cache data to Gold
 def cache_gold_analysis_query(project_name, sql, key):
+    print('--------startTime: ' + str(time.time()))
     pathHDFSsilver = "/{project_name}/silver/".format(project_name=project_name)
     sqlFormatted = parseQuery(sql, pathHDFSsilver)
-    print('-----------')
     print(sqlFormatted)
     res = spark.sql(sqlFormatted)
-    print(sqlFormatted)
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/{project_name}/gold/gold_{key}".format(project_name=project_name, key=key))
+    print('--------endTime: ' + str(time.time()))

@@ -495,7 +495,20 @@ def update_api(current_user, project_id, api_id):
     # gets api info
     key = jsonData['key']
     description = jsonData['description']
+    title = jsonData['title']
     sql = jsonData['sql']
+    chartType = jsonData['chartType']
+    xLabel = jsonData['xLabel']
+    xLabelField = jsonData['xLabelField']
+    yLabel = jsonData['yLabel']
+    yLabelField = jsonData['yLabelField']
+    descField = jsonData['descField']
+    numLines = jsonData['numLines']
+    tableFields = jsonData['tableFields']
+
+    lineNames = [{'yLabel': yLabel, 'yLabelField': yLabelField}]
+    for item in jsonData['lineNames']:
+        lineNames.append(item)
 
     # checking for existing project
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
@@ -504,9 +517,19 @@ def update_api(current_user, project_id, api_id):
         api = ApisDefinition_Test.objects(id=api_id, project=project).first()
 
         if api:
-            api.key = key
-            api.description = description
-            api.sql = sql
+            api.title = title, 
+            api.key=key, 
+            api.description=description, 
+            api.sql=sql, 
+            api.chartType=chartType, 
+            api.xLabel=xLabel, 
+            api.xLabelField=xLabelField, 
+            api.yLabel=yLabel, 
+            api.yLabelField=yLabelField, 
+            api.descField=descField,
+            api.numLines=numLines,
+            api.lineNames=lineNames,
+            api.tableFields=tableFields
             api.save()
 
             # TODO: if change key --> delete old key

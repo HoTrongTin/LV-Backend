@@ -2,7 +2,7 @@ from flask import Flask
 import configparser
 from flask_mongoengine import MongoEngine
 
-UPLOAD_FOLDER = 'dataML/dataPredict'
+UPLOAD_FOLDER = '/backend/dataML/dataPredict'
 ALLOWED_EXTENSIONS = {'txt', 'pdf', 'png', 'jpg', 'jpeg', 'gif', 'csv'}
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER

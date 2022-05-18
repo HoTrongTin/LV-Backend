@@ -7,6 +7,7 @@ from user_defined_class import *
 from init_job import *
 from manage_user import get_parent_from_child, token_required, track_activity
 from werkzeug.utils import secure_filename
+import os
 
 ###################################################################### PROJECT ##################################################################
 # Create project
@@ -898,7 +899,9 @@ def get_activity_log(current_user, project_id):
 ####################################################################################################################
 @app.route('/uploader', methods = ['GET', 'POST'])
 def upload_file():
-   if request.method == 'POST':
-      f = request.files['file']
-      f.save(secure_filename(f.filename))
-      return 'file uploaded successfully'
+    if request.method == 'POST':
+        file = request.files['file']
+        filename = secure_filename(file.filename)
+        #   f.save()
+        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        return 'file uploaded successfully'

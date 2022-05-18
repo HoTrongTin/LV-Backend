@@ -42,5 +42,6 @@ def predictANN(prob = 0.28, filename = "data0405_ver4.csv"):
     print('False Positive Rate (FPR): {0}'.format(fp/(fp+tn)))
 
     datasetRes = pd.DataFrame({'hadm_id': predict_data['hadm_id'], 'prediction': result})
-    datasetRes.to_csv('dataML/predictRes/result_ANN_' + filename,index=False)
-    return spark.createDataFrame(datasetRes.iloc[:5,:])
+    # datasetRes.to_csv('dataML/predictRes/result_ANN_' + filename,index=False)
+    # return spark.createDataFrame(datasetRes.iloc[:5,:])
+    return spark.createDataFrame(datasetRes)

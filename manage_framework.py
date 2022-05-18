@@ -903,5 +903,7 @@ def upload_file():
         file = request.files['file']
         filename = secure_filename(file.filename)
         #   f.save()
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        folder = os.path.join(app.config['UPLOAD_FOLDER']);
+        print('folder: ' + str(folder))
+        file.save(folder, filename)
         return 'file uploaded successfully'

@@ -1,6 +1,7 @@
 import tensorflow as tf
 import pandas as pd
 from sklearn.metrics import confusion_matrix
+from sparkSetup import spark
 
 #Function to check result with input prob which classifier one patient be or not be sick
 # def check(classifier, X_predict, X_train, y_train, X_test, y_test, prob):
@@ -42,4 +43,4 @@ def predictANN(prob = 0.28, filename = "data0405_ver4.csv"):
 
     datasetRes = pd.DataFrame({'hadm_id': predict_data['hadm_id'], 'prediction': result})
     datasetRes.to_csv('dataML/predictRes/result_ANN_' + filename,index=False)
-    return datasetRes.iloc[:5,:]
+    return spark.createDataFrame(datasetRes.iloc[:5,:])

@@ -27,4 +27,4 @@ def predict(algorithm, filename = "data0405_ver4.csv"):
       datasetRes = predRes.select("hadm_id", "prediction").toPandas()
       datasetRes.to_csv('dataML/predictRes/result_' + algorithm + '_' + filename,index=False)
 
-      return datasetRes.iloc[:5,:]
+      return spark.createDataFrame(datasetRes.iloc[:5,:])

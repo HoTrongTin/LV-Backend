@@ -6,6 +6,8 @@ from appSetup import app
 from user_defined_class import *
 from init_job import *
 from manage_user import get_parent_from_child, token_required, track_activity
+from werkzeug.utils import secure_filename
+import os
 
 ###################################################################### PROJECT ##################################################################
 # Create project
@@ -892,3 +894,16 @@ def get_activity_log(current_user, project_id):
 
     else:  
         return make_response('Project does not exist.', 400)
+
+
+####################################################################################################################
+@app.route('/uploader', methods = ['GET', 'POST'])
+def upload_file():
+    if request.method == 'POST':
+        file = request.files['file']
+        filename = secure_filename(file.filename)
+        #   f.save()
+        path = os.path.join(app.config['UPLOAD_FOLDER'], filename);
+        print('path: ' + str(path))
+        file.save(path)
+        return 'file uploaded successfully'

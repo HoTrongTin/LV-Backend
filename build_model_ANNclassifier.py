@@ -10,7 +10,7 @@ from tensorflow.keras.layers import Dense
 from sklearn.model_selection import train_test_split
 from imblearn.over_sampling import RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
-from sparkSetup import spark
+# from sparkSetup import spark
 # from collections import Counter
 # import tensorflow as tf
 # import numpy as np

@@ -3,9 +3,15 @@ from utility import *
 import configparser
 from user_defined_class import *
 from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
+
+executors = {
+    'default': ThreadPoolExecutor(30),
+    'processpool': ProcessPoolExecutor(5)
+}
 
 #Set up scheduler
-scheduler = BackgroundScheduler()
+scheduler = BackgroundScheduler(executors=executors)
 scheduler.configure(timezone='Asia/Ho_Chi_Minh')
 
 #config

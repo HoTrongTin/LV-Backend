@@ -6,7 +6,7 @@ from appSetup import app
 from user_defined_class import *
 from init_job import *
 from manage_user import get_parent_from_child, token_required, track_activity
-from werkzeug import secure_filename
+from werkzeug.utils import secure_filename
 
 ###################################################################### PROJECT ##################################################################
 # Create project

@@ -906,4 +906,4 @@ def upload_file():
         path = os.path.join(app.config['UPLOAD_FOLDER'], filename);
         print('path: ' + str(path))
         file.save(path)
-        return filename
+        return jsonify({'body': filename})

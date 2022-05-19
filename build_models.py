@@ -29,7 +29,7 @@ def buildModels():
                               withMean=False)
       # 1. LogisticRegression
       lr = LogisticRegression(maxIter=100, \
-                        elasticNetParam=1, \
+                        featuresCol="scaledFeatures", \
                         family = "binomial", \
                         labelCol="label")
       pipeline_lr = Pipeline(stages=[vecAssembler, stdScaler, lr])
@@ -37,6 +37,7 @@ def buildModels():
       pipelineModel_lr.write().overwrite().save("model_classifier/LogisticRegression")
       print('Built LogisticRegression model successful!')
 
+      #need modify
       # 2.LinearSVC
       lsvc = LinearSVC(maxIter=10, \
                  featuresCol="scaledFeatures", \
@@ -47,8 +48,7 @@ def buildModels():
       print('Built LinearSVC model successful!')
 
       # 3. NaiveBayes
-      nb = NaiveBayes(smoothing=0, \
-                modelType="gaussian", \
+      nb = NaiveBayes(modelType="gaussian", \
                 featuresCol="scaledFeatures", \
                 labelCol="label")
       pipeline_nb = Pipeline(stages=[vecAssembler, stdScaler, nb])
@@ -67,22 +67,24 @@ def buildModels():
 
       # 5 . RandomForestClassifier
       rf = RandomForestClassifier(labelCol="label", \
-                            featuresCol="scaledFeatures", maxDepth = 30,\
-                            numTrees=1)
+                            featuresCol="scaledFeatures", maxDepth = 15,\
+                            numTrees=27)
       pipeline_rf = Pipeline(stages=[vecAssembler, stdScaler, rf])
       pipelineModel_rf = pipeline_rf.fit(trainDF)
       pipelineModel_rf.write().overwrite().save("model_classifier/RandomForestClassifier")
       print('Built RandomForestClassifier model successful!')
 
+      #need modify
       # 6 . GBTClassifier
       gbt = GBTClassifier(labelCol="label", \
-                        featuresCol="scaledFeatures", \
-                        maxIter=10)
+                    featuresCol="scaledFeatures",  maxDepth = 10,\
+                    maxIter=50)
       pipeline_gbt = Pipeline(stages=[vecAssembler, stdScaler, gbt])
       pipelineModel_gbt = pipeline_gbt.fit(trainDF)
       pipelineModel_gbt.write().overwrite().save("model_classifier/GBTClassifier")
       print('Built GBTClassifier model successful!')
 
+      #need modify
       # 7 . MultilayerPerceptronClassifier
       layers = [18, 16, 8, 2]
       # create the trainer and set its parameters
@@ -96,6 +98,7 @@ def buildModels():
       pipelineModel_mlp.write().overwrite().save("model_classifier/MultilayerPerceptronClassifier")
       print('Built MultilayerPerceptronClassifier model successful!')
 
+      #need modify
       # 8 . OneVsRest
       lr_ovr = LogisticRegression(maxIter=10, tol=1E-6, fitIntercept=True)
       ovr = OneVsRest(classifier=lr_ovr, \

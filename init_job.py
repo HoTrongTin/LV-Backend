@@ -151,9 +151,9 @@ def start_trigger(project, trigger):
                 cache_data_to_mongoDB(project_name=project.name, key=activity.key)
 
             if "_test_gold_" in activity.name:
-                scheduler.add_job(id = activity_id, func=cache_gold, args=[project, activity], trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)                
+                scheduler.add_job(id = activity_id, misfire_grace_time=5, func=cache_gold, args=[project, activity], trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)                
             elif "_test_mongo_" in activity.name:
-                scheduler.add_job(id = activity_id, func=cache_mongoDB, args=[project, activity], trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
+                scheduler.add_job(id = activity_id, misfire_grace_time=5, func=cache_mongoDB, args=[project, activity], trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
 
 def stop_trigger(trigger):
     activity_ids = trigger.activity_ids

@@ -180,13 +180,11 @@ def predictModels():
     if algorithm == 'ANN':
         res = predictANN(prob = 0.28, filename = filename)
         results = res.toJSON().map(lambda j: json.loads(j)).collect()
-        return jsonify({'time to execute': time.time() - startTime,
-                        'body': results})
+        return jsonify({'body': results})
     else: 
         res = predict(algorithm, filename = filename)
         results = res.toJSON().map(lambda j: json.loads(j)).collect()
-        return jsonify({'time to execute': time.time() - startTime,
-                        'body': results})
+        return jsonify({'body': results})
 
 #init trigger by schedule
 

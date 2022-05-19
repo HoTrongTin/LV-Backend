@@ -3,7 +3,6 @@ from utility import *
 import configparser
 from user_defined_class import *
 from apscheduler.schedulers.background import BackgroundScheduler
-from apscheduler.executors.pool import ThreadPoolExecutor, ProcessPoolExecutor
 
 #Set up scheduler
 scheduler = BackgroundScheduler()
@@ -137,9 +136,9 @@ def start_trigger(project, trigger):
                 cache_data_to_mongoDB(project_name=project.name, key=activity.key)
 
             if "_test_gold_" in activity.name:
-                scheduler.add_job(id = activity_id, func=cache_gold, args=[project, activity], trigger="interval", seconds=seconds)
+                scheduler.add_job(id = activity_id, misfire_grace_time=120, func=cache_gold, args=[project, activity], trigger="interval", seconds=seconds)
             elif "_test_mongo_" in activity.name:
-                scheduler.add_job(id = activity_id, func=cache_mongoDB, args=[project, activity], trigger="interval", seconds=seconds)
+                scheduler.add_job(id = activity_id, misfire_grace_time=120, func=cache_mongoDB, args=[project, activity], trigger="interval", seconds=seconds)
             
     else:
         for activity_id in activity_ids:
@@ -151,9 +150,9 @@ def start_trigger(project, trigger):
                 cache_data_to_mongoDB(project_name=project.name, key=activity.key)
 
             if "_test_gold_" in activity.name:
-                scheduler.add_job(id = activity_id, misfire_grace_time=5, func=cache_gold, args=[project, activity], trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)                
+                scheduler.add_job(id = activity_id, misfire_grace_time=120, func=cache_gold, args=[project, activity], trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)                
             elif "_test_mongo_" in activity.name:
-                scheduler.add_job(id = activity_id, misfire_grace_time=5, func=cache_mongoDB, args=[project, activity], trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
+                scheduler.add_job(id = activity_id, misfire_grace_time=120, func=cache_mongoDB, args=[project, activity], trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
 
 def stop_trigger(trigger):
     activity_ids = trigger.activity_ids

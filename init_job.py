@@ -13,6 +13,7 @@ config_obj = configparser.ConfigParser()
 config_obj.read("config.ini")
 amazonS3param = config_obj["amazonS3"]
 
+#Start project if Project's state is Running
 def init_project():
     #start connection S3
     hadoop_conf = spark._jsc.hadoopConfiguration()
@@ -30,16 +31,17 @@ def init_project():
         if project.state == 'RUNNING':
             start_project(project)
 
-
+#Start project
 def start_project(project):
     start_project_streaming(project)
     start_project_trigger(project)
 
+#Stop project
 def stop_project(project):
     stop_project_streaming(project)
     stop_project_trigger(project)
 
-#Streaming
+#Start Streaming if Streaming's state is ACTIVE
 def start_project_streaming(project):
     streams = StreammingDefinition.objects(project = project)
 
@@ -48,6 +50,7 @@ def start_project_streaming(project):
         if stream.status == 'ACTIVE':
             startStream(project=project, stream=stream)
 
+#Stop Streaming if Streaming's state is ACTIVE
 def stop_project_streaming(project):
     streams = StreammingDefinition.objects(project = project)
     # For each stream
@@ -55,47 +58,8 @@ def stop_project_streaming(project):
         if stream.status == 'ACTIVE':
             stopStream(project=project, stream=stream)
 
-#init Schedule jobs
-# def cron_data_to_Gold():
-#     print('Setup CronJob for copying data from Silver to Gold...')
-
-#     # Query all projects
-#     projects = Project.objects()
-
-#     # Query all apis in each project
-#     for project in projects:
-#         apis = ApisDefinition.objects(project = project)
-
-#         # For each stream
-#         for api in apis:
-#             cache_gold_analysis_query(project_name=project.name, sql=api.sql, key=api.key)
-
-# def cron_data_to_mongoDB():
-#     print('Schedule jobs copy data from Gold to MongoDB...')
-
-#     # Query all projects
-#     projects = Project.objects()
-
-#     # Query all apis in each project
-#     for project in projects:
-#         apis = ApisDefinition.objects(project = project)
-
-#         # For each stream
-#         for api in apis:
-#             cache_data_to_mongoDB(project_name=project.name, key=api.key)
-
+#Start Trigger if Trigger's state is ACTIVE
 def start_project_trigger(project):
-    # Setup CronJob for checking streaming
-    # scheduler.add_job(func=cron_check_streaming, trigger="interval", seconds=6000)
-
-    # Setup CronJob for copying data from silver to gold
-    #shceduler run mon to fri on every 0 and 30 minutes of each hour from 6h to 22h
-    # scheduler.add_job(func=cron_data_to_Gold, trigger="cron", minute='0', hour='6-22', day_of_week='mon-fri')
-
-    # Setup CronJob for copying data from gold to mongoDB
-    #shceduler run mon to fri on every 15 and 45 minutes of each hour from 6h to 22h
-    # scheduler.add_job(func=cron_data_to_mongoDB, trigger="cron", minute='5', hour='6-22', day_of_week='mon-fri')
-    
     triggers = TriggerDefinition.objects(project = project)
 
     # For each trigger
@@ -103,6 +67,7 @@ def start_project_trigger(project):
         if trigger.status == 'ACTIVE':
             start_trigger(project, trigger)
 
+#Stop Trigger if Trigger's state is ACTIVE
 def stop_project_trigger(project):
     
     triggers = TriggerDefinition.objects(project = project)
@@ -112,6 +77,7 @@ def stop_project_trigger(project):
         if trigger.status == 'ACTIVE':
             stop_trigger(trigger)
 
+#Start Trigger
 def start_trigger(project, trigger):
 
     activity_ids = trigger.activity_ids
@@ -154,6 +120,7 @@ def start_trigger(project, trigger):
             elif "_test_mongo_" in activity.name:
                 scheduler.add_job(id = activity_id, misfire_grace_time=120, func=cache_mongoDB, args=[project, activity], trigger="cron", minute=trigger.cron_minute, hour=trigger.cron_hour, day_of_week=trigger.cron_day_of_week)
 
+#Stop Trigger
 def stop_trigger(trigger):
     activity_ids = trigger.activity_ids
     for activity_id in activity_ids:

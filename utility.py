@@ -52,7 +52,7 @@ def startStream(project, stream):
     elif stream.method == 'APPEND':
         streamingBronzeToGoldAppendMethod(project_name=project.name, folder_name=dataset_sink.folder_name, table_name=stream.table_name_sink, schemaOnBronze=schemaOnBronze, schemaOnSilver=schemaOnSilver, query=query, stream_name=silver_stream_name, partitionedBy=stream.partition_by)
 
-    stream.save()
+    # stream.save()
 
 def stopStream(project, stream):
 
@@ -161,16 +161,6 @@ def streamingBronzeToGoldAppendMethod(project_name, folder_name, table_name, sch
         .foreachBatch(appendToDelta) \
         .start()
 
-#cache data to mongoDB
-def cache_data_to_mongoDB(project_name, key):
-    print('--------startTime: ' + str(time.time()))
-    res = spark.read.format("delta").load("/{project_name}/gold/gold_{key}".format(project_name=project_name, key=key))
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-    CacheQuery.objects(key=project_name + "_" + key).delete()
-    data = CacheQuery(key=project_name + "_" + key,value=results)
-    data.save()
-    print('--------endTime: ' + str(time.time()))
-
 #parseQuery
 def parseQuery(query, pathHDFS):
     queryRes = ''
@@ -204,4 +194,14 @@ def cache_gold_analysis_query(project_name, sql, key):
     print(sqlFormatted)
     res = spark.sql(sqlFormatted)
     res.write.format("delta").mode("overwrite").option("overwriteSchema", "true").save("/{project_name}/gold/gold_{key}".format(project_name=project_name, key=key))
+    print('--------endTime: ' + str(time.time()))
+
+#cache data to mongoDB
+def cache_data_to_mongoDB(project_name, key):
+    print('--------startTime: ' + str(time.time()))
+    res = spark.read.format("delta").load("/{project_name}/gold/gold_{key}".format(project_name=project_name, key=key))
+    results = res.toJSON().map(lambda j: json.loads(j)).collect()
+    CacheQuery.objects(key=project_name + "_" + key).delete()
+    data = CacheQuery(key=project_name + "_" + key,value=results)
+    data.save()
     print('--------endTime: ' + str(time.time()))

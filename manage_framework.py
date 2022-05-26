@@ -259,6 +259,7 @@ def update_streaming(current_user, project_id, streaming_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+# DELETE streaming by id
 @app.route('/project/<project_id>/streaming/<streaming_id>', methods =['DELETE'])
 @token_required
 def delete_streaming(current_user, project_id, streaming_id):
@@ -305,40 +306,6 @@ def create_dataset(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-# Update dataset in project
-# @app.route('/project/<project_id>/dataset/<ds_id>', methods =['PATCH'])
-# @token_required
-# def update_dataset(current_user, project_id, ds_id):
-#     jsonData = request.get_json()
-#     print('------')
-#     print(jsonData)
-#     print('------')
-#     print(project_id)
-  
-#     # gets project info
-#     dataset_name = jsonData['dataset_name']
-#     dataset_type = jsonData['dataset_type']
-#     folder_name = jsonData['folder_name']
-
-#     # checking for existing project
-#     project = Project.objects(id = project_id, user = current_user).first()
-
-#     if project:
-#         dataset = DataSetDefinition.objects(id=ds_id, project=project).first()
-
-#         if dataset:
-#             dataset.dataset_name = dataset_name
-#             dataset.dataset_type = dataset_type
-#             dataset.folder_name = folder_name
-#             dataset.save()
-
-#             return jsonify({'body': dataset})
-#         else:
-#             return make_response('Dataset does not exist.', 400)
-
-#     else:  
-#         return make_response('Project does not exist.', 400)
-
 # Get datasets in project
 @app.route('/project/<project_id>/dataset', methods =['GET'])
 @token_required
@@ -355,54 +322,7 @@ def get_dataset(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-# @app.route('/project/<project_id>/dataset/<ds_id>', methods =['DELETE'])
-# @token_required
-# def delete_dataset(current_user, project_id, ds_id):
-#     # checking for existing project
-#     project = Project.objects(id = project_id, user = current_user).first()
-
-#     if project:
-
-#         # TODO: update streaming that using this dataset
-#         # TODO: prevent delete if this dataset is using by any streaming
-
-#         DataSetDefinition(id = ds_id, project = project).delete()
-#     else:  
-#         return make_response('Project does not exist.', 400)
-
 ###################################################################### APIS ##################################################################
-# Create api in project
-@app.route('/project/<project_id>/apis', methods =['POST'])
-@token_required
-def create_api(current_user, project_id):
-    jsonData = request.get_json()
-  
-    # gets api info
-    key = jsonData['key']
-    description = jsonData['description']
-    sql = jsonData['sql']
-
-    # checking for existing project
-    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
-
-    if project:
-        new_api = ApisDefinition(project=project, key=key, description=description, sql=sql)
-        new_api.save()
-
-        # Create 2 activities: gold + mongo
-        ActivitiesDefinition(api=new_api, key=new_api.key, name=project.name + '_gold_' + key, sql=new_api.sql).save()
-        ActivitiesDefinition(api=new_api, key=new_api.key, name=project.name + '_mongo_' + key, sql='').save()
-
-        # Run api cache for first time
-        cache_gold_analysis_query(project_name=project.name, sql=new_api.sql, key=new_api.key)
-        cache_data_to_mongoDB(project_name=project.name, key=new_api.key)
-
-        response = {'body': new_api}
-        return track_activity(current_user, 'Create API', project, request, response)
-
-    else:  
-        return make_response('Project does not exist.', 400)
-
 # Create test api in project
 @app.route('/project/<project_id>/apis_test', methods =['POST'])
 @token_required
@@ -468,6 +388,7 @@ def create_api_test(current_user, project_id):
     else:  
         return make_response('Project does not exist.', 400)
 
+#check schema of Silver table to support for write API
 @app.route('/project/<project_id>/testSchema', methods =['POST'])
 @token_required
 def testSchema(current_user, project_id):
@@ -533,29 +454,10 @@ def update_api(current_user, project_id, api_id):
             api.tableFields=tableFields
             api.save()
 
-            # TODO: if change key --> delete old key
-            # TODO: run api cache for new key setup
-
             response = {'body': api}
             return track_activity(current_user, 'Update API', project, request, response)
         else:
             return make_response('Api does not exist.', 400)
-
-    else:  
-        return make_response('Project does not exist.', 400)
-
-# Get api in project
-@app.route('/project/<project_id>/apis', methods =['GET'])
-@token_required
-def get_apis(current_user, project_id):
-
-    # checking for existing project
-    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
-
-    if project:
-        apis = ApisDefinition.objects(project = project)
-
-        return jsonify({'body': apis})
 
     else:  
         return make_response('Project does not exist.', 400)
@@ -598,22 +500,6 @@ def get_api_test_by_id(current_user, project_id, api_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-# Get api by id
-@app.route('/project/<project_id>/apis/<api_id>', methods =['GET'])
-@token_required
-def get_api_by_id(current_user, project_id, api_id):
-
-    # checking for existing project
-    project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
-
-    if project:
-        api = ApisDefinition_Test.objects(id=api_id, project = project).first()
-
-        return jsonify({'body': api})
-
-    else:  
-        return make_response('Project does not exist.', 400)
-
 @app.route('/project/<project_id>/apis/<api_id>', methods =['DELETE'])
 @token_required
 def delete_api(current_user, project_id, api_id):
@@ -648,16 +534,12 @@ def delete_api_test(current_user, project_id, api_id):
     else:  
         return make_response('Project does not exist.', 400)
 
-
-
-
 ###################################################################### TRIGGERS ##################################################################
 # Create trigger in project
 @app.route('/project/<project_id>/trigger', methods =['POST'])
 @token_required
 def create_trigger(current_user, project_id):
     jsonData = request.get_json()
-
     # gets api info
     name = jsonData['name']
     status = jsonData['status']
@@ -670,25 +552,16 @@ def create_trigger(current_user, project_id):
     activity_ids = []
     for item in jsonData['activity_ids']:
         activity_ids.append(item)
-    
-
     # checking for existing project
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
-
     if project:
-
         new_trigger = TriggerDefinition(project=project, name=name, status=status, trigger_type=trigger_type, time_interval=time_interval, time_interval_unit=time_interval_unit, cron_day_of_week=cron_day_of_week, cron_hour=cron_hour, cron_minute=cron_minute, activity_ids=activity_ids)
-
         new_trigger.save()
-
-
         # Start trigger
         if new_trigger.status == 'ACTIVE':
             start_trigger(project=project, trigger=new_trigger)
-        
         response = {'body': new_trigger}
         return track_activity(current_user, 'Create Trigger', project, request, response)
-
     else:  
         return make_response('Project does not exist.', 400)
 
@@ -712,15 +585,12 @@ def get_triggers(current_user, project_id):
 @app.route('/project/<project_id>/triggers/<trigger_id>', methods =['GET'])
 @token_required
 def get_trigger_by_id(current_user, project_id, trigger_id):
-
     # checking for existing project
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
         trigger = TriggerDefinition.objects(id=trigger_id, project = project).first()
-
         return jsonify({'body': trigger})
-
     else:  
         return make_response('Project does not exist.', 400)
 
@@ -729,7 +599,6 @@ def get_trigger_by_id(current_user, project_id, trigger_id):
 @token_required
 def update_trigger(current_user, project_id, trigger_id):
     jsonData = request.get_json()
-  
     # gets api info
     name = jsonData['name']
     status = jsonData['status']
@@ -743,15 +612,12 @@ def update_trigger(current_user, project_id, trigger_id):
     for item in jsonData['activity_ids']:
         activity_ids.append(item)
     
-
     # checking for existing project
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
 
     if project:
-
         old_trigger = TriggerDefinition.objects(id=trigger_id, project=project).first()
         trigger = TriggerDefinition.objects(id=trigger_id, project=project).first()
-
         trigger.name = name
         trigger.status = status
         trigger.trigger_type = trigger_type
@@ -761,9 +627,7 @@ def update_trigger(current_user, project_id, trigger_id):
         trigger.cron_hour = cron_hour
         trigger.cron_minute = cron_minute
         trigger.activity_ids = activity_ids
-
         trigger.save()
-
 
         # Reset trigger
         if trigger.status != 'ACTIVE' and old_trigger.status == 'ACTIVE':
@@ -776,7 +640,6 @@ def update_trigger(current_user, project_id, trigger_id):
         
         response = {'body': "Updated sucessful!"}
         return track_activity(current_user, 'Update trigger', project, request, response)
-
     else:  
         return make_response('Project does not exist.', 400)
 
@@ -785,17 +648,12 @@ def update_trigger(current_user, project_id, trigger_id):
 def delete_trigger(current_user, project_id, trigger_id):
     # checking for existing project
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
-
     if project:
-
         old_trigger = TriggerDefinition(id = trigger_id, project = project).first()
         stop_trigger(trigger=old_trigger)
-
         TriggerDefinition(id = trigger_id, project = project).delete()
-
         response = make_response('Deleted.', 200)
         return track_activity(current_user, 'Delete Trigger', project, request, response)
-
     else:  
         return make_response('Project does not exist.', 400)
 
@@ -803,23 +661,16 @@ def delete_trigger(current_user, project_id, trigger_id):
 @app.route('/project/<project_id>/activities', methods =['GET'])
 @token_required
 def get_all_activities(current_user, project_id):
-
     # checking for existing project
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
-
     if project:
-
         apis = ApisDefinition_Test.objects(project=project)
-
         result = []
-
         for api in apis:
             activities = ActivitiesDefinition_Test.objects(api=api)
             for act in activities:
                 result.append(act)
-
         return jsonify({'body': result})
-
     else:  
         return make_response('Project does not exist.', 400)
 
@@ -827,31 +678,22 @@ def get_all_activities(current_user, project_id):
 @app.route('/project/<project_id>/trigger/<trigger_id>/activities', methods =['GET'])
 @token_required
 def get_activities_by_trigger(current_user, project_id, trigger_id):
-
     # checking for existing project
     project = Project.objects(id = project_id, user = get_parent_from_child(current_user)).first()
-
     if project:
-
         apis = ApisDefinition_Test.objects(project=project)
-
         triggers = TriggerDefinition.objects(project=project)
-
         found_trigger = TriggerDefinition.objects(id=trigger_id, project=project).first()
         print('found_trigger: ')
         print(found_trigger.id)
-
         result = []
-
         for api in apis:
             print('---------------------------------')
             activities = ActivitiesDefinition_Test.objects(api=api)
             for act in activities:
                 print('activity_id: ')
                 print(act.id)
-
                 is_used = False
-
                 for trigger in triggers:
                     print('trigger_id: ')
                     print(trigger.id)
@@ -868,15 +710,11 @@ def get_activities_by_trigger(current_user, project_id, trigger_id):
                     #     print(found_trigger.id)
                     #     is_used = False
                     print(is_used)
-                
                 if not is_used:
                     result.append(act)
-
         return jsonify({'body': result})
-
     else:  
         return make_response('Project does not exist.', 400)
-
 
 ####################################################################################################################
 # Get activities log in project
@@ -903,7 +741,7 @@ def upload_file():
         file = request.files['file']
         filename = secure_filename(file.filename)
         #   f.save()
-        path = os.path.join(app.config['UPLOAD_FOLDER'], filename);
+        path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         print('path: ' + str(path))
         file.save(path)
         return jsonify({'body': filename})

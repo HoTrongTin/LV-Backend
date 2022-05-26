@@ -16,8 +16,6 @@ from manage_framework import *
 from user_defined_class import *
 from utility import parseQuery
 
-from cronjobSilverToGold import *
-from cronjobGoldToMongoDB import *
 from build_models import buildModels
 from prediction import predict
 
@@ -27,51 +25,7 @@ CORS(app)
 def hello_world():
     return 'Hello, My name is SMART MEDICAL SYSTEM!'
 
-@app.route('/test-spark3/<id>')
-def test_spark3(id):
-    # start
-    t = time.localtime()
-    current_time = time.strftime("%H:%M:%S", t)
-    print('start-' + id + ': ' + current_time)
-    # --
-
-    df = spark.sql("""
-    select icd9.code, d_codeditems.itemid
-    from delta.`/delta_MIMIC2/icd9` icd9
-    join delta.`/delta_MIMIC2/drgevents` drgevents
-    join delta.`/delta_MIMIC2/d_codeditems` d_codeditems
-    on icd9.hadm_id = drgevents.hadm_id and d_codeditems.itemid = drgevents.itemid
-    """).toPandas()
-
-    res = []
-    totalCases = df[(df.itemid==id)].shape[0]
-    for code in set(df[(df.itemid==id)].code):
-        res.append([code, df[(df.itemid==id) & (df.code==code)].shape[0] / totalCases])
-
-    res = pd.DataFrame(np.array(res), columns = ['code', 'ratio']).sort_values(by='ratio',ascending=False).head(10)
-    res = spark.createDataFrame(res)
-
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-
-    # end
-    t = time.localtime()
-    current_time = time.strftime("%H:%M:%S", t)
-    print('end-' + id + ': ' + current_time)
-
-    return jsonify({'body': results})
-
-@app.route('/test-chartevents/<subject_id>')
-def test_chartevents(subject_id):
-    startTime = time.time()
-    res = spark.sql("""
-    select * from delta.`/delta_MIMIC2/chartevents` as chartevents
-    where subject_id = """ + subject_id)
-    print("Execution time: " + str(time.time() - startTime))
-
-    results = res.toJSON().map(lambda j: json.loads(j)).collect()
-
-    return jsonify({'body': results})
-
+#Test: get data from mongoDB
 @app.route('/project/<project_id>/get-cached-data')
 @token_required
 def get_cached_data(current_user, project_id):
@@ -86,6 +40,7 @@ def get_cached_data(current_user, project_id):
     else:
         return make_response('Project does not exist.', 400)
 
+#Test: filter data in mongoDB
 @app.route('/analysis-clinical-diseases-by-month', methods=['POST'])
 def test():
     months = request.json['months']
@@ -97,6 +52,7 @@ def test():
             res.append(item)
     return jsonify({'body': res})
 
+#Test: check query with tranform code sql add path = '/medical/silver/'
 @app.route('/queryFormatted', methods=['POST'])
 def queryFormatted():
     jsonData = request.get_json()
@@ -111,6 +67,7 @@ def queryFormatted():
     return jsonify({'time to execute': time.time() - startTime,
                     'body': results})
 
+#Test: check query
 @app.route('/query', methods=['POST'])
 def query():
     jsonData = request.get_json()
@@ -125,30 +82,7 @@ def query():
     return jsonify({'time to execute': time.time() - startTime,
                     'body': results})
 
-@app.route('/manual-copy-gold')
-def manual_copy_gold():
-    gold_analyze_admissions_and_deied_patients_in_hospital()
-    gold_analyze_state_affect_total_died_patients()
-    gold_analyze_patients_died_in_hospital()
-    return jsonify({'body': 'Copy successful!'})
-
-@app.route('/manual-copy-mongoDB')
-def manual_copy_mongoDB():
-    cache_mongoDB_analyze_admissions_and_deied_patients_in_hospital()
-    cache_mongoDB_analyze_state_affect_total_died_patients()
-    cache_mongoDB_analyze_patients_died_in_hospital()
-    return jsonify({'body': 'Copy successful!'})
-
-@app.route('/manual-stop-scheduler')
-def manual_stop_scheduler():
-    scheduler.remove_all_jobs()
-    return jsonify({'body': 'Stop scheduler successful!'})
-
-@app.route('/manual-start-scheduler')
-def manual_start_scheduler():
-    scheduler.start()
-    return jsonify({'body': 'Stop scheduler successful!'})
-
+#Get all streaming running on spark
 @app.route('/get-spark-streaming')
 def get_spark_streaming():
     ls = []
@@ -156,13 +90,15 @@ def get_spark_streaming():
         ls.append({'id': stream.id,'name': stream.name})
     return jsonify({'body': ls})
 
+#Get all scheduler jobs running
 @app.route('/scheduler-jobs')
 def get_scheduler_jobs():
     print('+++++++++++++++ JOBS ++++++++++++++')
     scheduler.print_jobs()
     print('+++++++++++++++ ENDD ++++++++++++++')
-    return jsonify({'body': '+++++++++++++++ ENDD ++++++++++++++'})
+    return jsonify({'body': 'Get successful!'})
 
+#Build 10 models
 @app.route('/build-models')
 def build_models():
     startTime = time.time()
@@ -171,6 +107,7 @@ def build_models():
     return jsonify({'body': 'Build models successful!',
                     'time to execute': time.time() - startTime})
 
+#Predict csv file with option model
 @app.route('/predict', methods=['POST'])
 def predictModels():
     jsonData = request.get_json()
@@ -185,8 +122,6 @@ def predictModels():
         res = predict(algorithm, filename = filename)
         results = res.toJSON().map(lambda j: json.loads(j)).collect()
         return jsonify({'body': results})
-
-#init trigger by schedule
 
 # Shut down the scheduler when exiting the app
 atexit.register(lambda: scheduler.shutdown())
